@@ -164,7 +164,10 @@
     c.state = 'opening'; c.life = 0;
     ripples.push({ x: c.x, y: c.y, r: c.size * .38, alpha: .62, hue: c.hue });
     particles.forEach(particle => {
-      if (particle.fadeAt == null) particle.fadeAt = particle.life;
+      if (particle.fadeAt == null) {
+        particle.fadeAt = particle.life;
+        particle.fadeDuration = .75;
+      }
     });
     let birdType = -1;
     if (c.meaning === 'bird') {
@@ -173,17 +176,18 @@
     }
     const activeScenes = scenes.filter(scene => scene.life >= 0 && scene.life < scene.max);
     const currentScene = activeScenes[activeScenes.length - 1];
-    const crossfadeTime = 2.2;
+    const outgoingFadeTime = .75;
     activeScenes.slice(0, -1).forEach(scene => { scene.max = scene.life; });
     if (currentScene) {
-      // Begin both sides of the transition immediately: the previous scene
-      // fades out while the selected scene fades in on the same frame.
-      currentScene.max = Math.min(currentScene.max, currentScene.life + crossfadeTime);
+      // Clear the previous painting quickly so two detailed scenes never
+      // remain fully visible together.
+      currentScene.exitDuration = outgoingFadeTime;
+      currentScene.max = Math.min(currentScene.max, currentScene.life + outgoingFadeTime);
     }
     scenes.push({
       kind: c.meaning, x: c.x, y: c.y,
       life: 0, max: c.meaning === 'flower' ? 16 : c.meaning === 'sun' ? 13 : 15,
-      hue: c.hue, birdType
+      enterDuration: 1.4, exitDuration: 2.2, hue: c.hue, birdType
     });
     const count = reduced ? 18 : c.meaning === 'flower' ? 72 : 54;
     for (let i = 0; i < count; i++) {
@@ -294,7 +298,7 @@
     if (p.life < 0) return;
     p.x += p.vx * dt; p.y += p.vy * dt; p.rotation += p.spin * dt;
     const naturalFade = Math.max(0, 1 - p.life / p.max);
-    const transitionFade = p.fadeAt == null ? 1 : clamp(1 - (p.life - p.fadeAt) / 1.4, 0, 1);
+    const transitionFade = p.fadeAt == null ? 1 : clamp(1 - (p.life - p.fadeAt) / (p.fadeDuration || 1.4), 0, 1);
     const alpha = p.alpha * naturalFade * transitionFade;
     ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rotation);
     if (p.kind === 'flowerHead') {
@@ -369,8 +373,8 @@
   function sceneOpacity(scene) {
     if (scene.life < 0) return 0;
     const smooth = value => value * value * (3 - 2 * value);
-    const enter = smooth(clamp(scene.life / 2.2, 0, 1));
-    const exit = smooth(clamp((scene.max - scene.life) / 2.2, 0, 1));
+    const enter = smooth(clamp(scene.life / (scene.enterDuration || 2.2), 0, 1));
+    const exit = smooth(clamp((scene.max - scene.life) / (scene.exitDuration || 2.2), 0, 1));
     return Math.min(enter, exit);
   }
 
@@ -560,7 +564,7 @@
     for (let i = characters.length - 1; i >= 0; i--) if (characters[i].state === 'gone') characters.splice(i, 1);
     for (let i = particles.length - 1; i >= 0; i--) {
       const particle = particles[i];
-      if (particle.life > particle.max || (particle.fadeAt != null && particle.life > particle.fadeAt + 1.4)) particles.splice(i, 1);
+      if (particle.life > particle.max || (particle.fadeAt != null && particle.life > particle.fadeAt + (particle.fadeDuration || 1.4))) particles.splice(i, 1);
     }
     for (let i = ripples.length - 1; i >= 0; i--) if (ripples[i].alpha <= 0) ripples.splice(i, 1);
     for (let i = scenes.length - 1; i >= 0; i--) if (scenes[i].life > scenes[i].max) scenes.splice(i, 1);
