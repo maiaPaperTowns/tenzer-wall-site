@@ -163,6 +163,9 @@
     if (c.state !== 'falling') return;
     c.state = 'opening'; c.life = 0;
     ripples.push({ x: c.x, y: c.y, r: c.size * .38, alpha: .62, hue: c.hue });
+    particles.forEach(particle => {
+      if (particle.fadeAt == null) particle.fadeAt = particle.life;
+    });
     let birdType = -1;
     if (c.meaning === 'bird') {
       birdType = (lastBirdType + 1 + Math.floor(Math.random() * 5)) % 6;
@@ -290,7 +293,9 @@
     p.life += dt; p.vx *= Math.pow(.985, dt * 60); p.vy += (p.kind === 'petal' ? 13 : 1.5) * dt;
     if (p.life < 0) return;
     p.x += p.vx * dt; p.y += p.vy * dt; p.rotation += p.spin * dt;
-    const alpha = p.alpha * Math.max(0, 1 - p.life / p.max);
+    const naturalFade = Math.max(0, 1 - p.life / p.max);
+    const transitionFade = p.fadeAt == null ? 1 : clamp(1 - (p.life - p.fadeAt) / 2.2, 0, 1);
+    const alpha = p.alpha * naturalFade * transitionFade;
     ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rotation);
     if (p.kind === 'flowerHead') {
       const open = 1 - Math.pow(1-clamp(p.life*.7,0,1),3), cell = flowerHeads.width/3;
@@ -553,7 +558,10 @@
       ctx.beginPath(); ctx.arc(r.x, r.y, r.r, 0, Math.PI * 2); ctx.lineWidth = 1.4; ctx.strokeStyle = `hsla(${r.hue},55%,52%,${Math.max(0,r.alpha)})`; ctx.stroke();
     });
     for (let i = characters.length - 1; i >= 0; i--) if (characters[i].state === 'gone') characters.splice(i, 1);
-    for (let i = particles.length - 1; i >= 0; i--) if (particles[i].life > particles[i].max) particles.splice(i, 1);
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const particle = particles[i];
+      if (particle.life > particle.max || (particle.fadeAt != null && particle.life > particle.fadeAt + 2.2)) particles.splice(i, 1);
+    }
     for (let i = ripples.length - 1; i >= 0; i--) if (ripples[i].alpha <= 0) ripples.splice(i, 1);
     for (let i = scenes.length - 1; i >= 0; i--) if (scenes[i].life > scenes[i].max) scenes.splice(i, 1);
     requestAnimationFrame(frame);
