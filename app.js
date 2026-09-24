@@ -294,7 +294,7 @@
     if (p.life < 0) return;
     p.x += p.vx * dt; p.y += p.vy * dt; p.rotation += p.spin * dt;
     const naturalFade = Math.max(0, 1 - p.life / p.max);
-    const transitionFade = p.fadeAt == null ? 1 : clamp(1 - (p.life - p.fadeAt) / 2.2, 0, 1);
+    const transitionFade = p.fadeAt == null ? 1 : clamp(1 - (p.life - p.fadeAt) / 1.4, 0, 1);
     const alpha = p.alpha * naturalFade * transitionFade;
     ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rotation);
     if (p.kind === 'flowerHead') {
@@ -560,7 +560,7 @@
     for (let i = characters.length - 1; i >= 0; i--) if (characters[i].state === 'gone') characters.splice(i, 1);
     for (let i = particles.length - 1; i >= 0; i--) {
       const particle = particles[i];
-      if (particle.life > particle.max || (particle.fadeAt != null && particle.life > particle.fadeAt + 2.2)) particles.splice(i, 1);
+      if (particle.life > particle.max || (particle.fadeAt != null && particle.life > particle.fadeAt + 1.4)) particles.splice(i, 1);
     }
     for (let i = ripples.length - 1; i >= 0; i--) if (ripples[i].alpha <= 0) ripples.splice(i, 1);
     for (let i = scenes.length - 1; i >= 0; i--) if (scenes[i].life > scenes[i].max) scenes.splice(i, 1);
