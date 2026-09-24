@@ -25,12 +25,14 @@
   const flowerHeads = new Image(); flowerHeads.src = 'assets/cherry-blossom-heads.png';
   const sunPainting = new Image(); sunPainting.src = 'assets/golden-sun-clouds.png';
   const sunCurrents = new Image(); sunCurrents.src = 'assets/sun-golden-currents.png';
-  const rainbowPainting = new Image(); rainbowPainting.src = 'assets/rainbow-full-canvas.png';
+  const rainbowMountains = new Image(); rainbowMountains.src = 'assets/rainbow-mountains-clean.png';
+  const rainbowArc = new Image(); rainbowArc.src = 'assets/rainbow-arc-cutout.png';
   const rainPainting = new Image(); rainPainting.src = 'assets/rain-ink-village.png';
   const birdSpecies = new Image(); birdSpecies.src = 'assets/painted-bird-species.png';
   const mountainLayers = new Image(); mountainLayers.src = 'assets/mountain-layers.png';
   const thunderPainting = new Image(); thunderPainting.src = 'assets/thunder-storm-clouds.png';
   const preparedMountainLayers = [];
+  const preparedRainbowMountains = [];
   let preparedSunArt = null;
 
   const rand = (a, b) => a + Math.random() * (b - a);
@@ -67,10 +69,39 @@
     sunCtx.putImageData(pixels, 0, 0);
   }
 
+  function prepareRainbowMountains() {
+    if (!rainbowMountains.width || preparedRainbowMountains.length) return;
+    const shapes = [
+      [[0,.08],[.25,.1],[.39,.58],[.46,1],[0,1]],
+      [[.1,.24],[.48,.2],[.58,.67],[.47,.91],[.08,.84]],
+      [[.27,.12],[.73,.1],[.73,.65],[.31,.72]],
+      [[.52,.2],[.88,.08],[.97,.7],[.7,.91],[.52,.65]],
+      [[.71,.07],[1,.03],[1,1],[.64,1],[.68,.58]]
+    ];
+    shapes.forEach(points => {
+      const layer = document.createElement('canvas');
+      layer.width = rainbowMountains.width; layer.height = rainbowMountains.height;
+      const layerCtx = layer.getContext('2d');
+      layerCtx.drawImage(rainbowMountains, 0, 0);
+      const mask = document.createElement('canvas');
+      mask.width = layer.width; mask.height = layer.height;
+      const maskCtx = mask.getContext('2d');
+      maskCtx.filter = `blur(${Math.max(18, layer.width * .018)}px)`;
+      maskCtx.beginPath();
+      points.forEach(([x,y], index) => (index ? maskCtx.lineTo(x*layer.width,y*layer.height) : maskCtx.moveTo(x*layer.width,y*layer.height)));
+      maskCtx.closePath(); maskCtx.fillStyle = '#000'; maskCtx.fill();
+      layerCtx.globalCompositeOperation = 'destination-in';
+      layerCtx.drawImage(mask, 0, 0);
+      preparedRainbowMountains.push(layer);
+    });
+  }
+
   mountainLayers.addEventListener('load', prepareMountains);
   sunPainting.addEventListener('load', prepareSunArt);
+  rainbowMountains.addEventListener('load', prepareRainbowMountains);
   if (mountainLayers.complete) prepareMountains();
   if (sunPainting.complete) prepareSunArt();
+  if (rainbowMountains.complete) prepareRainbowMountains();
 
   function resize() {
     dpr = Math.min(devicePixelRatio || 1, 2);
@@ -137,8 +168,10 @@
       birdType = (lastBirdType + 1 + Math.floor(Math.random() * 5)) % 6;
       lastBirdType = birdType;
     }
-    const currentScene = [...scenes].reverse().find(scene => scene.life >= 0 && scene.life < scene.max);
-    const crossfadeTime = 2.6;
+    const activeScenes = scenes.filter(scene => scene.life >= 0 && scene.life < scene.max);
+    const currentScene = activeScenes[activeScenes.length - 1];
+    const crossfadeTime = 2.2;
+    activeScenes.slice(0, -1).forEach(scene => { scene.max = scene.life; });
     if (currentScene) {
       // Begin both sides of the transition immediately: the previous scene
       // fades out while the selected scene fades in on the same frame.
@@ -146,7 +179,7 @@
     }
     scenes.push({
       kind: c.meaning, x: c.x, y: c.y,
-      life: 0, max: c.meaning === 'flower' ? 14 : c.meaning === 'sun' ? 13 : 15,
+      life: 0, max: c.meaning === 'flower' ? 16 : c.meaning === 'sun' ? 13 : 15,
       hue: c.hue, birdType
     });
     const count = reduced ? 18 : c.meaning === 'flower' ? 72 : 54;
@@ -166,7 +199,7 @@
       });
     }
     if (c.meaning === 'flower') {
-      const clusters = reduced ? 3 : clamp(Math.round(w / 420), 3, 6);
+      const clusters = reduced ? 4 : clamp(Math.round(w / 360), 5, 9);
       for (let i = 0; i < clusters; i++) {
         const progress = clusters <= 1 ? 0 : i / (clusters - 1);
         const angle = i * 2.39996 + rand(-.22, .22);
@@ -177,16 +210,16 @@
           y: clamp(c.y + Math.sin(angle) * radius, -h * .05, h * 1.05),
           vx: rand(-2, 2), vy: rand(-4, 2), size: rand(Math.min(w,h) * .14, Math.min(w,h) * .31),
           sprite: i % blossomSprites.length,
-          hue: 340, alpha: rand(.5,.82), life: -progress * rand(2.2, 3.4), max: rand(9, 12), spin: rand(-.02,.02), rotation: rand(-.5,.5)
+          hue: 340, alpha: rand(.5,.82), life: -progress * rand(2.2, 3.4), max: rand(12, 16), spin: rand(-.02,.02), rotation: rand(-.5,.5)
         });
       }
-      const flowers = reduced ? 22 : clamp(Math.round((w*h)/12500), 58, 120);
+      const flowers = reduced ? 30 : clamp(Math.round((w*h)/9500), 90, 180);
       for (let i = 0; i < flowers; i++) {
         const progress = i / Math.max(1, flowers - 1), angle = i * 2.39996 + rand(-.35,.35);
         const radius = Math.sqrt(progress) * Math.hypot(w,h) * .6;
-        particles.push({ kind:'flowerHead', x:clamp(c.x+Math.cos(angle)*radius,18,w-18), y:clamp(c.y+Math.sin(angle)*radius,18,h-18), vx:rand(-1,1), vy:rand(-2,1), size:rand(22,Math.min(w,h)*.075), sprite:i%9, hue:340, alpha:rand(.55,.88), life:-progress*3.4-rand(0,.35), max:rand(8,12), spin:rand(-.08,.08), rotation:rand(-Math.PI,Math.PI) });
+        particles.push({ kind:'flowerHead', x:clamp(c.x+Math.cos(angle)*radius,18,w-18), y:clamp(c.y+Math.sin(angle)*radius,18,h-18), vx:rand(-1,1), vy:rand(-2,1), size:rand(22,Math.min(w,h)*.075), sprite:i%9, hue:340, alpha:rand(.55,.88), life:-progress*3.4-rand(0,.35), max:rand(12,16), spin:rand(-.08,.08), rotation:rand(-Math.PI,Math.PI) });
       }
-      for (let i = 0; i < (reduced ? 20 : 95); i++) {
+      for (let i = 0; i < (reduced ? 28 : 140); i++) {
         const a = rand(0, Math.PI * 2), speed = rand(Math.min(w,h)*.08, Math.min(w,h)*.32);
         particles.push({ kind: 'petal', x: c.x, y: c.y, vx: Math.cos(a)*speed + w*.025, vy: Math.sin(a)*speed*.62 - 12, size: rand(5,15), hue: rand(330,350), alpha: rand(.45,.9), life: -(i/95)*1.4, max: rand(6,10), spin: rand(-3,3), rotation: rand(0,6) });
       }
@@ -330,8 +363,9 @@
 
   function sceneOpacity(scene) {
     if (scene.life < 0) return 0;
-    const enter = 1 - Math.pow(1 - clamp(scene.life / 1.4, 0, 1), 3);
-    const exit = 1 - Math.pow(1 - clamp((scene.max - scene.life) / 2.6, 0, 1), 3);
+    const smooth = value => value * value * (3 - 2 * value);
+    const enter = smooth(clamp(scene.life / 2.2, 0, 1));
+    const exit = smooth(clamp((scene.max - scene.life) / 2.2, 0, 1));
     return Math.min(enter, exit);
   }
 
@@ -388,20 +422,39 @@
           drawLightningBolt(cycle + 31, intensity); ctx.restore();
         }
       } else if (s.kind === 'rainbow') {
-        if (!rainbowPainting.complete || !rainbowPainting.width) return;
-        const reveal = 1-Math.pow(1-clamp(s.life/2.8,0,1),3);
-        const backgroundRatio = rainbowPainting.width/rainbowPainting.height;
+        if (!rainbowMountains.complete || !rainbowMountains.width || !rainbowArc.complete || !rainbowArc.width) return;
+        const reveal = 1-Math.pow(1-clamp(s.life/1.5,0,1),3);
+        const backgroundRatio = rainbowMountains.width/rainbowMountains.height;
         const screenRatio = w/h;
         const backgroundW = screenRatio>backgroundRatio ? w : h*backgroundRatio;
         const backgroundH = screenRatio>backgroundRatio ? w/backgroundRatio : h;
-        ctx.save();
-        ctx.translate(w*.5,h*.5);
-        const scale = 1.04-reveal*.04;
-        ctx.scale(scale,scale);
-        ctx.globalAlpha = fade*reveal*.96;
-        ctx.filter = `blur(${(1-reveal)*8}px)`;
-        ctx.drawImage(rainbowPainting,-backgroundW*.5,-backgroundH*.5,backgroundW,backgroundH);
-        ctx.restore();
+        const backgroundX=(w-backgroundW)*.5, backgroundY=(h-backgroundH)*.5;
+        ctx.save(); ctx.globalAlpha=fade*reveal*.24;
+        ctx.drawImage(rainbowMountains,backgroundX,backgroundY,backgroundW,backgroundH); ctx.restore();
+        preparedRainbowMountains.forEach((layer,index)=>{
+          const delay=.18+index*.28;
+          const rise=1-Math.pow(1-clamp((s.life-delay)/1.35,0,1),3);
+          if(!rise)return;
+          ctx.save();
+          ctx.globalAlpha=fade*rise*.9;
+          ctx.translate(0,(1-rise)*h*.055);
+          ctx.drawImage(layer,backgroundX,backgroundY,backgroundW,backgroundH);
+          ctx.restore();
+        });
+        const rainbowProgress=1-Math.pow(1-clamp((s.life-.55)/3.8,0,1),3);
+        if(rainbowProgress>0){
+          const boundary=h*clamp(rainbowProgress*1.08,0,1);
+          const feather=h*.055;
+          ctx.save();
+          ctx.translate(0,(1-rainbowProgress)*-h*.035);
+          [[feather*1.5,.14],[feather*.75,.24],[0,.66]].forEach(([extra,alpha])=>{
+            ctx.save(); ctx.beginPath(); ctx.rect(0,0,w,boundary+extra); ctx.clip();
+            ctx.globalAlpha=fade*alpha;
+            ctx.drawImage(rainbowArc,backgroundX,backgroundY,backgroundW,backgroundH);
+            ctx.restore();
+          });
+          ctx.restore();
+        }
       } else if (s.kind === 'mountain') {
         if (!preparedMountainLayers.length) return;
         const rows = preparedMountainLayers.length;
