@@ -6,16 +6,15 @@
   const hint = document.querySelector('#hint');
   const soundButton = document.querySelector('#sound');
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const KANJI = [
-    { glyph: '花', meaning: 'flower', hue: 340 },
-    { glyph: '日', meaning: 'sun', hue: 42 },
-    { glyph: '鳥', meaning: 'bird', hue: 198 },
-    { glyph: '山', meaning: 'mountain', hue: 176 }
-  ];
-  let w = 0, h = 0, dpr = 1, last = performance.now(), started = false, lastBirdType = -1;
-  let audio, wind;
-  const characters = [], particles = [], ripples = [], scenes = [];
-  const spawnCounts = KANJI.map(() => 0);
+  // Windows infrared touch can synthesize a right-click after a long hold.
+  // Capture on the document so this also covers controls and future overlays.
+  document.addEventListener('contextmenu', event => event.preventDefault(), { capture: true });
+  document.addEventListener('dragstart', event => event.preventDefault(), { capture: true });
+  let entries = [], ready = false;
+  let w = 0, h = 0, dpr = 1, last = performance.now(), started = false;
+  let audio, wind, sceneSound;
+  const characters = [], ripples = [], scenes = [];
+  let spawnCounts = [];
   const rand = (a, b) => a + Math.random() * (b - a);
   const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 
@@ -27,12 +26,14 @@
   }
 
   function spawnCharacter(startY = null) {
-    const activeCounts = KANJI.map(type => characters.filter(c => c.state === 'falling' && c.meaning === type.meaning).length);
+    const activeCounts = entries.map(type => characters.filter(c => c.state === 'falling' && c.id === type.id).length);
     const lowestActive = Math.min(...activeCounts);
-    const candidates = KANJI.map((type, index) => ({ type, index }))
+    const candidates = entries.map((type, index) => ({ type, index }))
       .filter(({ index }) => activeCounts[index] === lowestActive)
       .sort((a, b) => spawnCounts[a.index] - spawnCounts[b.index]);
-    const { type, index:typeIndex } = candidates[0];
+    const leastSpawned=spawnCounts[candidates[0].index];
+    const balanced=candidates.filter(candidate=>spawnCounts[candidate.index]===leastSpawned);
+    const { type, index:typeIndex } = balanced[Math.floor(Math.random()*balanced.length)];
     spawnCounts[typeIndex]++;
     const wallScale = w / Math.max(h, 1) > 2.4 ? 1.18 : 1;
     const size = clamp(Math.min(w, h) * rand(.105, .17) * wallScale, 84, 360);
@@ -79,20 +80,9 @@
     if (c.state !== 'falling') return;
     c.state = 'opening'; c.life = 0;
     ripples.push({ x: c.x, y: c.y, r: c.size * .38, alpha: .62, hue: c.hue });
-    particles.forEach(particle => {
-      if (particle.fadeAt == null) {
-        particle.fadeAt = particle.life;
-        particle.fadeDuration = .75;
-      }
-    });
-    let birdType = -1;
-    if (c.meaning === 'bird') {
-      birdType = (lastBirdType + 1 + Math.floor(Math.random() * 5)) % 6;
-      lastBirdType = birdType;
-    }
     const activeScenes = scenes.filter(scene => scene.life >= 0 && scene.life < scene.max);
     const currentScene = activeScenes[activeScenes.length - 1];
-    const outgoingFadeTime = .75;
+    const outgoingFadeTime = c.transitions.switch;
     activeScenes.slice(0, -1).forEach(scene => { scene.max = scene.life; });
     if (currentScene) {
       // Clear the previous painting quickly so two detailed scenes never
@@ -101,11 +91,17 @@
       currentScene.max = Math.min(currentScene.max, currentScene.life + outgoingFadeTime);
     }
     scenes.push({
-      kind: c.meaning, x: c.x, y: c.y,
-      life: 0, max: c.meaning === 'flower' ? 16 : c.meaning === 'sun' ? 13 : 15,
-      enterDuration: 1.4, exitDuration: 2.2, hue: c.hue, birdType
+      entry: c, x: c.x, y: c.y,
+      life: 0, max: c.duration,
+      enterDuration: c.transitions.enter, exitDuration: c.transitions.exit, hue: c.hue
     });
-    if (audio) chime(c.meaning === 'flower' ? 523.25 : c.meaning === 'rainbow' ? 659.25 : c.meaning === 'rain' ? 440 : c.meaning === 'bird' ? 783.99 : c.meaning === 'mountain' ? 329.63 : c.meaning === 'thunder' ? 196 : 392);
+    if(sceneSound) {sceneSound.pause();sceneSound=null;}
+    if (audio?.state === 'running' && c.sound) {
+      if(c.sound.src) {
+        sceneSound=new Audio(c.sound.src);sceneSound.volume=c.sound.volume ?? .5;
+        sceneSound.play().catch(()=>{hint.textContent='Sound unavailable — touch another character';});
+      } else if(c.sound.frequency) chime(c.sound.frequency);
+    }
     setTimeout(() => { if (started) spawnCharacter(); }, reduced ? 700 : 2200);
   }
 
@@ -129,6 +125,7 @@
       soundButton.textContent = 'Sound on'; soundButton.setAttribute('aria-pressed', 'true');
     } else {
       const on = audio.state === 'running'; (on ? audio.suspend() : audio.resume());
+      if(on && sceneSound) sceneSound.pause();
       soundButton.textContent = on ? 'Sound off' : 'Sound on'; soundButton.setAttribute('aria-pressed', String(!on));
     }
   }
@@ -161,6 +158,12 @@
     ctx.save(); ctx.translate(c.x, c.y); ctx.rotate(c.rotation); ctx.scale(c.scale, c.scale);
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.font = `400 ${c.size}px "Aoyagi Kouzan", KaiTi, STKaiti, "Yu Mincho", serif`;
+    if(c.kanjiImage) {
+      const ratio=c.kanjiImage.naturalWidth/c.kanjiImage.naturalHeight;
+      const iw=c.size*Math.min(1,ratio), ih=c.size/Math.max(1,ratio);
+      ctx.globalAlpha=c.alpha;ctx.drawImage(c.kanjiImage,-iw/2,-ih/2,iw,ih);
+      ctx.restore();return;
+    }
     ctx.shadowColor = 'rgba(225,239,240,.45)'; ctx.shadowBlur = c.size * .08;
     ctx.fillStyle = `rgba(28,48,56,${c.alpha * .87})`; ctx.fillText(c.glyph, 0, 0);
     ctx.lineWidth = Math.max(1, c.size * .012); ctx.strokeStyle = `rgba(255,255,249,${c.alpha * .2})`; ctx.strokeText(c.glyph, 1, 1);
@@ -181,7 +184,7 @@
     ctx.clearRect(0, 0, w, h);
     scenes.forEach(s => {
       s.life += elapsed; const fade = sceneOpacity(s);
-      if (s.life < 0) return;
+      if (s.life < 0 || fade <= 0) return;
       window.drawStockScene(ctx, s, fade, w, h, reduced);
     });
     resolveCharacterSpacing();
@@ -191,10 +194,6 @@
       ctx.beginPath(); ctx.arc(r.x, r.y, r.r, 0, Math.PI * 2); ctx.lineWidth = 1.4; ctx.strokeStyle = `hsla(${r.hue},55%,52%,${Math.max(0,r.alpha)})`; ctx.stroke();
     });
     for (let i = characters.length - 1; i >= 0; i--) if (characters[i].state === 'gone') characters.splice(i, 1);
-    for (let i = particles.length - 1; i >= 0; i--) {
-      const particle = particles[i];
-      if (particle.life > particle.max || (particle.fadeAt != null && particle.life > particle.fadeAt + (particle.fadeDuration || 1.4))) particles.splice(i, 1);
-    }
     for (let i = ripples.length - 1; i >= 0; i--) if (ripples[i].alpha <= 0) ripples.splice(i, 1);
     for (let i = scenes.length - 1; i >= 0; i--) if (scenes[i].life > scenes[i].max) scenes.splice(i, 1);
     requestAnimationFrame(frame);
@@ -202,15 +201,34 @@
 
   async function loadKanjiFonts() {
     if (!document.fonts) return;
-    await document.fonts.load('400 120px "Aoyagi Kouzan"', '花日');
+    await document.fonts.load('400 120px "Aoyagi Kouzan"', entries.map(e=>e.glyph||'').join(''));
   }
 
   async function start() {
-    if (started) return; started = true; intro.classList.add('hidden');
-    await loadKanjiFonts();
+    if (started || !ready) return; started = true; intro.classList.add('hidden');
     const initialCount = clamp(Math.round(w / 1600) + 2, 3, 7);
     for (let i = 0; i < initialCount; i++) {
       spawnCharacter(h * (.1 + (i / Math.max(1, initialCount - 1)) * .78));
+    }
+  }
+
+  async function initialize() {
+    const status=document.querySelector('#dataset-status');
+    begin.disabled=true;begin.textContent='Loading artwork…';
+    try {
+      const dataset=await window.TenzerConfig.load(new URLSearchParams(location.search).get('dataset') || 'config.json');
+      document.title=dataset.title;document.body.style.background=dataset.background;
+      const results=await Promise.allSettled(dataset.entries.map(window.TenzerScenes.prepare));
+      entries=results.filter(r=>r.status==='fulfilled').map(r=>r.value);
+      const missing=results.map((r,i)=>r.status==='rejected'?dataset.entries[i].meaning:null).filter(Boolean);
+      if(!entries.length)throw Error('No artwork could be loaded. Check the asset paths and connection.');
+      spawnCounts=entries.map(()=>0);
+      await loadKanjiFonts().catch(()=>{});
+      status.textContent=missing.length?'Unavailable artwork: '+missing.join(', ')+'. Other characters are ready.':'';
+      ready=true;begin.disabled=false;begin.textContent='Begin';
+    } catch(error) {
+      status.textContent='Unable to start: '+error.message;
+      begin.textContent='Artwork unavailable';
     }
   }
 
@@ -245,6 +263,7 @@
 
     // The artwork remains usable if the gesture library cannot be loaded.
     canvas.addEventListener('pointerup', event => {
+      if (event.button !== 0) return;
       if (!started) start();
       interact(event.clientX, event.clientY);
     });
@@ -254,5 +273,6 @@
   begin.addEventListener('click', start);
   soundButton.addEventListener('click', toggleSound);
   bindWallInput();
+  initialize();
   addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (!started) start(); else { const c = characters.find(c => c.state === 'falling'); if (c) burst(c); } } });
 })();

@@ -1,0 +1,375 @@
+{
+  "version": 1,
+  "title": "Tenzer Wall · Prototype 2",
+  "background": "#eee8da",
+  "transitions": {
+    "enter": 1.4,
+    "exit": 2.2,
+    "switch": 0.75
+  },
+  "entries": [
+    {
+      "id": "flower",
+      "glyph": "花",
+      "meaning": "Flower",
+      "behavior": "bloom",
+      "hue": 340,
+      "duration": 16,
+      "sound": {
+        "frequency": 523.25
+      },
+      "assets": [
+        "assets/stock/azalea.jpg",
+        "assets/stock/rose.jpg",
+        "assets/stock/pink-clusters.jpg",
+        "assets/stock/cherry-photo.png",
+        "assets/stock/botanical.jpg"
+      ],
+      "crops": [
+        {
+          "asset": 0,
+          "crop": [
+            0.335,
+            0.19,
+            0.345,
+            0.445
+          ]
+        },
+        {
+          "asset": 1,
+          "crop": [
+            0.285,
+            0.125,
+            0.265,
+            0.33
+          ]
+        },
+        {
+          "asset": 2,
+          "crop": [
+            0.347,
+            0.373,
+            0.2,
+            0.235
+          ]
+        },
+        {
+          "asset": 2,
+          "crop": [
+            0.523,
+            0.22,
+            0.197,
+            0.24
+          ]
+        },
+        {
+          "asset": 3,
+          "crop": [
+            0.43,
+            0.29,
+            0.12,
+            0.1
+          ]
+        },
+        {
+          "asset": 4,
+          "crop": [
+            0.54,
+            0.56,
+            0.115,
+            0.12
+          ]
+        },
+        {
+          "asset": 4,
+          "crop": [
+            0.3,
+            0.7,
+            0.125,
+            0.13
+          ]
+        },
+        {
+          "asset": 4,
+          "crop": [
+            0.305,
+            0.275,
+            0.08,
+            0.085
+          ]
+        },
+        {
+          "asset": 4,
+          "crop": [
+            0.66,
+            0.08,
+            0.095,
+            0.1
+          ]
+        }
+      ],
+      "options": {
+        "countMin": 70,
+        "countMax": 150,
+        "reducedCount": 24,
+        "spreadSeconds": 3.1,
+        "openSeconds": 1.7
+      }
+    },
+    {
+      "id": "sun",
+      "glyph": "日",
+      "meaning": "Sun",
+      "behavior": "glow",
+      "hue": 42,
+      "duration": 13,
+      "sound": {
+        "frequency": 392
+      },
+      "assets": [
+        "assets/stock/solar-disc.png",
+        "assets/stock/sunset.png",
+        "assets/stock/sun-rays.png"
+      ],
+      "variants": [
+        {
+          "mode": "disc",
+          "asset": 0,
+          "rays": 2
+        },
+        {
+          "mode": "backdrop",
+          "asset": 1
+        }
+      ],
+      "options": {
+        "settleSeconds": 2.3
+      }
+    },
+    {
+      "id": "bird",
+      "glyph": "鳥",
+      "meaning": "Bird",
+      "behavior": "fly",
+      "hue": 198,
+      "duration": 15,
+      "sound": {
+        "frequency": 783.99
+      },
+      "assets": [
+        "assets/stock/snow-bird.jpg",
+        "assets/stock/blue-bird.jpg",
+        "assets/stock/indigo-bird.jpg"
+      ],
+      "crops": [
+        {
+          "asset": 0,
+          "crop": [
+            0.39,
+            0.2,
+            0.445,
+            0.22
+          ],
+          "shape": [
+            [
+              0,
+              0.77
+            ],
+            [
+              0.16,
+              0.65
+            ],
+            [
+              0.37,
+              0.44
+            ],
+            [
+              0.85,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              0.77,
+              0.37
+            ],
+            [
+              0.69,
+              0.61
+            ],
+            [
+              0.53,
+              0.86
+            ],
+            [
+              0.25,
+              0.99
+            ],
+            [
+              0.08,
+              0.93
+            ]
+          ]
+        },
+        {
+          "asset": 1,
+          "crop": [
+            0.249,
+            0.088,
+            0.434,
+            0.297
+          ],
+          "shape": [
+            [
+              0,
+              0.27
+            ],
+            [
+              0.18,
+              0.16
+            ],
+            [
+              0.65,
+              0.13
+            ],
+            [
+              0.97,
+              0
+            ],
+            [
+              1,
+              0.05
+            ],
+            [
+              0.92,
+              0.19
+            ],
+            [
+              0.96,
+              0.41
+            ],
+            [
+              0.89,
+              1
+            ],
+            [
+              0.72,
+              0.81
+            ],
+            [
+              0.61,
+              0.61
+            ],
+            [
+              0.41,
+              0.94
+            ],
+            [
+              0.05,
+              0.9
+            ],
+            [
+              0.31,
+              0.61
+            ],
+            [
+              0.27,
+              0.45
+            ],
+            [
+              0.09,
+              0.38
+            ]
+          ]
+        },
+        {
+          "asset": 2,
+          "crop": [
+            0.24,
+            0.444,
+            0.39,
+            0.15
+          ],
+          "shape": [
+            [
+              0,
+              0.12
+            ],
+            [
+              0.12,
+              0
+            ],
+            [
+              0.28,
+              0.09
+            ],
+            [
+              0.42,
+              0.33
+            ],
+            [
+              0.67,
+              0.51
+            ],
+            [
+              1,
+              0.59
+            ],
+            [
+              0.92,
+              0.75
+            ],
+            [
+              0.65,
+              0.76
+            ],
+            [
+              0.68,
+              0.95
+            ],
+            [
+              0.46,
+              1
+            ],
+            [
+              0.22,
+              0.6
+            ],
+            [
+              0.12,
+              0.29
+            ]
+          ]
+        }
+      ],
+      "options": {
+        "count": 6,
+        "reducedCount": 3,
+        "flightSeconds": 14,
+        "staggerSeconds": 0.65
+      }
+    },
+    {
+      "id": "mountain",
+      "glyph": "山",
+      "meaning": "Mountain",
+      "behavior": "reveal",
+      "hue": 176,
+      "duration": 15,
+      "sound": {
+        "frequency": 329.63
+      },
+      "assets": [
+        "assets/stock/umbrian.jpg",
+        "assets/stock/crystal.jpg",
+        "assets/stock/holy-cross.jpg"
+      ],
+      "options": {
+        "revealSeconds": 2.4,
+        "staggerSeconds": 0.32
+      }
+    }
+  ]
+}
