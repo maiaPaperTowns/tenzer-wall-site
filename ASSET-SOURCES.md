@@ -19,6 +19,16 @@ This version uses artwork supplied by the project owner and, following their exp
 | crystal.jpg | view_in_the_crystal_mountains_1965.16.266 (1).jpg |
 | holy-cross.jpg | mountain_of_the_holy_cross_2012.28.1 (1).jpg |
 
-Original files are retained unmodified. `assets/derived/flower-atlas-v2.png` is an ImageGen-assisted extraction/restoration from the azalea, rose, and botanical plates. `assets/derived/mountain-atlas-v2.png` is an ImageGen-assisted separation and harmonization of the Umbrian Mountains and Mountain of the Holy Cross. These may differ from the originals. Prompts are recorded in `IMAGE-EDIT-PROMPTS.md`. Browser canvas animation opens flower sectors, moves separate mountain masses, articulates bird wing masks, and pulses the same solar disc. The canvas background remains plain CSS. Rainbow, rain, and thunder remain unavailable pending replacement assets. Aoyagi Kouzan remains the existing typeface.
+Original files are retained unmodified. `assets/derived/flower-atlas-v2.png` is an ImageGen-assisted extraction/restoration from the azalea, rose, and botanical plates. `assets/derived/mountain-atlas-v2.png` is an ImageGen-assisted separation and harmonization of the Umbrian Mountains and Mountain of the Holy Cross. These may differ from the originals. Prompts are recorded in `IMAGE-EDIT-PROMPTS.md`. Browser canvas animation opens flowers, moves separate mountain masses, articulates bird wing masks, and pulses the same solar disc. Aoyagi Kouzan remains the existing typeface.
+
+## Weather additions (2026-09-26)
+
+Additional flower derivatives: `flower-clusters-v3.png` and `flower-mixed-v4.png` each contain six AI-assisted botanical groupings based on the supplied azalea, rose, clustered flower and botanical plates, generated at the owner's explicit request. Prompts: `CLUSTER-PROMPTS.md`.
+
+- `assets/derived/lightning-storm-v1.png`: AI-generated reference-based frame using user-supplied `Thunderstorm_in_Berlin_2021-07-14_01 (1).jpg`, `CHSDM-23526_02-000001 (1).jpg`, and `Lightning_NOAA (1).jpg`. Lightning is animated separately in Canvas, not baked into the background.
+- `assets/stock/rain-roof.jpg`, `rain-purple.jpg`, `rain-umbrella.jpg`: unchanged user-supplied `Hard_rain_on_a_roof (1).jpg`, `Purple_rain_on_roof (1).jpg`, `Rain_on_a_blue_umbrella (1).jpg`. Moving rain and splashes are browser-rendered overlays; water photographed in the originals remains part of the still background.
+- `assets/derived/rainbow-artistic-v2.png` and `rainbow-layer-v1.png`: artistic landscape reinterpretation and transparent rainbow isolation inspired by `Rainbow_in_Santa_Rosa_-_November_2024_-_Sarah_Stierch (1).jpg`, with `A_rainbow_over_Space_Launch_Complex_2 (1).jpg` as supporting reference. Credit indicated in supplied filename: Sarah Stierch. The owner requested an artistic background rather than the exact photograph. Preserve original source and license records; license terms have not been independently verified here.
+
+Weather generation prompts and tool provenance are recorded in `WEATHER-PROMPTS.md`. These derivatives require project approval; they are not presented as untouched stock or proof of licensing. Lightning strikes are spaced at least three seconds apart, without rapid full-screen flashes, and become static in reduced-motion mode. This is not a formal photosensitivity certification.
 
 Old artwork is removed from the current published tree, not from historical Git commits. History is retained for recovery.

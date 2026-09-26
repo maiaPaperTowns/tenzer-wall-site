@@ -9,6 +9,21 @@
   },
   "entries": [
     {
+      "id":"rainbow","glyph":"虹","meaning":"Rainbow","behavior":"rainbow","hue":285,"duration":18,
+      "assets":["assets/derived/rainbow-artistic-v2.png","assets/derived/rainbow-layer-v1.png"],
+      "options":{"growSeconds":4.5}
+    },
+    {
+      "id":"lightning","glyph":"雷","meaning":"Thunder / lightning","behavior":"lightning","hue":250,"duration":16,
+      "assets":["assets/derived/lightning-storm-v1.png"],
+      "options":{"intervalSeconds":3.8,"strikeSeconds":1.1}
+    },
+    {
+      "id":"rain","glyph":"雨","meaning":"Rain","behavior":"rain","hue":215,"duration":18,
+      "assets":["assets/stock/rain-roof.jpg","assets/stock/rain-purple.jpg","assets/stock/rain-umbrella.jpg"],
+      "options":{"count":520,"reducedCount":85,"speed":0.75}
+    },
+    {
       "id": "flower",
       "glyph": "花",
       "meaning": "Flower",
@@ -19,9 +34,23 @@
         "frequency": 523.25
       },
       "assets": [
-        "assets/derived/flower-atlas-v2.png"
+        "assets/derived/flower-atlas-v2.png",
+        "assets/derived/flower-clusters-v3.png",
+        "assets/derived/flower-mixed-v4.png"
       ],
       "crops": [
+        {"asset":1,"crop":[0,0,0.3333333333,0.5],"transparent":true,"pivot":[0.5,0.5],"cluster":true},
+        {"asset":1,"crop":[0.3333333333,0,0.3333333333,0.5],"transparent":true,"pivot":[0.5,0.5],"cluster":true},
+        {"asset":1,"crop":[0.6666666666,0,0.3333333333,0.5],"transparent":true,"pivot":[0.5,0.5],"cluster":true},
+        {"asset":1,"crop":[0,0.5,0.3333333333,0.5],"transparent":true,"pivot":[0.5,0.5],"cluster":true},
+        {"asset":1,"crop":[0.3333333333,0.5,0.3333333333,0.5],"transparent":true,"pivot":[0.5,0.5],"cluster":true},
+        {"asset":1,"crop":[0.6666666666,0.5,0.3333333333,0.5],"transparent":true,"pivot":[0.5,0.5],"cluster":true},
+        {"asset":2,"crop":[0,0,0.41,0.52],"transparent":true,"pivot":[0.5,0.5],"cluster":true},
+        {"asset":2,"crop":[0.41,0,0.25,0.53],"transparent":true,"pivot":[0.5,0.5],"cluster":true},
+        {"asset":2,"crop":[0.6666666666,0,0.3333333333,0.5],"transparent":true,"pivot":[0.5,0.5],"cluster":true},
+        {"asset":2,"crop":[0,0.52,0.41,0.48],"transparent":true,"pivot":[0.5,0.5],"cluster":true},
+        {"asset":2,"crop":[0.41,0.53,0.25,0.47],"transparent":true,"pivot":[0.5,0.5],"cluster":true},
+        {"asset":2,"crop":[0.6666666666,0.5,0.3333333333,0.5],"transparent":true,"pivot":[0.5,0.5],"cluster":true},
         {
           "asset": 0,
           "crop": [
@@ -108,9 +137,9 @@
         }
       ],
       "options": {
-        "countMin": 90,
-        "countMax": 150,
-        "reducedCount": 30,
+        "countMin": 32,
+        "countMax": 52,
+        "reducedCount": 18,
         "spreadSeconds": 2.1,
         "openSeconds": 1.2,
         "petalCount": 95,
