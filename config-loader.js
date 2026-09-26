@@ -1,6 +1,6 @@
 /* Dataset validation is independent of the canvas renderer and testable in Node. */
 (() => {
-  const behaviors = ['bloom', 'glow', 'fly', 'reveal'];
+  const behaviors = ['bloom', 'glow', 'fly', 'reveal', 'mountain'];
   const fail = message => { throw new Error(message); };
   function assetURL(value, base) {
     if (typeof value !== 'string' || !value.trim()) fail('Asset path must be a non-empty string.');
@@ -35,11 +35,26 @@
         const c=spec.crop;
         if(!Array.isArray(c)||c.length!==4||!c.every(Number.isFinite)||c[0]<0||c[1]<0||c[2]<=0||c[3]<=0||c[0]+c[2]>1.00001||c[1]+c[3]>1.00001) fail(`${name}: crop must fit within normalized image bounds.`);
         if(spec.shape && (!Array.isArray(spec.shape)||spec.shape.length<3||!spec.shape.every(p=>Array.isArray(p)&&p.length===2&&p.every(n=>Number.isFinite(n)&&n>=0&&n<=1)))) fail(`${name}: invalid crop polygon.`);
+        const point=p=>Array.isArray(p)&&p.length===2&&p.every(n=>Number.isFinite(n)&&n>=0&&n<=1);
+        if(spec.pivot&&!point(spec.pivot))fail(`${name}: invalid petal pivot.`);
+        if(spec.transparent!=null&&typeof spec.transparent!=='boolean')fail(`${name}: transparent must be boolean.`);
+        if(spec.facing!=null && ![-1,1].includes(spec.facing))fail(`${name}: facing must be -1 or 1.`);
+        if(spec.wing&&(!point(spec.wing.pivot)||!Array.isArray(spec.wing.shape)||spec.wing.shape.length<3||!spec.wing.shape.every(point)))fail(`${name}: invalid wing mask.`);
       });
       const variants = entry.variants || assets.map((_,asset)=>({mode:'backdrop',asset}));
       if(!Array.isArray(variants)||!variants.length) fail(`${name}: variants must be non-empty.`);
       variants.forEach(v=>{checkIndex(v.asset);if(!['disc','backdrop'].includes(v.mode))fail(`${name}: invalid variant mode.`);if(v.rays!=null)checkIndex(v.rays)});
       const options = entry.options || {};
+      if(entry.layers) {
+        if(!Array.isArray(entry.layers)||!entry.layers.length)fail(`${name}: layers must be non-empty.`);
+        entry.layers.forEach(layer=>{
+          if(!Number.isInteger(layer.crop)||layer.crop<0||layer.crop>=crops.length)fail(`${name}: invalid layer crop.`);
+          for(const key of ['x','y','opacity'])if(!Number.isFinite(layer[key])||layer[key]<0||layer[key]>1)fail(`${name}: invalid layer ${key}.`);
+          positive(layer.width,`${name}: layer width`,2);
+          if(!Number.isFinite(layer.delay)||layer.delay<0||layer.delay>30)fail(`${name}: invalid layer delay.`);
+        });
+      }
+      if(entry.behavior==='mountain' && !entry.layers)fail(`${name}: mountain layers required.`);
       for(const [key,value] of Object.entries(options)) positive(value,`${name} options.${key}`,1000);
       if(options.countMin && options.countMax && options.countMin>options.countMax)fail(`${name}: countMin exceeds countMax.`);
       const sound = entry.sound ? {...entry.sound} : null;

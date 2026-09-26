@@ -38,7 +38,7 @@ This example reuses the painting-reveal effect; it does not create a snowfall al
 | `glyph` | Font-rendered character; keeps the existing brush typeface |
 | `kanjiAsset` | Optional SVG/PNG character artwork, preferred over `glyph` |
 | `enabled` | Set `false` to remove a record from selection without deleting it |
-| `behavior` | `bloom`, `glow`, `fly`, or `reveal` |
+| `behavior` | `bloom`, `glow`, `fly`, `reveal`, or `mountain` |
 | `assets` | Array of image URLs, relative to the dataset location |
 | `duration` | Total scene lifetime in seconds, including enter/exit fades |
 | `transitions` | `enter`, `exit`, and `switch` seconds; record values override dataset defaults |
@@ -48,13 +48,16 @@ This example reuses the painting-reveal effect; it does not create a snowfall al
 | `variants` | Glow compositions: `{mode:"backdrop",asset:0}` or `{mode:"disc",asset:0,rays:1}` |
 | `options` | Behavior-specific settings below |
 
-If `crops` is omitted, the entire image is used. Crops/masks preserve the source pixels; they do not generate new artwork. Glow `disc` mode expects a centered solar-disc source; use `backdrop` for arbitrary paintings.
+If `crops` is omitted, the entire image is used. Canvas masks preserve the loaded asset pixels. Some loaded assets are explicitly documented AI-assisted derivatives, not untouched originals. Set crop `transparent: true` to preserve an asset's alpha without circular feathering. Optional normalized `pivot` controls a bloom's petal hinge. Fly crops can specify `facing: -1` for left-facing source art (mirrored for rightward flight), plus `wing: {pivot, shape}` to animate a separate wing mask. Glow `disc` mode expects a centered solar-disc source; use `backdrop` for arbitrary paintings.
+
+The `mountain` behavior accepts `layers`: `{crop, x, y, width, opacity, delay}`. Coordinates and width are normalized; delay is seconds. Each crop is a separate mass, faded and lifted in depth order. Use sufficiently large licensed or approved derived cutouts for the target display.
 
 ### Behavior options
 
 - `bloom`: `countMin`, `countMax`, `reducedCount`, `spreadSeconds`, `openSeconds`.
-- `glow`: `settleSeconds`.
-- `fly`: `count`, `reducedCount`, `flightSeconds`, `staggerSeconds`.
+- `glow`: `settleSeconds`, `pulseSeconds`.
+- `fly`: `count`, `reducedCount`, `flightSeconds`, `staggerSeconds`, `flapSeconds`.
+- `mountain`: `revealSeconds`.
 - `reveal`: `revealSeconds`, `staggerSeconds`.
 
 Existing defaults preserve the current effects. The renderer contains motion algorithms, not character names, source filenames, or character-specific crop coordinates.

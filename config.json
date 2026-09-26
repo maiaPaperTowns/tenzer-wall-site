@@ -19,101 +19,100 @@
         "frequency": 523.25
       },
       "assets": [
-        "assets/stock/azalea.jpg",
-        "assets/stock/rose.jpg",
-        "assets/stock/pink-clusters.jpg",
-        "assets/stock/cherry-photo.png",
-        "assets/stock/botanical.jpg"
+        "assets/derived/flower-atlas-v2.png"
       ],
       "crops": [
         {
           "asset": 0,
           "crop": [
-            0.335,
-            0.19,
-            0.345,
-            0.445
+            0,
+            0,
+            0.3333333333333333,
+            0.5
+          ],
+          "transparent": true,
+          "pivot": [
+            0.44,
+            0.62
           ]
         },
         {
-          "asset": 1,
+          "asset": 0,
           "crop": [
-            0.285,
-            0.125,
-            0.265,
-            0.33
+            0.3333333333333333,
+            0,
+            0.3333333333333333,
+            0.5
+          ],
+          "transparent": true,
+          "pivot": [
+            0.5,
+            0.51
           ]
         },
         {
-          "asset": 2,
+          "asset": 0,
           "crop": [
-            0.347,
-            0.373,
-            0.2,
-            0.235
+            0.6666666666666666,
+            0,
+            0.3333333333333333,
+            0.5
+          ],
+          "transparent": true,
+          "pivot": [
+            0.5,
+            0.51
           ]
         },
         {
-          "asset": 2,
+          "asset": 0,
           "crop": [
-            0.523,
-            0.22,
-            0.197,
-            0.24
+            0,
+            0.5,
+            0.3333333333333333,
+            0.5
+          ],
+          "transparent": true,
+          "pivot": [
+            0.5,
+            0.51
           ]
         },
         {
-          "asset": 3,
+          "asset": 0,
           "crop": [
-            0.43,
-            0.29,
-            0.12,
-            0.1
+            0.3333333333333333,
+            0.5,
+            0.3333333333333333,
+            0.5
+          ],
+          "transparent": true,
+          "pivot": [
+            0.5,
+            0.51
           ]
         },
         {
-          "asset": 4,
+          "asset": 0,
           "crop": [
-            0.54,
-            0.56,
-            0.115,
-            0.12
-          ]
-        },
-        {
-          "asset": 4,
-          "crop": [
-            0.3,
-            0.7,
-            0.125,
-            0.13
-          ]
-        },
-        {
-          "asset": 4,
-          "crop": [
-            0.305,
-            0.275,
-            0.08,
-            0.085
-          ]
-        },
-        {
-          "asset": 4,
-          "crop": [
-            0.66,
-            0.08,
-            0.095,
-            0.1
+            0.6666666666666666,
+            0.5,
+            0.3333333333333333,
+            0.5
+          ],
+          "transparent": true,
+          "pivot": [
+            0.5,
+            0.51
           ]
         }
       ],
       "options": {
-        "countMin": 70,
-        "countMax": 150,
-        "reducedCount": 24,
-        "spreadSeconds": 3.1,
-        "openSeconds": 1.7
+        "countMin": 18,
+        "countMax": 24,
+        "reducedCount": 10,
+        "spreadSeconds": 3.8,
+        "openSeconds": 2.2
       }
     },
     {
@@ -128,22 +127,18 @@
       },
       "assets": [
         "assets/stock/solar-disc.png",
-        "assets/stock/sunset.png",
         "assets/stock/sun-rays.png"
       ],
       "variants": [
         {
           "mode": "disc",
           "asset": 0,
-          "rays": 2
-        },
-        {
-          "mode": "backdrop",
-          "asset": 1
+          "rays": 1
         }
       ],
       "options": {
-        "settleSeconds": 2.3
+        "settleSeconds": 2.3,
+        "pulseSeconds": 4.5
       }
     },
     {
@@ -211,7 +206,36 @@
               0.08,
               0.93
             ]
-          ]
+          ],
+          "facing": -1,
+          "wing": {
+            "pivot": [
+              0.4,
+              0.72
+            ],
+            "shape": [
+              [
+                0.32,
+                0.69
+              ],
+              [
+                0.45,
+                0.48
+              ],
+              [
+                0.7,
+                0.35
+              ],
+              [
+                0.67,
+                0.58
+              ],
+              [
+                0.48,
+                0.81
+              ]
+            ]
+          }
         },
         {
           "asset": 1,
@@ -282,7 +306,36 @@
               0.09,
               0.38
             ]
-          ]
+          ],
+          "facing": 1,
+          "wing": {
+            "pivot": [
+              0.62,
+              0.43
+            ],
+            "shape": [
+              [
+                0.55,
+                0.4
+              ],
+              [
+                0.78,
+                0.3
+              ],
+              [
+                0.94,
+                0.44
+              ],
+              [
+                0.88,
+                0.95
+              ],
+              [
+                0.72,
+                0.78
+              ]
+            ]
+          }
         },
         {
           "asset": 2,
@@ -341,35 +394,140 @@
               0.12,
               0.29
             ]
-          ]
+          ],
+          "facing": -1,
+          "wing": {
+            "pivot": [
+              0.37,
+              0.51
+            ],
+            "shape": [
+              [
+                0.27,
+                0.43
+              ],
+              [
+                0.48,
+                0.48
+              ],
+              [
+                0.7,
+                0.8
+              ],
+              [
+                0.59,
+                0.91
+              ],
+              [
+                0.38,
+                0.72
+              ]
+            ]
+          }
         }
       ],
       "options": {
         "count": 6,
         "reducedCount": 3,
         "flightSeconds": 14,
-        "staggerSeconds": 0.65
+        "staggerSeconds": 0.65,
+        "direction": 1,
+        "flapSeconds": 0.85
       }
     },
     {
       "id": "mountain",
       "glyph": "山",
       "meaning": "Mountain",
-      "behavior": "reveal",
+      "behavior": "mountain",
       "hue": 176,
       "duration": 15,
       "sound": {
         "frequency": 329.63
       },
       "assets": [
-        "assets/stock/umbrian.jpg",
-        "assets/stock/crystal.jpg",
-        "assets/stock/holy-cross.jpg"
+        "assets/derived/mountain-atlas-v2.png"
       ],
       "options": {
-        "revealSeconds": 2.4,
-        "staggerSeconds": 0.32
-      }
+        "revealSeconds": 2.5,
+        "staggerSeconds": 0.65
+      },
+      "crops": [
+        {
+          "asset": 0,
+          "crop": [
+            0,
+            0,
+            0.5,
+            0.5
+          ],
+          "transparent": true
+        },
+        {
+          "asset": 0,
+          "crop": [
+            0.5,
+            0,
+            0.5,
+            0.5
+          ],
+          "transparent": true
+        },
+        {
+          "asset": 0,
+          "crop": [
+            0,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "transparent": true
+        },
+        {
+          "asset": 0,
+          "crop": [
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "transparent": true
+        }
+      ],
+      "layers": [
+        {
+          "crop": 0,
+          "x": 0.35,
+          "y": 0.42,
+          "width": 0.7,
+          "opacity": 0.5,
+          "delay": 0
+        },
+        {
+          "crop": 1,
+          "x": 0.64,
+          "y": 0.49,
+          "width": 0.62,
+          "opacity": 0.85,
+          "delay": 0.65
+        },
+        {
+          "crop": 2,
+          "x": 0.27,
+          "y": 0.72,
+          "width": 0.65,
+          "opacity": 0.9,
+          "delay": 1.3
+        },
+        {
+          "crop": 3,
+          "x": 0.76,
+          "y": 0.77,
+          "width": 0.63,
+          "opacity": 1,
+          "delay": 2
+        }
+      ]
     }
   ]
 }
