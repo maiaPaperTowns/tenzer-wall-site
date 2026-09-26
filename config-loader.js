@@ -39,6 +39,7 @@
         if(spec.pivot&&!point(spec.pivot))fail(`${name}: invalid petal pivot.`);
         if(spec.transparent!=null&&typeof spec.transparent!=='boolean')fail(`${name}: transparent must be boolean.`);
         if(spec.facing!=null && ![-1,1].includes(spec.facing))fail(`${name}: facing must be -1 or 1.`);
+        if(spec.rotationDegrees!=null && (!Number.isFinite(spec.rotationDegrees)||Math.abs(spec.rotationDegrees)>180))fail(`${name}: rotationDegrees must be between -180 and 180.`);
         if(spec.wing&&(!point(spec.wing.pivot)||!Array.isArray(spec.wing.shape)||spec.wing.shape.length<3||!spec.wing.shape.every(point)))fail(`${name}: invalid wing mask.`);
       });
       const variants = entry.variants || assets.map((_,asset)=>({mode:'backdrop',asset}));

@@ -65,6 +65,22 @@
     const c=layer.getContext('2d');c.beginPath();wing.shape.forEach(([x,y],i)=>i?c.lineTo(x*layer.width,y*layer.height):c.moveTo(x*layer.width,y*layer.height));c.closePath();c.clip();c.drawImage(sprite,0,0);
     cache.set(key,layer);return layer;
   }
+  function softSun(img) {
+    const key=img.src+':soft-disc';if(cache.has(key))return cache.get(key);
+    const c=document.createElement('canvas');c.width=img.naturalWidth;c.height=img.naturalHeight;
+    const g=c.getContext('2d');g.drawImage(img,0,0);
+    g.globalCompositeOperation='destination-in';
+    const mask=g.createRadialGradient(c.width*.505,c.height*.495,c.width*.419,c.width*.505,c.height*.495,c.width*.441);
+    mask.addColorStop(0,'#000');mask.addColorStop(1,'transparent');g.fillStyle=mask;g.fillRect(0,0,c.width,c.height);
+    cache.set(key,c);return c;
+  }
+  function fallingPetal(img) {
+    const key=img.src+':falling-petal';if(cache.has(key))return cache.get(key);
+    const c=document.createElement('canvas');c.width=64;c.height=88;const g=c.getContext('2d');
+    g.beginPath();g.moveTo(32,86);g.bezierCurveTo(-8,53,0,5,26,3);g.bezierCurveTo(64,-8,77,43,32,86);g.closePath();g.clip();
+    g.drawImage(img,img.naturalWidth*.39,img.naturalHeight*.12,img.naturalWidth*.045,img.naturalHeight*.09,0,0,64,88);
+    cache.set(key,c);return c;
+  }
   function cover(g,img,w,h,alpha) {
     if (!img.naturalWidth) return;
     const scale=Math.max(w/img.naturalWidth,h/img.naturalHeight);
@@ -106,11 +122,23 @@
             const unfold=ease((age-(k%3)*.13)/(options.openSeconds||2.2));
             if(!unfold)return;
             g.save();g.rotate((1-unfold)*(.18+(k%2)*.18));
-            g.scale(.08+.92*unfold,.06+.94*unfold);g.globalAlpha=fade*Math.min(1,unfold*4);
+            const flourish=unfold+Math.sin(unfold*Math.PI)*.2;
+            g.scale(.08+.92*flourish,.06+.94*flourish);g.globalAlpha=fade*Math.min(1,unfold*4);
             g.drawImage(piece,-size*pivot[0],-height*pivot[1],size,height);g.restore();
           });
         }
         g.restore();
+      }
+      if(!reduced) {
+        const petal=fallingPetal(assets[0]),total=options.petalCount||28,fall=options.petalFallSeconds||5;
+        for(let i=0;i<total;i++) {
+          const age=t-.85-i*.16;if(age<0)continue;
+          const cycle=Math.floor(age/fall),p=(age%fall)/fall,origin=s.flowers[(i*7+cycle)%count];
+          const drift=Math.sin(p*Math.PI*2+i)*min*.045+p*min*.055;
+          g.save();g.translate(origin.x+drift,origin.y+p*min*.6);g.rotate(i*2.4+p*3+Math.sin(p*8+i)*.45);
+          g.scale(.35+.65*Math.abs(Math.cos(p*7+i)),1);g.globalAlpha=fade*ease(p*8)*(1-ease((p-.72)/.28))*.85;
+          const size=min*(.012+(i%4)*.003);g.drawImage(petal,-size/2,-size*.7,size,size*1.4);g.restore();
+        }
       }
     } else if(entry.behavior==='glow') {
       const variant=entry.variants[s.stockVariant];
@@ -124,8 +152,8 @@
         g.globalAlpha=fade*(.85+.15*pulse); g.fillStyle=glow; g.fillRect(0,0,w,h);
         if(variant.rays!=null) {g.save();g.translate(w/2,h/2);g.rotate(reduced?0:t*.012);g.globalAlpha=fade*.3*ease(t/2);g.drawImage(assets[variant.rays],-size*.72,-size*.72,size*1.44,size*1.44);g.restore();}
         if(assets[variant.asset].naturalWidth) {
-          g.translate(w/2,h/2); g.scale(settle,settle); g.beginPath();g.arc(0,0,size*.449,0,Math.PI*2);g.clip();
-          g.globalAlpha=fade;g.drawImage(assets[variant.asset],-size*.505,-size*.495,size,size);
+          g.translate(w/2,h/2); g.scale(settle,settle);
+          g.globalAlpha=fade;g.drawImage(softSun(assets[variant.asset]),-size*.505,-size*.495,size,size);
         }
       }
     } else if(entry.behavior==='fly') {
@@ -138,15 +166,16 @@
         const x=reduced?w*(.17+(i%3)*.3):-w*.14+flight*w*1.3;
         const y=h*(.22+(i%3)*.25)+(reduced?0:Math.sin(t*.65+i)*h*.035);
         const size=min*(.18+(i%3)*.025), height=size*sprite.height/sprite.width;
-        g.save();g.translate(x,y);g.rotate(reduced?0:Math.sin(t*.8+i)*.035);g.globalAlpha=fade*ease((t-delay)/.8);
+        const heading=reduced?0:Math.atan2(Math.cos(t*.65+i)*h*.035*.65,w*1.3/(options.flightSeconds||14));
+        g.save();g.translate(x,y);g.rotate((spec.rotationDegrees||0)*Math.PI/180+heading);g.globalAlpha=fade*ease((t-delay)/.8);
         if((spec.facing||-1)<0)g.scale(-1,1);
         g.drawImage(sprite,-size/2,-height/2,size,height);
         if(spec.wing) {
           const wing=wingLayer(sprite,entry.id+':wing:'+s.stockVariant,spec.wing);
           const phase=Math.sin(t*Math.PI*2/(options.flapSeconds||.85)+i*1.3);
           const px=(spec.wing.pivot[0]-.5)*size,py=(spec.wing.pivot[1]-.5)*height;
-          g.translate(px,py);g.rotate(reduced?0:phase*.9);
-          g.scale(1,reduced?1:.3+.7*Math.abs(phase));
+          g.translate(px,py);g.rotate(reduced?0:phase*.32);
+          g.scale(1,reduced?1:.72+.28*Math.cos(t*Math.PI*2/(options.flapSeconds||.85)+i*1.3));
           g.drawImage(wing,-size/2-px,-height/2-py,size,height);
         }
         g.restore();

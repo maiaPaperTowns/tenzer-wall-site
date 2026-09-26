@@ -111,8 +111,10 @@
         "countMin": 18,
         "countMax": 24,
         "reducedCount": 10,
-        "spreadSeconds": 3.8,
-        "openSeconds": 2.2
+        "spreadSeconds": 2.1,
+        "openSeconds": 1.2,
+        "petalCount": 28,
+        "petalFallSeconds": 5
       }
     },
     {
@@ -208,6 +210,7 @@
             ]
           ],
           "facing": -1,
+          "rotationDegrees": -30,
           "wing": {
             "pivot": [
               0.4,
@@ -308,6 +311,7 @@
             ]
           ],
           "facing": 1,
+          "rotationDegrees": 48,
           "wing": {
             "pivot": [
               0.62,
@@ -396,6 +400,7 @@
             ]
           ],
           "facing": -1,
+          "rotationDegrees": 25,
           "wing": {
             "pivot": [
               0.37,
