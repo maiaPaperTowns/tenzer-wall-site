@@ -176,10 +176,11 @@
   }
 
   function frame(now) {
-    const dt = Math.min((now - last) / 1000, .04); last = now;
+    const elapsed = Math.max(0, (now - last) / 1000);
+    const dt = Math.min(elapsed, .04); last = now;
     ctx.clearRect(0, 0, w, h);
     scenes.forEach(s => {
-      s.life += dt; const fade = sceneOpacity(s);
+      s.life += elapsed; const fade = sceneOpacity(s);
       if (s.life < 0) return;
       window.drawStockScene(ctx, s, fade, w, h, reduced);
     });
@@ -255,4 +256,3 @@
   bindWallInput();
   addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (!started) start(); else { const c = characters.find(c => c.state === 'falling'); if (c) burst(c); } } });
 })();
-
