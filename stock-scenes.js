@@ -246,9 +246,11 @@
         }
       }
     } else if(entry.behavior==='rain') {
-      if(!s.wetFloor||s.wetFloor.width!==Math.ceil(w)||s.wetFloor.height!==Math.ceil(h)) {
+      const fabric=options.surfaces?.[s.stockVariant]==='fabric';
+      if(!s.wetFloor||s.wetFloorVariant!==s.stockVariant||s.wetFloor.width!==Math.ceil(w)||s.wetFloor.height!==Math.ceil(h)) {
         s.wetFloor=document.createElement('canvas');s.wetFloor.width=Math.ceil(w);s.wetFloor.height=Math.ceil(h);
-        const floor=s.wetFloor.getContext('2d');cover(floor,assets[0],w,h,1);
+        s.wetFloorVariant=s.stockVariant;
+        const floor=s.wetFloor.getContext('2d');cover(floor,assets[s.stockVariant],w,h,1);
         floor.fillStyle='rgba(17,35,57,.18)';floor.fillRect(0,0,w,h);
       }
       g.globalAlpha=fade;g.drawImage(s.wetFloor,0,0,w,h);
@@ -262,6 +264,18 @@
           g.beginPath();g.moveTo(dx-length*.12,dy-length);g.lineTo(dx,dy);g.stroke();
         } else {
           const p=event.impactAge/.95,scale=min/800,r=(2+p*26)*depth*scale,ry=r*(.22+.15*depth);
+          if(fabric){
+            // Beads begin at the impact, then accelerate downhill on curved fabric.
+            const travel=Math.pow(Math.max(0,p-.14),2),bx=x+(event.x-.5)*travel*min*.08,by=y+travel*min*.09;
+            const br=Math.max(.7,(1.5+Math.sin(p*Math.PI)*1.8)*depth*scale);
+            g.globalAlpha=fade*(1-p)*.28;g.strokeStyle='#b8ddff';g.lineWidth=br*.65;
+            g.beginPath();g.moveTo(x,y);g.quadraticCurveTo(x,by,bx,by);g.stroke();
+            g.save();g.beginPath();g.ellipse(bx,by,br,br*1.4,.25,0,Math.PI*2);g.clip();
+            g.globalAlpha=fade*(1-p)*.8;g.drawImage(s.wetFloor,-br*.4,-br*.5,w+br,h+br);g.restore();
+            g.globalAlpha=fade*(1-p)*.65;g.strokeStyle='#173d75';g.lineWidth=Math.max(.5,scale*.6);
+            g.beginPath();g.ellipse(bx,by,br,br*1.4,.25,0,Math.PI*2);g.stroke();
+            g.fillStyle='#edf7ff';g.beginPath();g.ellipse(bx-br*.3,by-br*.5,br*.38,br*.3,0,0,Math.PI*2);g.fill();
+          } else {
           // Refract the actual floor only beneath the expanding water ring.
           // Tile seams remain anchored; ripples and reflections move with impacts.
           const sx=Math.max(0,x-r-3),sy=Math.max(0,y-ry-3),sw=Math.min(w-sx,r*2+6),sh=Math.min(h-sy,ry*2+6);
@@ -270,6 +284,7 @@
           for(let ring=0;ring<2;ring++){
             const radius=r*(1-ring*.28);g.globalAlpha=fade*(1-p)*(.32-ring*.1);g.lineWidth=(.65+depth*.5)*scale;g.strokeStyle=ring?'#182d42':'#dceafa';
             g.beginPath();g.ellipse(x,y,radius,ry*(1-ring*.28),0,0,Math.PI*2);g.stroke();
+          }
           }
           if(event.impactAge<.36){
             const q=event.impactAge/.36;

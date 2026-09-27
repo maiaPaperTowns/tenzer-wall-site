@@ -20,8 +20,8 @@
     },
     {
       "id":"rain","glyph":"雨","meaning":"Rain","behavior":"rain","hue":215,"duration":18,
-      "assets":["assets/derived/rain-surface-v2.png"],
-      "options":{"count":520,"reducedCount":85,"speed":0.75}
+      "assets":["assets/derived/rain-surface-v2.png","assets/derived/rain-purple-surface-v2.png","assets/derived/rain-umbrella-surface-v2.png"],
+      "options":{"count":520,"reducedCount":85,"speed":0.75,"surfaces":["floor","floor","fabric"]}
     },
     {
       "id": "flower",

@@ -56,7 +56,11 @@
         });
       }
       if(entry.behavior==='mountain' && !entry.layers)fail(`${name}: mountain layers required.`);
-      for(const [key,value] of Object.entries(options)) positive(value,`${name} options.${key}`,1000);
+      for(const [key,value] of Object.entries(options)) {
+        if(key==='surfaces') {
+          if(entry.behavior!=='rain'||!Array.isArray(value)||value.length!==assets.length||value.some(v=>!['floor','fabric'].includes(v))) fail(`${name}: surfaces must match rain assets and use floor or fabric.`);
+        } else positive(value,`${name} options.${key}`,1000);
+      }
       if(options.countMin && options.countMax && options.countMin>options.countMax)fail(`${name}: countMin exceeds countMax.`);
       const sound = entry.sound ? {...entry.sound} : null;
       if(sound?.src) sound.src=assetURL(sound.src,base);
