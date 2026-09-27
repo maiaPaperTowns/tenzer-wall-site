@@ -4,6 +4,18 @@
   const noise=n=>{const v=Math.sin(n*127.1+311.7)*43758.5453;return v-Math.floor(v)};
   const types=new Set(['tree','fire','moon','snow','wind','river','ocean','water','bamboo','fish','star','cloud','leaves','cat']);
   function cover(g,img,w,h,alpha=1){const k=Math.max(w/img.width,h/img.height);g.globalAlpha=alpha;g.drawImage(img,(w-img.width*k)/2,(h-img.height*k)/2,img.width*k,img.height*k)}
+  // Continuous surface displacement; overlapping strips avoid cracks without rotating the photograph.
+  function livingWater(g,img,w,h,clock,alpha,start=0,strength=1,full=false){
+    const k=Math.max(w/img.width,h/img.height),sw=full?img.width:w/k,sh=full?img.height:h/k,sx=(img.width-sw)/2,sy=(img.height-sh)/2;
+    g.globalAlpha=alpha;
+    const step=3;
+    for(let y=0;y<h;y+=step){const depth=clamp((y/h-start)/(1-start)),a=depth*strength;
+      const dx=(Math.sin(y/h*24-clock*1.1)+.45*Math.sin(y/h*49+clock*.72))*w*.004*a;
+      const dy=(Math.sin(y/h*31-clock*.85)*.003+(full?Math.sin(y/h*11-clock*1.05)*.019:0))*h*a;
+      const sourceY=Math.max(0,Math.min(img.height-(step+1)*sh/h,sy+(y+dy)*sh/h));
+      g.drawImage(img,sx,sourceY,sw,(step+1)*sh/h,-w*.012+dx,y,w*1.024,step+1);
+    }
+  }
   function leaf(g,img,index,x,y,size,rotation,alpha){g.save();g.translate(x,y);g.rotate(rotation);g.globalAlpha=alpha;g.drawImage(img,(index%2)*img.width/2,Math.floor(index/2)%2*img.height/2,img.width/2,img.height/2,-size/2,-size*.94,size,size);g.restore()}
   function glyphPoints(s){
     if(s.inkPoints)return s.inkPoints;
@@ -71,8 +83,8 @@
     for(let i=0;i<count;i++){
       const depth=.3+noise(i+19)*.7,event=snowSample(i,clock),size=min*(.006+depth*.026),land=ground+noise(i+48)*(h*.98-ground);
       const x=(.04+noise(i+70)*.92)*w+Math.sin(event.fall*Math.PI)*Math.sin(i+event.fall*5)*min*.045,y=-40+event.fall*(land+40);
-      g.save();g.translate(x,y);g.rotate(event.phase==='fall'?event.fall*2+i:i+2);g.scale(event.scale,event.phase==='fall'?1:event.scale*.28);g.globalAlpha=fade*arrive*(.35+depth*.55)*event.alpha;
-      if(i%4===0)g.drawImage(s.entry.images[1],-size/2,-size/2,size,size);
+      g.save();g.translate(x,y);g.rotate(event.phase==='fall'?event.fall*2+i:i+2);g.scale(event.scale,event.phase==='fall'?1:event.scale*.28);g.globalAlpha=fade*arrive*(.7+depth*.3)*event.alpha;
+      if(i%4===0){g.filter='brightness(0) invert(1)';g.drawImage(s.entry.images[1],-size/2,-size/2,size,size)}
       else {g.fillStyle='#fff';g.beginPath();g.arc(0,0,size*.1,0,Math.PI*2);g.fill()}g.restore();
     }dissolve(g,s,t,w,h,fade,'snow',reduced);
   }
@@ -114,27 +126,15 @@
   }
   function ocean(g,s,t,w,h,fade,reduced){
     const clock=reduced?2:t,min=Math.min(w,h),arrive=reduced?1:ease(t/1.6);
-    const base=g.createLinearGradient(0,0,0,h);base.addColorStop(0,'#c7e0e5');base.addColorStop(.32,'#6fa9b1');base.addColorStop(.75,'#9cc8c5');base.addColorStop(.9,'#d5d9c7');base.addColorStop(1,'#e9dfc9');g.globalAlpha=fade*arrive;g.fillStyle=base;g.fillRect(0,0,w,h);
-    const img=s.entry.images[0];
-    // Animated surf covers the foreground; each crest travels shoreward then retreats.
-    for(let band=0;band<3;band++){
-      const p=(clock/(s.entry.options.waveSeconds||5)+band/3)%1,y=h*(.42+p*.57),amp=min*(.009+p*.012),opacity=Math.sin(p*Math.PI);
-      const surge=ease(p),waveHeight=min*(.12+.17*Math.sin(Math.PI*p))*(1-.55*ease((p-.65)/.35));
-      g.globalAlpha=fade*arrive*opacity*.92;g.drawImage(img,-w*.05+Math.sin(clock*.45+band)*min*.02,y-waveHeight,w*1.1,waveHeight);
-      const fill=g.createLinearGradient(0,y-min*.03,0,y+min*.1);fill.addColorStop(0,'rgba(41,116,130,0)');fill.addColorStop(.22,'rgba(184,226,224,.25)');fill.addColorStop(.5,'rgba(215,244,239,.12)');fill.addColorStop(1,'rgba(215,244,239,0)');
-      g.globalAlpha=fade*arrive*opacity;g.fillStyle=fill;g.beginPath();g.moveTo(0,y+min*.07);
-      for(let x=0;x<=w+12;x+=12)g.lineTo(x,y+Math.sin(x/min*5+band+clock*.3)*amp);
-      g.lineTo(w,y+min*.1);g.closePath();g.fill();
-      // The original foam sprite flattens into the shore, instead of a second dotted foam overlay.
-      if(p>.55){g.globalAlpha=fade*arrive*opacity*.35;g.drawImage(img,-w*.04,y-min*.018,w*1.08,min*(.025+(1-p)*.065))}
-    }
+    // Retain the supplied shore photograph, with a stable horizon and living water below it.
+    g.save();g.filter='saturate(.9) brightness(1.07)';livingWater(g,s.entry.images[1],w,h,clock,fade*arrive,.52,1,true);g.restore();
   }
   function water(g,s,t,w,h,fade,reduced){
     const min=Math.min(w,h),clock=reduced?3:t,arrive=reduced?1:ease(t/2),x=s.x??w/2,y=s.y??h/2;
-    g.save();g.filter='hue-rotate(-18deg) saturate(.65) brightness(1.16)';cover(g,s.entry.images[0],w,h,fade*arrive);g.restore();
+    g.save();g.filter='hue-rotate(-8deg) saturate(.8) brightness(1.17)';livingWater(g,s.entry.images[0],w,h,clock,fade*arrive,0,1);g.restore();
     for(let origin=0;origin<5;origin++)for(let i=0;i<4;i++){
       const p=(clock*.14+i/4+origin*.17)%1,r=p*min*.54,alpha=Math.sin(p*Math.PI)*(1-p),cx=origin?noise(origin+9)*w:x,cy=origin?(.15+noise(origin+26)*.7)*h:y;
-      g.globalAlpha=fade*arrive*alpha*.42;g.strokeStyle=i%2?'#e5f3e9':'#527e83';g.lineWidth=.8+(1-p)*1.5;
+      g.globalAlpha=fade*arrive*alpha*.26;g.strokeStyle=i%2?'#e5f3e9':'#527e83';g.lineWidth=.65+(1-p);
       g.beginPath();g.ellipse(cx,cy,r,r*.38,0,0,Math.PI*2);g.stroke();
     }
   }
@@ -147,10 +147,10 @@
     g.drawImage(slots[index],x,y,w,h);
   }
   function bamboo(g,s,t,w,h,fade,reduced){
-    const min=Math.min(w,h),o=s.entry.options,clock=reduced?20:t,count=o.count||7;
+    const min=Math.min(w,h),o=s.entry.options,clock=reduced?30:t,count=o.count||5;
     for(let i=0;i<count;i++){
       const height=h*(.54+noise(i+85)*.39),base=(i+.5)*w/count,width=min*(.01+noise(i+6)*.008);
-      const growth=ease((clock-i*.16)/(o.growSeconds||5)),angle=(noise(i+7)-.5)*.19+(reduced?0:Math.sin(t*.6+i)*.018);
+      const growth=ease((clock-i*.45)/(o.growSeconds||7)),angle=(noise(i+7)-.5)*.19+(reduced?0:Math.sin(t*.6+i)*.018);
       g.save();g.translate(base,h*1.04);g.rotate(angle);g.globalAlpha=fade*(.62+noise(i)*.35);
       for(let j=0;j<8;j++){
         const part=clamp(growth*8-j);if(!part)continue;
@@ -158,8 +158,8 @@
         const green=g.createLinearGradient(-width/2,0,width/2,0);green.addColorStop(0,'#365e43');green.addColorStop(.45,'#91ab73');green.addColorStop(1,'#55794e');
         g.fillStyle=green;g.beginPath();g.moveTo(-width/2,y);g.lineTo(-width*.45,y-len);g.quadraticCurveTo(0,y-len-2,width*.45,y-len);g.lineTo(width/2,y);g.fill();
         g.strokeStyle='#c0c9a0';g.lineWidth=Math.max(1,min*.002);g.beginPath();g.moveTo(-width*.55,y);g.quadraticCurveTo(0,y+2,width*.55,y);g.stroke();
-        if(j>1){const open=ease((growth*8-j-.35)/1.2);if(open){
-          const side=(i+j)%2?1:-1,size=min*(.2+noise(i*13+j)*.15)*open;
+        if(j===3||j===5||j===7&&i%2===0){const open=ease((clock-i*.45-j*.8-1.8)/3.2);if(open){
+          const side=(i+j)%2?1:-1,size=min*(.16+noise(i*13+j)*.09)*open;
           g.save();g.translate(0,y);g.rotate(-side*.13+(reduced?0:Math.sin(t*1.1+i+j)*.07));g.scale(side,1);
           const img=s.entry.images[0];g.drawImage(img,-size*.035,-size*.53*img.height/img.width,size,size*img.height/img.width);g.restore();
         }}
@@ -174,11 +174,11 @@
   }
   function fish(g,s,t,w,h,fade,reduced){
     const min=Math.min(w,h),clock=reduced?8:t,o=s.entry.options,arrive=reduced?1:ease(t/1.8),img=s.entry.images[0];
-    g.save();g.filter='hue-rotate(-30deg) saturate(.55) brightness(1.3)';cover(g,s.entry.images[1],w,h,fade*arrive);g.restore();
-    g.globalAlpha=fade*arrive*.22;g.fillStyle='#81b6a1';g.fillRect(0,0,w,h);
+    g.save();g.filter='saturate(.92) brightness(1.02)';livingWater(g,s.entry.images[1],w,h,clock,fade*arrive,0,.65);g.restore();
+    g.globalAlpha=fade*arrive*.07;g.fillStyle='#99dac6';g.fillRect(0,0,w,h);
     for(let i=0;i<(o.count||9);i++){
       const pose=fishPose(i,clock,w,h,o.swimSeconds||26),size=min*(.14+noise(i+38)*.1),sh=size*(img.height/img.width),sw=img.width/2,sy=Math.floor(i%4/2)*img.height/2,sx=(i%2)*sw;
-      g.save();g.translate(pose.x,pose.y);g.rotate(pose.angle);g.globalAlpha=fade*arrive*(.7+noise(i+4)*.25);
+      g.save();g.translate(pose.x,pose.y);g.rotate(pose.angle);g.globalAlpha=fade*arrive*(.64+noise(i+4)*.18);g.filter='saturate(.85) contrast(.88)';
       // Continuous narrow strips share the same smooth displacement field: no detached tail.
       const strips=48;
       for(let k=0;k<strips;k++){
@@ -192,12 +192,14 @@
         g.beginPath();g.ellipse(origin.x,origin.y,min*(.012+p*.095),min*(.008+p*.06),0,0,Math.PI*2);g.stroke();
       }
     }
+    // A shared translucent surface passes over the fish so they sit beneath the water.
+    g.save();g.globalCompositeOperation='screen';livingWater(g,s.entry.images[1],w,h,clock,fade*arrive*.12,0,.85);g.restore();
   }
   function star(g,s,t,w,h,fade,reduced){
     const clock=reduced?4:t,o=s.entry.options,arrive=reduced?1:ease(t/(o.nightSeconds||3)),img=s.entry.images[s.stockVariant%s.entry.images.length];
-    g.globalAlpha=fade*arrive;g.fillStyle='#060d20';g.fillRect(0,0,w,h);cover(g,img,w,h,fade*arrive*.7);
+    g.globalAlpha=fade*arrive;g.fillStyle='#060d20';g.fillRect(0,0,w,h);cover(g,img,w,h,fade*arrive*.42);
     for(let i=0;i<(o.count||130);i++){
-      const x=noise(i+5)*w,y=noise(i+92)*h,r=.6+noise(i+8)*1.7,pulse=.4+.6*Math.pow(.5+.5*Math.sin(clock*(.65+noise(i)*.7)+i*2.4),2);
+      const x=noise(i+5)*w,y=noise(i+92)*h,r=Math.min(w,h)*(.0012+noise(i+8)*.0028),pulse=.08+.92*Math.pow(.5+.5*Math.sin(clock*(1+noise(i)*1.2)+i*2.4),3);
       g.globalAlpha=fade*arrive*pulse;const glow=g.createRadialGradient(x,y,0,x,y,r*6);glow.addColorStop(0,'rgba(235,246,255,.8)');glow.addColorStop(.22,'rgba(159,198,236,.4)');glow.addColorStop(1,'rgba(159,198,236,0)');g.fillStyle=glow;g.fillRect(x-r*6,y-r*6,r*12,r*12);
       g.fillStyle=i%4?'#ecf5ff':'#ffe4b7';g.beginPath();g.arc(x,y,r*.55,0,Math.PI*2);g.fill();
       if(i%11===0){g.strokeStyle='#e1efff';g.lineWidth=.65;g.beginPath();g.moveTo(x-r*4*pulse,y);g.lineTo(x+r*4*pulse,y);g.moveTo(x,y-r*5*pulse);g.lineTo(x,y+r*5*pulse);g.stroke()}
@@ -215,9 +217,9 @@
   function leaves(g,s,t,w,h,fade,reduced){
     const clock=reduced?15:t,min=Math.min(w,h),o=s.entry.options,count=o.count||24;
     for(let i=0;i<count;i++){
-      const row=i%3,side=i%2?1:-1,x=(Math.floor(i/3)+.5)*w/Math.ceil(count/3),y=h*(.25+row*.31);
+      const side=i%2?1:-1,x=w*(.04+noise(i+170)*.92),y=h*(.08+noise(i+290)*.8);
       const open=ease((clock-noise(i+4)*2)/(o.growSeconds||3)),size=min*(.14+noise(i+20)*.1)*open;
-      const rotation=side*(.3+noise(i)*.65)+(reduced?0:Math.sin(t*.8+i)*.06);
+      const rotation=side*(.12+noise(i)*1.5)+(reduced?0:Math.sin(t*.8+i)*.06);
       leaf(g,s.entry.images[0],i%4,x,y+size*.4,size,rotation,fade*open*(.7+noise(i+3)*.3));
     }
     if(!reduced)for(let i=0;i<7;i++){
@@ -227,9 +229,25 @@
     }
   }
   function cat(g,s,t,w,h,fade,reduced){
-    const clock=reduced?5:t,img=s.entry.images[0],size=Math.min(w*.42,h*.52),period=s.entry.options.crossSeconds||12,p=(clock/period)%1,x=-size+p*(w+size*2),y=h*.77;
-    const frame=reduced?0:Math.floor(clock*7)%4,height=size*img.height/img.width;
-    g.globalAlpha=fade*(reduced?1:ease(t/.6));g.save();g.translate(x,y);cell(g,img,frame,-size/2,-height,size,height);g.restore();
+    const clock=reduced?8:t,img=s.entry.images[0],size=Math.min(w*.35,h*.46),period=s.entry.options.crossSeconds||20,p=(clock/period)%1,x=-size+p*(w+size*2),y=h*.79;
+    const speed=(w+size*2)/period,stride=size*.24,stepSeconds=stride/(speed*.65);
+    const crops={body:[.028,.045,.485,.377],front:[.677,.035,.135,.433],hind:[.172,.514,.19,.447],tail:[.651,.503,.197,.465]};
+    const part=(name,dx,dy,dw,dh)=>{const [a,b,c,d]=crops[name];g.drawImage(img,a*img.width,b*img.height,c*img.width,d*img.height,dx,dy,dw,dh)};
+    g.save();g.translate(x,y);g.globalAlpha=fade*(reduced?1:ease(t/.6));
+    const leg=(front,offset,far)=>{
+      const phase=reduced?.3:(clock/stepSeconds+offset)%1,stance=phase<.65,u=stance?phase/.65:(phase-.65)/.35;
+      const foot=stride*(stance?.5-u:-.5+ease(u)),lift=stance?0:Math.sin(Math.PI*u)*size*.055;
+      const hipX=size*(front?.25:-.29),hipY=-size*(front?.31:.32),height=-hipY-lift,width=size*(front?.102:.142),crop=crops[front?'front':'hind'];
+      g.save();if(far){g.filter='brightness(.76)';g.translate(-size*.02,-size*.008)}
+      for(let j=0;j<48;j++){const q=j/48,bend=foot*q*q;g.drawImage(img,crop[0]*img.width,(crop[1]+q*crop[3])*img.height,crop[2]*img.width,crop[3]*img.height/48,hipX-width/2+bend,hipY+q*height,width,height/48+.5)}
+      g.restore();
+    };
+    // Four staggered contacts, planted paws during stance; the torso never hops between frames.
+    leg(false,.5,true);leg(true,.75,true);
+    g.save();g.translate(-size*.39,-size*.4);g.rotate(reduced?-.25:-.25+Math.sin(clock*1.9)*.1);part('tail',-size*.06,-size*.44,size*.16,size*.47);g.restore();
+    part('body',-size*.46,-size*.62,size*.96,size*.44);
+    leg(false,0,false);leg(true,.25,false);
+    g.restore();
   }
   const renderers={tree,fire,moon,snow,wind,river,ocean,water,bamboo,fish,star,cloud,leaves,cat};
   window.TenzerNature={types,snowSample,fishPose,draw(g,s,fade,w,h,reduced){if(!types.has(s.entry.behavior))return false;renderers[s.entry.behavior](g,s,s.life,w,h,fade,reduced);return true}};

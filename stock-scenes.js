@@ -71,28 +71,45 @@
     const edge=clamp(.5+(inside?distance:-distance)/.3),weight=edge*edge*(3-2*edge);
     const dy=y-wing.pivot[1];
     // Small smooth shear/compression cannot fold the mesh back over itself into a second wing tip.
-    return [x+dy*phase*.07*weight,y-dy*phase*.09*weight];
+    return [x+dy*phase*.14*weight,y];
   }
+  const birdFrames=new WeakMap();
   function drawFlappingBird(g,sprite,wing,phase,size,height) {
-    const steps=12,points=[];
-    for(let y=0;y<=steps;y++)for(let x=0;x<=steps;x++)points.push(wingPoint(x/steps,y/steps,wing,phase));
-    g.save();g.translate(-size/2,-height/2);g.scale(size,height);
-    const triangle=(src,dst)=>{
-      const [a,b,c]=src,[p,q,r]=dst,ux=b[0]-a[0],uy=b[1]-a[1],vx=c[0]-a[0],vy=c[1]-a[1],det=ux*vy-uy*vx;
-      const A=((q[0]-p[0])*vy-(r[0]-p[0])*uy)/det,B=((q[1]-p[1])*vy-(r[1]-p[1])*uy)/det;
-      const C=((r[0]-p[0])*ux-(q[0]-p[0])*vx)/det,D=((r[1]-p[1])*ux-(q[1]-p[1])*vx)/det;
-      g.save();g.beginPath();
-      const cx=(p[0]+q[0]+r[0])/3,cy=(p[1]+q[1]+r[1])/3;
-      dst.forEach(([x,y],i)=>{const dx=x-cx,dy=y-cy,d=Math.hypot(dx,dy);const px=x+dx/d*.0008,py=y+dy/d*.0008;i?g.lineTo(px,py):g.moveTo(px,py)});
-      g.closePath();g.clip();g.transform(A,B,C,D,p[0]-A*a[0]-C*a[1],p[1]-B*a[0]-D*a[1]);g.drawImage(sprite,0,0,1,1);g.restore();
-    };
-    for(let y=0;y<steps;y++)for(let x=0;x<steps;x++) {
-      const a=y*(steps+1)+x,b=a+1,c=a+steps+1,d=c+1;
-      const u=x/steps,v=y/steps,n=(x+1)/steps,m=(y+1)/steps;
-      triangle([[u,v],[n,v],[u,m]],[points[a],points[b],points[c]]);
-      triangle([[n,v],[n,m],[u,m]],[points[b],points[d],points[c]]);
+    // Inverse-rasterize one intact bird. Triangle clips formerly sampled the full
+    // sprite repeatedly and could expose a second wing edge at shared boundaries.
+    // Each output pixel now has exactly one source location; there is no overlay.
+    let data=birdFrames.get(sprite);
+    if(!data){
+      const scale=Math.min(1,512/Math.max(sprite.width,sprite.height)),source=document.createElement('canvas');
+      source.width=Math.round(sprite.width*scale);source.height=Math.round(sprite.height*scale);
+      const ctx=source.getContext('2d');ctx.drawImage(sprite,0,0,source.width,source.height);
+      const width=source.width,rows=[];
+      for(let y=0;y<source.height;y++){
+        const row=new Float32Array(width);
+        for(let x=0;x<width;x++)row[x]=(wingPoint(x/width,y/source.height,wing,1)[0]-x/width)*width;
+        rows.push(row);
+      }
+      data={width,height:source.height,pad:Math.ceil(width*.16),pixels:ctx.getImageData(0,0,width,source.height).data,rows,frames:new Map()};birdFrames.set(sprite,data);
     }
-    g.restore();
+    const key=Math.round(clamp((phase+1)/2)*40),amount=key/20-1;
+    if(!data.frames.has(key)){
+      const frame=document.createElement('canvas'),{width,height:rows,pad,pixels}=data;frame.width=width+pad*2;frame.height=rows;
+      const ctx=frame.getContext('2d'),out=ctx.createImageData(frame.width,rows);
+      for(let y=0;y<rows;y++)for(let x=0;x<frame.width;x++){
+        const target=x-pad,row=data.rows[y];let sx=target;
+        for(let iteration=0;iteration<6;iteration++){
+          const q=Math.max(0,Math.min(width-1,sx)),left=Math.floor(q),right=Math.min(width-1,left+1);
+          sx=target-amount*(row[left]+(row[right]-row[left])*(q-left));
+        }
+        if(sx<0||sx>=width-1)continue;
+        const left=Math.floor(sx),mix=sx-left,a=(y*width+left)*4,b=a+4,d=(y*frame.width+x)*4;
+        const alpha=pixels[a+3]*(1-mix)+pixels[b+3]*mix;out.data[d+3]=alpha;
+        if(alpha)for(let channel=0;channel<3;channel++)out.data[d+channel]=(pixels[a+channel]*pixels[a+3]*(1-mix)+pixels[b+channel]*pixels[b+3]*mix)/alpha;
+      }
+      ctx.putImageData(out,0,0);data.frames.set(key,frame);
+    }
+    const padding=size*data.pad/data.width;
+    g.drawImage(data.frames.get(key),-size/2-padding,-height/2,size+padding*2,height);
   }
   function softSun(img) {
     const key=img.src+':soft-disc';if(cache.has(key))return cache.get(key);
@@ -153,22 +170,35 @@
         const cx=s.x??w/2,cy=s.y??h/2;
         s.flowers=[];
         const groups=4,perBranch=Math.ceil(count/groups);
-        s.blossomBranches=[];
+        s.blossomBranches=[];s.blossomTwigs=[];
         const curves=[[[0,1.02],[.04,.47],[.44,.76],[.72,.32]],[[1.03,.87],[.84,.8],[.94,.37],[.46,.19]],[[-.03,.12],[.2,.1],[.15,.47],[.48,.39]],[[.96,-.03],[.91,.25],[.65,.06],[.55,.23]]];
         const point=(branch,q)=>{const [a,b,c,d]=curves[branch],v=1-q;return {x:w*(v*v*v*a[0]+3*v*v*q*b[0]+3*v*q*q*c[0]+q*q*q*d[0]),y:h*(v*v*v*a[1]+3*v*v*q*b[1]+3*v*q*q*c[1]+q*q*q*d[1])}};
         for(let branch=0;branch<groups;branch++)s.blossomBranches.push(Array.from({length:41},(_,i)=>point(branch,i/40)));
+        for(let branch=0;branch<groups;branch++)for(let k=0;k<7;k++){
+          const q=.18+k*.105,root=point(branch,q),next=point(branch,Math.min(1,q+.1)),dx=next.x-root.x,dy=next.y-root.y,len=Math.hypot(dx,dy)||1,side=k%2?1:-1;
+          const length=min*(.09+noise(branch*9+k+75)*.11),tx=dx/len,ty=dy/len;
+          const tip={x:root.x+length*(tx*.7-ty*side*.8),y:root.y+length*(ty*.7+tx*side*.8)};
+          s.blossomTwigs.push({branch,q,root,tip,delay:q*2.2+branch*.18});
+        }
         for(let i=0;i<count;i++){
-          const group=Math.floor(i/perBranch),local=i%perBranch,q=(local+.4)/perBranch,anchor=point(group,q);
-          const x=anchor.x+(noise(i+24)-.5)*min*.035,y=anchor.y+(local%2?1:-1)*min*(.014+noise(i+6)*.026);
-          s.flowers.push({x,y,anchor,group,delay:q*(options.spreadSeconds||2.5)+group*.18,size:min*(.057+noise(i+91)*.05),rotation:(noise(i+34)-.5)*1.1});
+          const group=Math.floor(i/perBranch),local=i%perBranch,q=(local+.4)/perBranch,twig=s.blossomTwigs[group*7+local%7],u=.38+noise(i+58)*.62;
+          const anchor=i%4===0?point(group,q):{x:twig.root.x+(twig.tip.x-twig.root.x)*u,y:twig.root.y+(twig.tip.y-twig.root.y)*u};
+          const x=anchor.x+(noise(i+24)-.5)*min*.03,y=anchor.y+(local%2?1:-1)*min*(.009+noise(i+6)*.018);
+          s.flowers.push({x,y,anchor,group,delay:(i%4===0?q:twig.q+.2*u)*(options.spreadSeconds||2.5)+group*.18,size:min*(.045+noise(i+91)*.045),rotation:(noise(i+34)-.5)*1.1});
         }
         s.flowerWidth=w; s.flowerHeight=h;
       }
       // Continuous sweeping branches connect the staggered blossoms, leaving open breathing space.
       for(let b=0;b<s.blossomBranches.length;b++){
         const points=s.blossomBranches[b],p=reduced?1:clamp((t-b*.18)/2.2);
-        g.globalAlpha=fade*.63;g.strokeStyle='#76675c';g.lineCap='round';
-        for(let j=1;j<Math.ceil(points.length*p);j++){g.lineWidth=min*(.006*(1-j/points.length)+.0008);g.beginPath();g.moveTo(points[j-1].x,points[j-1].y);g.lineTo(points[j].x,points[j].y);g.stroke()}
+        g.globalAlpha=fade*.9;g.fillStyle='#514139';g.lineCap='round';
+        const end=Math.min(points.length-1,Math.ceil((points.length-1)*p)),edges=[[],[]];
+        for(let j=0;j<=end;j++){const a=points[Math.max(0,j-1)],c=points[Math.min(points.length-1,j+1)],dx=c.x-a.x,dy=c.y-a.y,len=Math.hypot(dx,dy)||1,r=min*(.008*Math.pow(1-j/points.length,1.4)+.0005);for(let side=0;side<2;side++)edges[side].push([points[j].x-dy/len*r*(side?1:-1),points[j].y+dx/len*r*(side?1:-1)])}
+        g.beginPath();[...edges[0],...edges[1].reverse()].forEach(([x,y],j)=>j?g.lineTo(x,y):g.moveTo(x,y));g.closePath();g.fill();
+      }
+      for(const twig of s.blossomTwigs){const p=reduced?1:ease((t-twig.delay)/1.3),{root,tip}=twig;
+        g.globalAlpha=fade*.78;g.strokeStyle='#685044';g.lineWidth=min*.003;g.beginPath();g.moveTo(root.x,root.y);g.quadraticCurveTo(root.x+(tip.x-root.x)*p*.3,root.y+(tip.y-root.y)*p*.55,root.x+(tip.x-root.x)*p,root.y+(tip.y-root.y)*p);g.stroke();
+        if(p>.5){g.lineWidth=min*.0012;const ax=root.x+(tip.x-root.x)*.6,ay=root.y+(tip.y-root.y)*.6;g.beginPath();g.moveTo(ax,ay);g.lineTo(ax+(tip.x-root.x)*.35*(p-.5)*2+(tip.y-root.y)*.22,ay+(tip.y-root.y)*.35*(p-.5)*2-(tip.x-root.x)*.22);g.stroke()}
       }
       for(const f of s.flowers){g.globalAlpha=fade*.35*(reduced?1:ease((t-f.delay)/.5));g.lineWidth=1;g.beginPath();g.moveTo(f.anchor.x,f.anchor.y);g.lineTo(f.x,f.y);g.stroke()}
       // Sparse botanical accents sit behind the blossoms, never over their petals.
@@ -376,5 +406,5 @@
     }
     g.restore();
   };
-  window.TenzerScenes={prepare,rainSample,wingPoint};
+  window.TenzerScenes={prepare,rainSample,wingPoint,drawFlappingBird};
 })();
