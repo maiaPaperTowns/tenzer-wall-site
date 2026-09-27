@@ -88,6 +88,13 @@
     g.drawImage(img,(w-img.naturalWidth*scale)/2,(h-img.naturalHeight*scale)/2,img.naturalWidth*scale,img.naturalHeight*scale); g.restore();
   }
   const noise = n => {const v=Math.sin(n*127.1+311.7)*43758.5453;return v-Math.floor(v)};
+  function rainSample(i,time,speed=0.75) {
+    const flight=(.65+noise(i+4)*.65)*.75/speed,period=flight+.95;
+    const clock=time+noise(i+11)*period,cycle=Math.floor(clock/period),age=clock%period;
+    const x=.025+noise(i*17+cycle*53)*.95,y=.04+noise(i*31+cycle*71)*.92;
+    const p=clamp(age/flight);
+    return {x,y,age,flight,period,phase:age<flight?'fall':'impact',dropX:x-(1-p)*.045,dropY:-.15+(y+.15)*p,impactAge:age-flight,depth:.3+.7*y};
+  }
   function bolt(seed) {
     const paths=[],trunk=[];let x=.25+noise(seed)*.5;
     for(let j=0;j<=30;j++){x=Math.max(.12,Math.min(.88,x+(noise(seed+j*3)-.5)*.055));trunk.push([x,.06+j*.027]);}
@@ -239,22 +246,41 @@
         }
       }
     } else if(entry.behavior==='rain') {
-      cover(g,assets[s.stockVariant],w,h,fade);
-      g.globalAlpha=fade*.3;g.fillStyle='#14263d';g.fillRect(0,0,w,h);
+      if(!s.wetFloor||s.wetFloor.width!==Math.ceil(w)||s.wetFloor.height!==Math.ceil(h)) {
+        s.wetFloor=document.createElement('canvas');s.wetFloor.width=Math.ceil(w);s.wetFloor.height=Math.ceil(h);
+        const floor=s.wetFloor.getContext('2d');cover(floor,assets[0],w,h,1);
+        floor.fillStyle='rgba(17,35,57,.18)';floor.fillRect(0,0,w,h);
+      }
+      g.globalAlpha=fade;g.drawImage(s.wetFloor,0,0,w,h);
       const count=reduced?(options.reducedCount||85):(options.count||520),time=reduced?0:t;
       g.lineCap='round';
       for(let i=0;i<count;i++) {
-        const depth=.35+noise(i+3)*.65,speed=h*(options.speed||.75)*depth;
-        const y=((noise(i*3+11)*h+time*speed)%(h+70))-35;
-        const x=((noise(i*7+1)*w+time*speed*.075)%(w+40))-20,length=min*(.014+.034*depth);
-        g.globalAlpha=fade*(.15+.5*depth);g.strokeStyle='#dbeaff';g.lineWidth=.5+depth*1.2;
-        g.beginPath();g.moveTo(x,y);g.lineTo(x+length*.075,y+length);g.stroke();
-      }
-      for(let i=0;i<(reduced?0:48);i++) {
-        const p=(t*.85+noise(i+900))%1,x=noise(i+700)*w,y=h*(.3+noise(i+800)*.7),r=(2+p*14)*min/800;
-        g.globalAlpha=fade*(1-p)*.42;g.strokeStyle='#e4edff';g.lineWidth=.9;
-        g.beginPath();g.ellipse(x,y,r,r*.28,0,0,Math.PI*2);g.stroke();
-        if(p<.3){g.beginPath();g.moveTo(x-r*.5,y);g.lineTo(x-r*.8,y-r);g.moveTo(x+r*.5,y);g.lineTo(x+r*.8,y-r*.7);g.stroke();}
+        const event=rainSample(i,time,options.speed||.75),{depth}=event,x=event.x*w,y=event.y*h;
+        if(event.phase==='fall'){
+          const length=min*(.012+.022*depth),dx=event.dropX*w,dy=event.dropY*h;
+          g.globalAlpha=fade*(.16+.35*depth);g.strokeStyle='#e4f0ff';g.lineWidth=.55+depth;
+          g.beginPath();g.moveTo(dx-length*.12,dy-length);g.lineTo(dx,dy);g.stroke();
+        } else {
+          const p=event.impactAge/.95,scale=min/800,r=(2+p*26)*depth*scale,ry=r*(.22+.15*depth);
+          // Refract the actual floor only beneath the expanding water ring.
+          // Tile seams remain anchored; ripples and reflections move with impacts.
+          const sx=Math.max(0,x-r-3),sy=Math.max(0,y-ry-3),sw=Math.min(w-sx,r*2+6),sh=Math.min(h-sy,ry*2+6);
+          g.save();g.beginPath();g.ellipse(x,y,r,ry,0,0,Math.PI*2);g.clip();g.globalAlpha=fade*(1-p)*.7;
+          g.drawImage(s.wetFloor,sx,sy,sw,sh,sx+Math.sin(p*12)*1.8*depth,sy+Math.cos(p*12)*depth,sw,sh);g.restore();
+          for(let ring=0;ring<2;ring++){
+            const radius=r*(1-ring*.28);g.globalAlpha=fade*(1-p)*(.32-ring*.1);g.lineWidth=(.65+depth*.5)*scale;g.strokeStyle=ring?'#182d42':'#dceafa';
+            g.beginPath();g.ellipse(x,y,radius,ry*(1-ring*.28),0,0,Math.PI*2);g.stroke();
+          }
+          if(event.impactAge<.36){
+            const q=event.impactAge/.36;
+            g.globalAlpha=fade*(1-q)*.8;g.fillStyle='#e4f0ff';
+            for(let k=0;k<5;k++){
+              const angle=k*Math.PI*2/5+i,radius=q*16*depth*scale;
+              const px=x+Math.cos(angle)*radius,py=y+Math.sin(angle)*radius*.28-Math.sin(q*Math.PI)*14*depth*scale;
+              g.beginPath();g.ellipse(px,py,Math.max(.5,depth*1.3*scale),Math.max(.7,depth*1.8*scale),0,0,Math.PI*2);g.fill();
+            }
+          }
+        }
       }
     } else if(entry.behavior==='reveal') {
       const img=assets[s.stockVariant];
@@ -276,5 +302,5 @@
     }
     g.restore();
   };
-  window.TenzerScenes={prepare};
+  window.TenzerScenes={prepare,rainSample};
 })();
