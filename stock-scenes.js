@@ -133,6 +133,31 @@
         }
         s.flowerWidth=w; s.flowerHeight=h;
       }
+      // Sparse botanical accents sit behind the blossoms, never over their petals.
+      const leafCount=Math.min(count,options.leafCount??22);
+      for(let j=0;j<leafCount;j++) {
+        const i=Math.floor(j*count/leafCount),flower=s.flowers[i];
+        const p=clamp((t-flower.delay-.12)/2),unfurl=p*p*(3-2*p);
+        if(!unfurl)continue;
+        const length=flower.size*(.38+noise(j+503)*.2),side=j%2?1:-1;
+        const sway=reduced?0:Math.sin(t*.8+j*1.7)*.035;
+        g.save();g.translate(flower.x,flower.y+flower.size*.12);
+        g.rotate(side*(.55+noise(j+631)*.9)+sway);
+        g.scale(reduced?1:unfurl,reduced?1:.35+.65*unfurl);
+        g.globalAlpha=fade*ease(p*2)*.67;
+        const pigment=g.createLinearGradient(0,0,length,-length*.2);
+        pigment.addColorStop(0,'#526b50');pigment.addColorStop(.5,j%3?'#81936b':'#8d9e82');pigment.addColorStop(1,'#bbc19a');
+        g.fillStyle=pigment;g.beginPath();g.moveTo(0,0);
+        g.bezierCurveTo(length*.23,-length*.4,length*.72,-length*.46,length,-length*.18);
+        g.bezierCurveTo(length*.7,length*.18,length*.26,length*.27,0,0);g.fill();
+        g.strokeStyle='rgba(236,232,202,.45)';g.lineWidth=Math.max(.6,min*.0008);
+        g.beginPath();g.moveTo(0,0);g.quadraticCurveTo(length*.5,-length*.035,length*.94,-length*.17);g.stroke();
+        for(let vein=1;vein<4;vein++){
+          const a=vein/5;g.beginPath();g.moveTo(length*a,-length*.1*a);
+          g.quadraticCurveTo(length*(a+.05),-length*.18,length*(a+.14),-length*.27);g.stroke();
+        }
+        g.restore();
+      }
       for(let i=0;i<count;i++) {
         const index=(i+s.stockVariant)%entry.crops.length, spec=entry.crops[index];
         const sprite=cutout(assets[spec.asset],spec.crop,entry.id+':crop:'+index,spec.shape,spec.transparent);

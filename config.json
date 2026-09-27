@@ -129,6 +129,7 @@
         "spreadSeconds": 3.6,
         "openSeconds": 1.8,
         "petalCount": 28,
+        "leafCount": 22,
         "petalFallSeconds": 7
       }
     },
