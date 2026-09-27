@@ -316,11 +316,15 @@
       g.globalAlpha=fade*.76;g.drawImage(layer,-w*(arcScale-1)/2,h*(1-arcScale)*.65+(reduced?0:-(1-progress)*h*.07),w*arcScale,h*arcScale);
     } else if(entry.behavior==='lightning') {
       cover(g,assets[0],w,h,fade);
-      const interval=Math.max(2.4,options.intervalSeconds||3.8),elapsed=Math.max(0,t-.6),strike=Math.floor(elapsed/interval);
+      const interval=Math.max(1.8,options.intervalSeconds||2.1),elapsed=Math.max(0,t-.6),strike=Math.floor(elapsed/interval);
       const age=elapsed%interval,span=options.strikeSeconds||1.1;
       const intensity=reduced?.28:(t<.6?0:ease(age/.055)*(1-ease((age-.12)/(span-.12))));
       if(intensity>0){
-        if(!s.bolts||s.boltIndex!==(reduced?0:strike)){s.bolts=bolt(17+(reduced?0:strike)*53);s.boltIndex=reduced?0:strike;}
+        if(!s.bolts||s.boltIndex!==(reduced?0:strike)||s.boltReduced!==reduced){
+          const seed=17+(reduced?0:strike)*53;
+          s.bolts=reduced?bolt(seed):[0,1].flatMap(b=>bolt(seed+b*97).map(path=>path.map(([x,y])=>[x*.62+(b?.38:.02),y])));
+          s.boltIndex=reduced?0:strike;s.boltReduced=reduced;
+        }
         const light=g.createRadialGradient(w*.5,h*.35,0,w*.5,h*.35,min*.65);
         light.addColorStop(0,'rgba(185,193,255,.16)');light.addColorStop(1,'rgba(185,193,255,0)');
         g.globalAlpha=fade*intensity;g.fillStyle=light;g.fillRect(0,0,w,h);
@@ -328,8 +332,8 @@
         for(let layer=0;layer<3;layer++) {
           g.strokeStyle=['rgba(110,137,255,.16)','rgba(164,185,255,.5)','#eff5ff'][layer];
           s.bolts.forEach((path,i)=>{
-            const reveal=reduced?1:clamp((age-(i? .025:0))/.055);
-            g.lineWidth=Math.max(.7,min*[.013,.005,.0015][layer])*(i?.52:1);
+            const branch=i%6!==0,reveal=reduced?1:clamp((age-(branch?.02:0))/.045);
+            g.lineWidth=Math.max(.7,min*[.013,.005,.0015][layer])*(branch?.52:1);
             g.beginPath();path.slice(0,Math.max(1,Math.ceil(path.length*reveal))).forEach(([x,y],j)=>j?g.lineTo(x*w,y*h):g.moveTo(x*w,y*h));g.stroke();
           });
         }

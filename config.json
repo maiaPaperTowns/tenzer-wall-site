@@ -15,7 +15,7 @@
     {"id":"fish","glyph":"魚","meaning":"Fish","behavior":"fish","hue":165,"duration":22,"assets":["assets/derived/koi-atlas-v1.png","assets/derived/pond-water-v2.png"],"options":{"count":9,"swimSeconds":26}},
     {"id":"bamboo","glyph":"竹","meaning":"Bamboo","behavior":"bamboo","hue":115,"duration":22,"assets":["assets/derived/bamboo-spray-v1.png"],"options":{"count":5,"growSeconds":7}},
     {"id":"water","glyph":"水","meaning":"Water","behavior":"water","hue":195,"duration":20,"assets":["assets/stock/water-pattern.jpg"],"options":{}},
-    {"id":"tree","glyph":"木","meaning":"Tree","behavior":"tree","hue":110,"duration":22,"assets":["assets/derived/tree-reference-v3.png"],"options":{"growSeconds":6}},
+    {"id":"tree","glyph":"木","meaning":"Tree","behavior":"tree","hue":110,"duration":22,"assets":["assets/derived/tree-reference-v3.png","assets/derived/tree-grove-atlas-v1.png"],"options":{"growSeconds":6}},
     {"id":"fire","glyph":"火","meaning":"Fire","behavior":"fire","hue":25,"duration":20,"assets":["assets/derived/fire-atlas-v2.png"],"options":{"spreadSeconds":3.5,"emberCount":90}},
     {"id":"moon","glyph":"月","meaning":"Moon","behavior":"moon","hue":220,"duration":22,"assets":["assets/derived/moon-cutout-v2.png"],"options":{"nightSeconds":3,"riseSeconds":4}},
     {"id":"snow","glyph":"雪","meaning":"Snow","behavior":"snow","hue":205,"duration":22,"assets":["assets/derived/snow-landscape-v2.png","assets/derived/snowflake-v1.png"],"options":{"count":170,"reducedCount":35}},
@@ -30,7 +30,7 @@
     {
       "id":"lightning","glyph":"雷","meaning":"Thunder / lightning","behavior":"lightning","hue":250,"duration":16,
       "assets":["assets/derived/lightning-storm-v1.png"],
-      "options":{"intervalSeconds":2.6,"strikeSeconds":0.65}
+      "options":{"intervalSeconds":2.1,"strikeSeconds":0.52}
     },
     {
       "id":"rain","glyph":"雨","meaning":"Rain","behavior":"rain","hue":215,"duration":18,

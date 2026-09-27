@@ -37,14 +37,29 @@
     });
   }
   function tree(g,s,t,w,h,fade,reduced){
-    const img=s.entry.images[0],p=reduced?1:clamp(t/(s.entry.options.growSeconds||6));
-    if(!s.treeLayer){s.treeLayer=document.createElement('canvas');s.treeLayer.width=s.treeLayer.height=1024}
-    const layer=s.treeLayer,c=layer.getContext('2d'),z=layer.width;c.clearRect(0,0,z,z);c.globalCompositeOperation='source-over';c.drawImage(img,0,0,z,z);
-    c.globalCompositeOperation='destination-in';
-    // Organic root-outward reveal follows radial distance from the trunk, without a straight wipe.
-    const r=Math.max(1,p*z*1.2),mask=c.createRadialGradient(z*.51,z*.94,r*.72,z*.51,z*.94,r);mask.addColorStop(0,'#000');mask.addColorStop(1,'transparent');c.fillStyle=mask;c.fillRect(0,0,z,z);
-    const count=Math.max(1,Math.round(w/h/1.8)),size=h*1.04;
-    for(let i=0;i<count;i++){g.save();g.translate((i+.5)*w/count,h*1.025);g.transform(1,0,reduced?0:Math.sin(t*.6+i)*.007,1,0,0);g.globalAlpha=fade;g.drawImage(layer,-size*.51,-size*.95,size,size);g.restore()}
+    const atlas=s.entry.images[1],min=Math.min(w,h);
+    if(!s.treeSprites){
+      s.treeSprites=[0,1,2,3].map(index=>{const c=document.createElement('canvas');c.width=c.height=768;const ctx=c.getContext('2d');
+        if(index===3){const img=s.entry.images[0],scale=Math.min(768/img.width,768/img.height);ctx.drawImage(img,(768-img.width*scale)/2,768-img.height*scale,img.width*scale,img.height*scale)}
+        else {const crops=[[0,0,.5,.585],[.5,0,.5,.585],[0,.59,.51,.4]], [x,y,w,h]=crops[index],sw=w*atlas.width,sh=h*atlas.height,scale=Math.min(768/sw,768/sh);ctx.drawImage(atlas,x*atlas.width,y*atlas.height,sw,sh,(768-sw*scale)/2,768-sh*scale,sw*scale,sh*scale)}return c});
+      s.treeLayer=document.createElement('canvas');s.treeLayer.width=s.treeLayer.height=768;
+    }
+    // Far, middle and foreground trees grow in staggered layers, with planted roots.
+    const placements=[[.09,.61,.42,0,.1],[.36,.55,.38,1,.35],[.65,.59,.4,2,.55],[.92,.63,.45,1,.2],[.2,.81,.7,2,.8],[.81,.84,.72,0,1],[.51,1.04,1,3,0]];
+    const layer=s.treeLayer,c=layer.getContext('2d'),z=layer.width;
+    placements.forEach(([nx,scale,opacity,index,delay],i)=>{
+      const p=reduced?1:clamp((t-delay)/(s.entry.options.growSeconds||6)),size=h*scale;
+      c.clearRect(0,0,z,z);c.globalCompositeOperation='source-over';c.drawImage(s.treeSprites[index],0,0);
+      c.globalCompositeOperation='destination-in';
+      const r=Math.max(1,p*z*1.2),mask=c.createRadialGradient(z*.51,z*.96,r*.75,z*.51,z*.96,r);mask.addColorStop(0,'#000');mask.addColorStop(1,'transparent');c.fillStyle=mask;c.fillRect(0,0,z,z);
+      g.save();g.translate(nx*w,h*(i<4?.94:1.035));g.transform(1,0,reduced?0:Math.sin(t*.6+i)*.009,1,0,0);g.globalAlpha=fade*opacity;g.drawImage(layer,-size*.5,-size,size,size);
+      const anchors=index===3?[[.55,.24],[.76,.34],[.43,.45],[.67,.52],[.26,.62],[.8,.68],[.42,.76]]:index===2?[[.3,.5],[.4,.6],[.67,.65],[.78,.76],[.43,.8]]:[[.36,.28],[.63,.32],[.27,.48],[.7,.53],[.43,.62]];
+      anchors.forEach(([ax,ay],j)=>{
+        const open=reduced?1:ease((t-delay-1.8-(1-ay)*3.8-j*.08)/2.2);if(!open)return;
+        const leafSize=Math.min(size*.09,min*.09)*open;
+        g.save();g.translate((ax-.5)*size,(ay-1)*size);g.rotate((ax-.5)*1.1+(reduced?0:Math.sin(t*1.1+j+i)*.035));g.scale(.4+.6*open,1);g.globalAlpha=fade*opacity*.9;g.drawImage(atlas,atlas.width*.52,atlas.height*.59,atlas.width*.46,atlas.height*.4,-leafSize*.5,-leafSize*.88,leafSize,leafSize*.87);g.restore();
+      });g.restore();
+    });
   }
   function fire(g,s,t,w,h,fade,reduced){
     const min=Math.min(w,h),o=s.entry.options,spread=reduced?1:ease(t/(o.spreadSeconds||3.5)),clock=reduced?2:t;
