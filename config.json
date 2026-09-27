@@ -11,7 +11,7 @@
     {
       "id":"rainbow","glyph":"虹","meaning":"Rainbow","behavior":"rainbow","hue":285,"duration":18,
       "assets":["assets/derived/rainbow-artistic-v2.png","assets/derived/rainbow-layer-v1.png"],
-      "options":{"growSeconds":4.5}
+      "options":{"growSeconds":3.6}
     },
     {
       "id":"lightning","glyph":"雷","meaning":"Thunder / lightning","behavior":"lightning","hue":250,"duration":16,
