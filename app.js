@@ -165,7 +165,7 @@
       ctx.restore();return;
     }
     ctx.shadowColor = 'rgba(225,239,240,.45)'; ctx.shadowBlur = c.size * .08;
-    const darkScene=scenes.some(s=>['lightning','rain','rainbow'].includes(s.entry.behavior)&&sceneOpacity(s)>.45);
+    const darkScene=scenes.some(s=>['lightning','rain','rainbow','fire','moon'].includes(s.entry.behavior)&&sceneOpacity(s)>.45);
     ctx.fillStyle = darkScene?`rgba(255,249,230,${c.alpha*.96})`:`rgba(28,48,56,${c.alpha * .87})`; ctx.fillText(c.glyph, 0, 0);
     ctx.lineWidth = Math.max(1, c.size * .012); ctx.strokeStyle = `rgba(255,255,249,${c.alpha * .2})`; ctx.strokeText(c.glyph, 1, 1);
     ctx.restore();

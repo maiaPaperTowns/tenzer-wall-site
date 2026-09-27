@@ -59,11 +59,39 @@
     }
     cache.set(key,pieces);return pieces;
   }
-  function wingLayer(sprite,key,wing) {
-    if(cache.has(key))return cache.get(key);
-    const layer=document.createElement('canvas');layer.width=sprite.width;layer.height=sprite.height;
-    const c=layer.getContext('2d');c.beginPath();wing.shape.forEach(([x,y],i)=>i?c.lineTo(x*layer.width,y*layer.height):c.moveTo(x*layer.width,y*layer.height));c.closePath();c.clip();c.drawImage(sprite,0,0);
-    cache.set(key,layer);return layer;
+  function wingPoint(x,y,wing,phase) {
+    // A continuous deformation of ONE bird image; the shoulder cannot detach.
+    let inside=false,distance=Infinity;
+    for(let i=0,j=wing.shape.length-1;i<wing.shape.length;j=i++) {
+      const [ax,ay]=wing.shape[j],[bx,by]=wing.shape[i],dx=bx-ax,dy=by-ay;
+      if((ay>y)!==(by>y)&&x<(bx-ax)*(y-ay)/(by-ay)+ax)inside=!inside;
+      const p=clamp(((x-ax)*dx+(y-ay)*dy)/(dx*dx+dy*dy||1));
+      distance=Math.min(distance,Math.hypot(x-ax-p*dx,y-ay-p*dy));
+    }
+    const edge=clamp(.5+(inside?distance:-distance)/.16),weight=edge*edge*(3-2*edge);
+    const dx=x-wing.pivot[0],dy=y-wing.pivot[1],a=phase*.16*weight;
+    return [wing.pivot[0]+dx*Math.cos(a)-dy*Math.sin(a),wing.pivot[1]+dx*Math.sin(a)+dy*Math.cos(a)-dy*phase*.12*weight];
+  }
+  function drawFlappingBird(g,sprite,wing,phase,size,height) {
+    const steps=12,points=[];
+    for(let y=0;y<=steps;y++)for(let x=0;x<=steps;x++)points.push(wingPoint(x/steps,y/steps,wing,phase));
+    g.save();g.translate(-size/2,-height/2);g.scale(size,height);
+    const triangle=(src,dst)=>{
+      const [a,b,c]=src,[p,q,r]=dst,ux=b[0]-a[0],uy=b[1]-a[1],vx=c[0]-a[0],vy=c[1]-a[1],det=ux*vy-uy*vx;
+      const A=((q[0]-p[0])*vy-(r[0]-p[0])*uy)/det,B=((q[1]-p[1])*vy-(r[1]-p[1])*uy)/det;
+      const C=((r[0]-p[0])*ux-(q[0]-p[0])*vx)/det,D=((r[1]-p[1])*ux-(q[1]-p[1])*vx)/det;
+      g.save();g.beginPath();
+      const cx=(p[0]+q[0]+r[0])/3,cy=(p[1]+q[1]+r[1])/3;
+      dst.forEach(([x,y],i)=>{const dx=x-cx,dy=y-cy,d=Math.hypot(dx,dy);const px=x+dx/d*.0008,py=y+dy/d*.0008;i?g.lineTo(px,py):g.moveTo(px,py)});
+      g.closePath();g.clip();g.transform(A,B,C,D,p[0]-A*a[0]-C*a[1],p[1]-B*a[0]-D*a[1]);g.drawImage(sprite,0,0,1,1);g.restore();
+    };
+    for(let y=0;y<steps;y++)for(let x=0;x<steps;x++) {
+      const a=y*(steps+1)+x,b=a+1,c=a+steps+1,d=c+1;
+      const u=x/steps,v=y/steps,n=(x+1)/steps,m=(y+1)/steps;
+      triangle([[u,v],[n,v],[u,m]],[points[a],points[b],points[c]]);
+      triangle([[n,v],[n,m],[u,m]],[points[b],points[d],points[c]]);
+    }
+    g.restore();
   }
   function softSun(img) {
     const key=img.src+':soft-disc';if(cache.has(key))return cache.get(key);
@@ -117,19 +145,23 @@
     }
     const t=s.life, min=Math.min(w,h);
     g.save();
+    if(window.TenzerNature?.draw(g,s,fade,w,h,reduced)){g.restore();return;}
     if (entry.behavior==='bloom') {
-      const count=Math.round(reduced?(options.reducedCount||30):Math.min(options.countMax||150,Math.max(options.countMin||90,Math.round(w*h/12000))));
+      const count=Math.round(reduced?(options.reducedCount||30):Math.min(options.countMax||150,Math.max(options.countMin||90,Math.round(w*h/35000))));
       if(!s.flowers || s.flowerWidth!==w || s.flowerHeight!==h) {
         const cx=s.x??w/2,cy=s.y??h/2;
         s.flowers=[];
+        const clusterSize=options.clusterSize||4,groups=Math.ceil(count/clusterSize);
+        const cols=Math.min(groups,Math.ceil(Math.sqrt(groups*w/h))),rows=Math.ceil(groups/cols);
         for(let i=0;i<count;i++){
-          let x=cx,y=cy,best=-1;
-          if(i)for(let candidate=0;candidate<12;candidate++){
-            const px=(.025+noise(i*137+candidate*17+s.stockVariant)*.95)*w,py=(.025+noise(i*179+candidate*31+23)*.95)*h;
-            const distance=Math.min(...s.flowers.map(f=>Math.hypot((px-f.x)/w,(py-f.y)/h)));
-            if(distance>best){best=distance;x=px;y=py;}
-          }
-          s.flowers.push({x,y,delay:Math.hypot(x-cx,y-cy)/Math.hypot(w,h)*(options.spreadSeconds||3.6)+noise(i+5)*.35,size:min*(i===0?.23:.105+noise(i+91)*.095),rotation:(noise(i+34)-.5)*.5});
+          const group=Math.floor(i/clusterSize),local=i%clusterSize;
+          const centerX=(group%cols+.5+(noise(group+71)-.5)*.25)*w/cols;
+          const centerY=(Math.floor(group/cols)+.5+(noise(group+92)-.5)*.25)*h/rows;
+          const angle=local*2.4+noise(group+305)*Math.PI*2;
+          const radius=local?min*(.061+local*.013):0;
+          const x=Math.max(min*.07,Math.min(w-min*.07,centerX+Math.cos(angle)*radius));
+          const y=Math.max(min*.07,Math.min(h-min*.07,centerY+Math.sin(angle)*radius*.8));
+          s.flowers.push({x,y,group,delay:Math.hypot(centerX-cx,centerY-cy)/Math.hypot(w,h)*(options.spreadSeconds||3.6)+local*.18,size:min*(local===0?.17:.09+noise(i+91)*.045),rotation:(noise(i+34)-.5)*.55});
         }
         s.flowerWidth=w; s.flowerHeight=h;
       }
@@ -159,7 +191,7 @@
         g.restore();
       }
       for(let i=0;i<count;i++) {
-        const index=(i+s.stockVariant)%entry.crops.length, spec=entry.crops[index];
+        const index=(s.flowers[i].group*2+(i%2)+s.stockVariant)%entry.crops.length, spec=entry.crops[index];
         const sprite=cutout(assets[spec.asset],spec.crop,entry.id+':crop:'+index,spec.shape,spec.transparent);
         if(!sprite) continue;
         const age=t-s.flowers[i].delay,p=clamp(age/(options.openSeconds||1.8)),open=p*p*(3-2*p);
@@ -216,15 +248,10 @@
         const heading=reduced?0:Math.max(-.10,Math.min(.10,Math.atan2(Math.cos(t*.65+i)*h*.035*.65,w*1.3/(options.flightSeconds||14))));
         g.save();g.translate(x,y);g.rotate((spec.rotationDegrees||0)*Math.PI/180+heading);g.globalAlpha=fade*ease((t-delay)/.8);
         if((spec.facing||-1)<0)g.scale(-1,1);
-        g.drawImage(sprite,-size/2,-height/2,size,height);
-        if(spec.wing) {
-          const wing=wingLayer(sprite,entry.id+':wing:'+s.stockVariant,spec.wing);
+        if(spec.wing&&!reduced) {
           const phase=Math.sin(t*Math.PI*2/(options.flapSeconds||.85)+i*1.3);
-          const px=(spec.wing.pivot[0]-.5)*size,py=(spec.wing.pivot[1]-.5)*height;
-          g.translate(px,py);g.rotate(reduced?0:phase*.32);
-          g.scale(1,reduced?1:.72+.28*Math.cos(t*Math.PI*2/(options.flapSeconds||.85)+i*1.3));
-          g.drawImage(wing,-size/2-px,-height/2-py,size,height);
-        }
+          drawFlappingBird(g,sprite,spec.wing,phase,size,height);
+        } else g.drawImage(sprite,-size/2,-height/2,size,height);
         g.restore();
       }
     } else if(entry.behavior==='mountain') {
@@ -254,7 +281,7 @@
       cover(g,assets[0],w,h,fade);
       const interval=Math.max(3,options.intervalSeconds||3.8),elapsed=Math.max(0,t-.6),strike=Math.floor(elapsed/interval);
       const age=elapsed%interval,span=options.strikeSeconds||1.1;
-      const intensity=reduced?.28:(t<.6?0:ease(age/.13)*(1-ease((age-.18)/(span-.18))));
+      const intensity=reduced?.28:(t<.6?0:ease(age/.08)*(1-ease((age-.14)/(span-.14))));
       if(intensity>0){
         if(!s.bolts||s.boltIndex!==(reduced?0:strike)){s.bolts=bolt(17+(reduced?0:strike)*53);s.boltIndex=reduced?0:strike;}
         const light=g.createRadialGradient(w*.5,h*.35,0,w*.5,h*.35,min*.65);
@@ -264,7 +291,7 @@
         for(let layer=0;layer<3;layer++) {
           g.strokeStyle=['rgba(110,137,255,.16)','rgba(164,185,255,.5)','#eff5ff'][layer];
           s.bolts.forEach((path,i)=>{
-            const reveal=reduced?1:clamp((age-(i? .055:0))/.12);
+            const reveal=reduced?1:clamp((age-(i? .035:0))/.08);
             g.lineWidth=Math.max(.7,min*[.013,.005,.0015][layer])*(i?.52:1);
             g.beginPath();path.slice(0,Math.max(1,Math.ceil(path.length*reveal))).forEach(([x,y],j)=>j?g.lineTo(x*w,y*h):g.moveTo(x*w,y*h));g.stroke();
           });
@@ -342,5 +369,5 @@
     }
     g.restore();
   };
-  window.TenzerScenes={prepare,rainSample};
+  window.TenzerScenes={prepare,rainSample,wingPoint};
 })();

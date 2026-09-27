@@ -1,6 +1,6 @@
 /* Dataset validation is independent of the canvas renderer and testable in Node. */
 (() => {
-  const behaviors = ['bloom', 'glow', 'fly', 'reveal', 'mountain', 'lightning', 'rain', 'rainbow'];
+  const behaviors = ['bloom', 'glow', 'fly', 'reveal', 'mountain', 'lightning', 'rain', 'rainbow', 'tree', 'fire', 'moon', 'snow', 'wind', 'river', 'ocean', 'water'];
   const fail = message => { throw new Error(message); };
   function assetURL(value, base) {
     if (typeof value !== 'string' || !value.trim()) fail('Asset path must be a non-empty string.');
@@ -57,7 +57,9 @@
       }
       if(entry.behavior==='mountain' && !entry.layers)fail(`${name}: mountain layers required.`);
       for(const [key,value] of Object.entries(options)) {
-        if(key==='surfaces') {
+        if(key==='channels') {
+          if(entry.behavior!=='river'||!Array.isArray(value)||!value.length||value.some(path=>!Array.isArray(path)||path.length<2||path.some(p=>!Array.isArray(p)||p.length!==2||p.some(n=>!Number.isFinite(n)||n<0||n>1))))fail(`${name}: invalid river channels.`);
+        } else if(key==='surfaces') {
           if(entry.behavior!=='rain'||!Array.isArray(value)||value.length!==assets.length||value.some(v=>!['floor','fabric'].includes(v))) fail(`${name}: surfaces must match rain assets and use floor or fabric.`);
         } else positive(value,`${name} options.${key}`,1000);
       }
