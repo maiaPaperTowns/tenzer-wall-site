@@ -68,9 +68,10 @@
       const p=clamp(((x-ax)*dx+(y-ay)*dy)/(dx*dx+dy*dy||1));
       distance=Math.min(distance,Math.hypot(x-ax-p*dx,y-ay-p*dy));
     }
-    const edge=clamp(.5+(inside?distance:-distance)/.16),weight=edge*edge*(3-2*edge);
-    const dx=x-wing.pivot[0],dy=y-wing.pivot[1],a=phase*.16*weight;
-    return [wing.pivot[0]+dx*Math.cos(a)-dy*Math.sin(a),wing.pivot[1]+dx*Math.sin(a)+dy*Math.cos(a)-dy*phase*.12*weight];
+    const edge=clamp(.5+(inside?distance:-distance)/.3),weight=edge*edge*(3-2*edge);
+    const dy=y-wing.pivot[1];
+    // Small smooth shear/compression cannot fold the mesh back over itself into a second wing tip.
+    return [x+dy*phase*.07*weight,y-dy*phase*.09*weight];
   }
   function drawFlappingBird(g,sprite,wing,phase,size,height) {
     const steps=12,points=[];
@@ -151,25 +152,30 @@
       if(!s.flowers || s.flowerWidth!==w || s.flowerHeight!==h) {
         const cx=s.x??w/2,cy=s.y??h/2;
         s.flowers=[];
-        const clusterSize=options.clusterSize||4,groups=Math.ceil(count/clusterSize);
-        const cols=Math.min(groups,Math.ceil(Math.sqrt(groups*w/h))),rows=Math.ceil(groups/cols);
+        const groups=4,perBranch=Math.ceil(count/groups);
+        s.blossomBranches=[];
+        const curves=[[[0,1.02],[.04,.47],[.44,.76],[.72,.32]],[[1.03,.87],[.84,.8],[.94,.37],[.46,.19]],[[-.03,.12],[.2,.1],[.15,.47],[.48,.39]],[[.96,-.03],[.91,.25],[.65,.06],[.55,.23]]];
+        const point=(branch,q)=>{const [a,b,c,d]=curves[branch],v=1-q;return {x:w*(v*v*v*a[0]+3*v*v*q*b[0]+3*v*q*q*c[0]+q*q*q*d[0]),y:h*(v*v*v*a[1]+3*v*v*q*b[1]+3*v*q*q*c[1]+q*q*q*d[1])}};
+        for(let branch=0;branch<groups;branch++)s.blossomBranches.push(Array.from({length:41},(_,i)=>point(branch,i/40)));
         for(let i=0;i<count;i++){
-          const group=Math.floor(i/clusterSize),local=i%clusterSize;
-          const centerX=(group%cols+.5+(noise(group+71)-.5)*.25)*w/cols;
-          const centerY=(Math.floor(group/cols)+.5+(noise(group+92)-.5)*.25)*h/rows;
-          const angle=local*2.4+noise(group+305)*Math.PI*2;
-          const radius=local?min*(.061+local*.013):0;
-          const x=Math.max(min*.07,Math.min(w-min*.07,centerX+Math.cos(angle)*radius));
-          const y=Math.max(min*.07,Math.min(h-min*.07,centerY+Math.sin(angle)*radius*.8));
-          s.flowers.push({x,y,group,delay:Math.hypot(centerX-cx,centerY-cy)/Math.hypot(w,h)*(options.spreadSeconds||3.6)+local*.18,size:min*(local===0?.17:.09+noise(i+91)*.045),rotation:(noise(i+34)-.5)*.55});
+          const group=Math.floor(i/perBranch),local=i%perBranch,q=(local+.4)/perBranch,anchor=point(group,q);
+          const x=anchor.x+(noise(i+24)-.5)*min*.035,y=anchor.y+(local%2?1:-1)*min*(.014+noise(i+6)*.026);
+          s.flowers.push({x,y,anchor,group,delay:q*(options.spreadSeconds||2.5)+group*.18,size:min*(.057+noise(i+91)*.05),rotation:(noise(i+34)-.5)*1.1});
         }
         s.flowerWidth=w; s.flowerHeight=h;
       }
+      // Continuous sweeping branches connect the staggered blossoms, leaving open breathing space.
+      for(let b=0;b<s.blossomBranches.length;b++){
+        const points=s.blossomBranches[b],p=reduced?1:clamp((t-b*.18)/2.2);
+        g.globalAlpha=fade*.63;g.strokeStyle='#76675c';g.lineCap='round';
+        for(let j=1;j<Math.ceil(points.length*p);j++){g.lineWidth=min*(.006*(1-j/points.length)+.0008);g.beginPath();g.moveTo(points[j-1].x,points[j-1].y);g.lineTo(points[j].x,points[j].y);g.stroke()}
+      }
+      for(const f of s.flowers){g.globalAlpha=fade*.35*(reduced?1:ease((t-f.delay)/.5));g.lineWidth=1;g.beginPath();g.moveTo(f.anchor.x,f.anchor.y);g.lineTo(f.x,f.y);g.stroke()}
       // Sparse botanical accents sit behind the blossoms, never over their petals.
       const leafCount=Math.min(count,options.leafCount??22);
       for(let j=0;j<leafCount;j++) {
         const i=Math.floor(j*count/leafCount),flower=s.flowers[i];
-        const p=clamp((t-flower.delay-.12)/2),unfurl=p*p*(3-2*p);
+        const p=reduced?1:clamp((t-flower.delay-.12)/2),unfurl=p*p*(3-2*p);
         if(!unfurl)continue;
         const length=flower.size*(.38+noise(j+503)*.2),side=j%2?1:-1;
         const sway=reduced?0:Math.sin(t*.8+j*1.7)*.035;
@@ -194,11 +200,11 @@
         const index=(s.flowers[i].group*2+(i%2)+s.stockVariant)%entry.crops.length, spec=entry.crops[index];
         const sprite=cutout(assets[spec.asset],spec.crop,entry.id+':crop:'+index,spec.shape,spec.transparent);
         if(!sprite) continue;
-        const age=t-s.flowers[i].delay,p=clamp(age/(options.openSeconds||1.8)),open=p*p*(3-2*p);
+        const age=t-s.flowers[i].delay,p=reduced?1:clamp(age/(options.openSeconds||1.15)),open=1-Math.pow(1-p,3);
         if(!open) continue;
         const {x,y,rotation}=s.flowers[i],size=Math.min(s.flowers[i].size,sprite.width),height=size*sprite.height/sprite.width;
         const pivot=spec.pivot||[.5,.5];
-        const sway=reduced?0:Math.sin(t*.75+i)*.018;
+        const sway=reduced?0:Math.sin(t*.8+i)*.035;
         // Continuous unfurling: no overshoot, shudder, spinning or circular wipe.
         g.save();g.translate(x,y);g.rotate(rotation+sway);
         g.scale(reduced?1:.18+.82*open,reduced?1:.3+.7*open);g.globalAlpha=fade*ease(p*2);
@@ -276,12 +282,13 @@
       c.globalCompositeOperation='destination-in';
       const edge=-.22+progress*1.6,mask=c.createLinearGradient((edge-.2)*lw,0,edge*lw,lh*.12);
       mask.addColorStop(0,'#000');mask.addColorStop(1,'transparent');c.fillStyle=mask;c.fillRect(0,0,lw,lh);
-      g.globalAlpha=fade*.72;g.drawImage(layer,0,reduced?0:-(1-progress)*h*.07,w,h);
+      const arcScale=options.scale||1.2;
+      g.globalAlpha=fade*.76;g.drawImage(layer,-w*(arcScale-1)/2,h*(1-arcScale)*.65+(reduced?0:-(1-progress)*h*.07),w*arcScale,h*arcScale);
     } else if(entry.behavior==='lightning') {
       cover(g,assets[0],w,h,fade);
-      const interval=Math.max(3,options.intervalSeconds||3.8),elapsed=Math.max(0,t-.6),strike=Math.floor(elapsed/interval);
+      const interval=Math.max(2.4,options.intervalSeconds||3.8),elapsed=Math.max(0,t-.6),strike=Math.floor(elapsed/interval);
       const age=elapsed%interval,span=options.strikeSeconds||1.1;
-      const intensity=reduced?.28:(t<.6?0:ease(age/.08)*(1-ease((age-.14)/(span-.14))));
+      const intensity=reduced?.28:(t<.6?0:ease(age/.055)*(1-ease((age-.12)/(span-.12))));
       if(intensity>0){
         if(!s.bolts||s.boltIndex!==(reduced?0:strike)){s.bolts=bolt(17+(reduced?0:strike)*53);s.boltIndex=reduced?0:strike;}
         const light=g.createRadialGradient(w*.5,h*.35,0,w*.5,h*.35,min*.65);
@@ -291,7 +298,7 @@
         for(let layer=0;layer<3;layer++) {
           g.strokeStyle=['rgba(110,137,255,.16)','rgba(164,185,255,.5)','#eff5ff'][layer];
           s.bolts.forEach((path,i)=>{
-            const reveal=reduced?1:clamp((age-(i? .035:0))/.08);
+            const reveal=reduced?1:clamp((age-(i? .025:0))/.055);
             g.lineWidth=Math.max(.7,min*[.013,.005,.0015][layer])*(i?.52:1);
             g.beginPath();path.slice(0,Math.max(1,Math.ceil(path.length*reveal))).forEach(([x,y],j)=>j?g.lineTo(x*w,y*h):g.moveTo(x*w,y*h));g.stroke();
           });

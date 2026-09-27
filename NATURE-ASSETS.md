@@ -1,8 +1,10 @@
 # Nature expansion — September 26, 2026
 
+Updated active assets and all new derivative prompts are documented in [NATURE-REFRESH-PROMPTS.md](NATURE-REFRESH-PROMPTS.md). The source inventory below records the earlier version, not the current active configuration. `config.json` is authoritative. Current moon, snow, tree, fire, wind, ocean and flower scenes use the new approved-for-prototyping derivatives; original photographs remain available for recovery.
+
 User-supplied references are not independently license-verified. Preserve source URLs, creators, license terms and purchase receipts before final installation. No AI-assisted derivative is represented as an untouched museum original.
 
-## Active photographs (copied unchanged)
+## Original source photographs (copied unchanged; some now archival)
 
 - Fire: `Fire_in_fire_pit_2.jpg` → `assets/stock/fire-pit.jpg`; `Redrosedust_wright_f2000.jpg` → `assets/stock/fire-nebula.jpg`. The nebula supplies atmospheric color, not a claim that it depicts terrestrial fire.
 - Moon: `Moon_Essentials-_Turntable_(SVS5319).jpg` → `assets/stock/moon-disc.jpg`. `Full_moon_partially_obscured_by_atmosphere.jpg` is retained as `moon-atmosphere.jpg` for reference, not rotated as a second moon.

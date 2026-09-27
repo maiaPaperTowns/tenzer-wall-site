@@ -38,7 +38,7 @@ This example reuses the painting-reveal effect; it does not create a snowfall al
 | `glyph` | Font-rendered character; keeps the existing brush typeface |
 | `kanjiAsset` | Optional SVG/PNG character artwork, preferred over `glyph` |
 | `enabled` | Set `false` to remove a record from selection without deleting it |
-| `behavior` | `bloom`, `glow`, `fly`, `reveal`, or `mountain` |
+| `behavior` | `bloom`, `glow`, `fly`, `reveal`, `mountain`, `rainbow`, `lightning`, `rain`, `tree`, `fire`, `moon`, `snow`, `wind`, `river`, `ocean`, `water`, `bamboo`, `fish`, `star`, `cloud`, `leaves`, `cat` |
 | `assets` | Array of image URLs, relative to the dataset location |
 | `duration` | Total scene lifetime in seconds, including enter/exit fades |
 | `transitions` | `enter`, `exit`, and `switch` seconds; record values override dataset defaults |
@@ -48,7 +48,7 @@ This example reuses the painting-reveal effect; it does not create a snowfall al
 | `variants` | Glow compositions: `{mode:"backdrop",asset:0}` or `{mode:"disc",asset:0,rays:1}` |
 | `options` | Behavior-specific settings below |
 
-If `crops` is omitted, the entire image is used. Canvas masks preserve the loaded asset pixels. Some loaded assets are explicitly documented AI-assisted derivatives, not untouched originals. Set crop `transparent: true` to preserve an asset's alpha without circular feathering. Optional normalized `pivot` controls a bloom's petal hinge. Fly crops can specify `facing: -1` for left-facing source art (mirrored for rightward flight), plus `wing: {pivot, shape}` to animate a separate wing mask. Glow `disc` mode expects a centered solar-disc source; use `backdrop` for arbitrary paintings.
+If `crops` is omitted, the entire image is used. Canvas masks preserve the loaded asset pixels. Some loaded assets are explicitly documented AI-assisted derivatives, not untouched originals. Set crop `transparent: true` to preserve an asset's alpha without circular feathering. Optional normalized `pivot` controls a bloom's petal hinge. Fly crops can specify `facing: -1` for left-facing source art (mirrored for rightward flight), plus `wing: {pivot, shape}` for a continuous single-image wing deformation, not a duplicated overlay. Glow `disc` mode expects a centered solar-disc source; use `backdrop` for arbitrary paintings.
 
 The `mountain` behavior accepts `layers`: `{crop, x, y, width, opacity, delay}`. Coordinates and width are normalized; delay is seconds. Each crop is a separate mass, faded and lifted in depth order. Use sufficiently large licensed or approved derived cutouts for the target display.
 
@@ -59,6 +59,23 @@ The `mountain` behavior accepts `layers`: `{crop, x, y, width, opacity, delay}`.
 - `fly`: `count`, `reducedCount`, `flightSeconds`, `staggerSeconds`, `flapSeconds`.
 - `mountain`: `revealSeconds`.
 - `reveal`: `revealSeconds`, `staggerSeconds`.
+- `rainbow`: `growSeconds`, `scale`; assets are the sky and transparent spectral layer.
+- `lightning`: `intervalSeconds` (minimum 2.4), `strikeSeconds`; no rapid full-frame strobe.
+- `rain`: `count`, `reducedCount`, `speed`, `surfaces` aligned to assets. Active dataset uses two floor backgrounds (dark and purple).
+- `bamboo`: `count`, `growSeconds`; transparent leaf spray attaches at its left-center.
+- `fish`: `count`, `swimSeconds`; first asset is a 2×2 right-facing koi atlas, second is water.
+- `star`: `count`, `nightSeconds`; astronomical backgrounds alternate across activations.
+- `cloud`: `count`, `driftSeconds`; 2×2 cloud atlas with edge feathering.
+- `leaves`: `count`, `growSeconds`; 2×2 upright leaf atlas.
+- `cat`: `crossSeconds`; consistent right-facing walk poses in a 2×2 atlas.
+- `tree`: `growSeconds`; transparent whole tree and shrub sprite, rooted reveal.
+- `fire`: `spreadSeconds`, `emberCount`; transparent four-plume atlas.
+- `moon`: `nightSeconds`, `riseSeconds`; isolated moon asset.
+- `snow`: `count`, `reducedCount`; winter plate then crystal sprite, with ground-contact melting.
+- `wind`: `count`, `reducedCount`; transparent wind-bent grove, leaf sprigs sampled from it.
+- `river`: `flowSeconds`, normalized `channels` paths; flow follows smoothed curves.
+- `ocean`: `waveSeconds`; isolated breaking wave with shoreward motion.
+- `water`: continuous surface and 20 expanding ripple rings; no flying glyph-dot effect.
 
 Existing defaults preserve the current effects. The renderer contains motion algorithms, not character names, source filenames, or character-specific crop coordinates.
 
