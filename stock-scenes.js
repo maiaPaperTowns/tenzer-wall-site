@@ -122,7 +122,7 @@
             const distance=Math.min(...s.flowers.map(f=>Math.hypot((px-f.x)/w,(py-f.y)/h)));
             if(distance>best){best=distance;x=px;y=py;}
           }
-          s.flowers.push({x,y,delay:Math.hypot(x-cx,y-cy)/Math.hypot(w,h)*(options.spreadSeconds||2.1),size:min*(i===0?.48:.21+noise(i+91)*.22),rotation:(noise(i+34)-.5)*.75});
+          s.flowers.push({x,y,delay:Math.hypot(x-cx,y-cy)/Math.hypot(w,h)*(options.spreadSeconds||3.6)+noise(i+5)*.35,size:min*(i===0?.23:.105+noise(i+91)*.095),rotation:(noise(i+34)-.5)*.5});
         }
         s.flowerWidth=w; s.flowerHeight=h;
       }
@@ -130,23 +130,21 @@
         const index=(i+s.stockVariant)%entry.crops.length, spec=entry.crops[index];
         const sprite=cutout(assets[spec.asset],spec.crop,entry.id+':crop:'+index,spec.shape,spec.transparent);
         if(!sprite) continue;
-        const age=t-s.flowers[i].delay,open=ease(age/(options.openSeconds||1.2));
+        const age=t-s.flowers[i].delay,p=clamp(age/(options.openSeconds||1.8)),open=p*p*(3-2*p);
         if(!open) continue;
-        const {x,y,rotation}=s.flowers[i],size=Math.min(s.flowers[i].size*(spec.cluster?1:.43),sprite.width),height=size*sprite.height/sprite.width;
+        const {x,y,rotation}=s.flowers[i],size=Math.min(s.flowers[i].size,sprite.width),height=size*sprite.height/sprite.width;
         const pivot=spec.pivot||[.5,.5];
-        const shake=reduced?0:Math.sin(age*11+i)*.12*Math.exp(-age*1.1)+Math.sin(t*1.8+i)*.065;
-        const bloom=reduced?1:open+Math.sin(Math.PI*clamp(age/(options.openSeconds||1.2)))*.28;
-        g.save();g.translate(x+(reduced?0:Math.sin(t*1.1+i)*min*.004),y);g.rotate(rotation+shake);
-        g.scale(bloom,bloom);g.globalAlpha=fade*open;
-        // Prototype 1's outward reveal, with the licensed flower kept intact.
-        if(!reduced&&open<1){g.beginPath();g.arc(0,0,size*1.42*open,0,Math.PI*2);g.clip();}
+        const sway=reduced?0:Math.sin(t*.75+i)*.018;
+        // Continuous unfurling: no overshoot, shudder, spinning or circular wipe.
+        g.save();g.translate(x,y);g.rotate(rotation+sway);
+        g.scale(reduced?1:.18+.82*open,reduced?1:.3+.7*open);g.globalAlpha=fade*ease(p*2);
         g.drawImage(sprite,-size*pivot[0],-height*pivot[1],size,height);
         g.restore();
       }
       if(!reduced) {
         const petal=fallingPetal(assets[0]),total=options.petalCount||28,fall=options.petalFallSeconds||5;
         for(let i=0;i<total;i++) {
-          const age=t-.65-i*.045;if(age<0)continue;
+          const age=t-2-i*.12;if(age<0)continue;
           const cycle=Math.floor(age/fall),p=(age%fall)/fall,origin=s.flowers[(i*7+cycle)%count];
           const drift=Math.sin(p*Math.PI*2+i)*min*.045+p*min*.055;
           g.save();g.translate(origin.x+drift,origin.y+p*min*.6);g.rotate(i*2.4+p*3+Math.sin(p*8+i)*.45);

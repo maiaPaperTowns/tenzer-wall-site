@@ -23,7 +23,7 @@ Original files are retained unmodified. `assets/derived/flower-atlas-v2.png` is 
 
 ## Weather additions (2026-09-26)
 
-Additional flower derivatives: `flower-clusters-v3.png` and `flower-mixed-v4.png` each contain six AI-assisted botanical groupings based on the supplied azalea, rose, clustered flower and botanical plates, generated at the owner's explicit request. Prompts: `CLUSTER-PROMPTS.md`.
+Additional flower derivatives: `flower-clusters-v3.png` and `flower-mixed-v4.png` each contain six AI-assisted botanical groupings based on the supplied azalea, rose, clustered flower and botanical plates, generated at the owner's explicit request. Prompts: `CLUSTER-PROMPTS.md`. These experimental clusters are retained for recovery but no longer loaded or displayed; the owner requested a return to single blossoms with gentle, staggered blooming across the frame.
 
 - `assets/derived/lightning-storm-v1.png`: AI-generated reference-based frame using user-supplied `Thunderstorm_in_Berlin_2021-07-14_01 (1).jpg`, `CHSDM-23526_02-000001 (1).jpg`, and `Lightning_NOAA (1).jpg`. Lightning is animated separately in Canvas, not baked into the background.
 - `assets/stock/rain-roof.jpg`, `rain-purple.jpg`, `rain-umbrella.jpg`: unchanged user-supplied `Hard_rain_on_a_roof (1).jpg`, `Purple_rain_on_roof (1).jpg`, `Rain_on_a_blue_umbrella (1).jpg`. Moving rain and splashes are browser-rendered overlays; water photographed in the originals remains part of the still background.

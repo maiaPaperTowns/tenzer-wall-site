@@ -34,23 +34,9 @@
         "frequency": 523.25
       },
       "assets": [
-        "assets/derived/flower-atlas-v2.png",
-        "assets/derived/flower-clusters-v3.png",
-        "assets/derived/flower-mixed-v4.png"
+        "assets/derived/flower-atlas-v2.png"
       ],
       "crops": [
-        {"asset":1,"crop":[0,0,0.3333333333,0.5],"transparent":true,"pivot":[0.5,0.5],"cluster":true},
-        {"asset":1,"crop":[0.3333333333,0,0.3333333333,0.5],"transparent":true,"pivot":[0.5,0.5],"cluster":true},
-        {"asset":1,"crop":[0.6666666666,0,0.3333333333,0.5],"transparent":true,"pivot":[0.5,0.5],"cluster":true},
-        {"asset":1,"crop":[0,0.5,0.3333333333,0.5],"transparent":true,"pivot":[0.5,0.5],"cluster":true},
-        {"asset":1,"crop":[0.3333333333,0.5,0.3333333333,0.5],"transparent":true,"pivot":[0.5,0.5],"cluster":true},
-        {"asset":1,"crop":[0.6666666666,0.5,0.3333333333,0.5],"transparent":true,"pivot":[0.5,0.5],"cluster":true},
-        {"asset":2,"crop":[0,0,0.41,0.52],"transparent":true,"pivot":[0.5,0.5],"cluster":true},
-        {"asset":2,"crop":[0.41,0,0.25,0.53],"transparent":true,"pivot":[0.5,0.5],"cluster":true},
-        {"asset":2,"crop":[0.6666666666,0,0.3333333333,0.5],"transparent":true,"pivot":[0.5,0.5],"cluster":true},
-        {"asset":2,"crop":[0,0.52,0.41,0.48],"transparent":true,"pivot":[0.5,0.5],"cluster":true},
-        {"asset":2,"crop":[0.41,0.53,0.25,0.47],"transparent":true,"pivot":[0.5,0.5],"cluster":true},
-        {"asset":2,"crop":[0.6666666666,0.5,0.3333333333,0.5],"transparent":true,"pivot":[0.5,0.5],"cluster":true},
         {
           "asset": 0,
           "crop": [
@@ -137,13 +123,13 @@
         }
       ],
       "options": {
-        "countMin": 32,
-        "countMax": 52,
+        "countMin": 48,
+        "countMax": 72,
         "reducedCount": 18,
-        "spreadSeconds": 2.1,
-        "openSeconds": 1.2,
-        "petalCount": 95,
-        "petalFallSeconds": 5
+        "spreadSeconds": 3.6,
+        "openSeconds": 1.8,
+        "petalCount": 28,
+        "petalFallSeconds": 7
       }
     },
     {
