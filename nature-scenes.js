@@ -18,9 +18,11 @@
   }
   function leaf(g,img,index,x,y,size,rotation,alpha){g.save();g.translate(x,y);g.rotate(rotation);g.globalAlpha=alpha;g.drawImage(img,(index%2)*img.width/2,Math.floor(index/2)%2*img.height/2,img.width/2,img.height/2,-size/2,-size*.94,size,size);g.restore()}
   function glyphPoints(s){
-    if(s.inkPoints)return s.inkPoints;
+    const fontActive=document.documentElement.classList.contains('wf-active');
+    if(s.inkPoints&&s.inkFontActive===fontActive)return s.inkPoints;
+    s.inkFontActive=fontActive;
     const c=document.createElement('canvas');c.width=c.height=160;const g=c.getContext('2d');
-    g.font='120px "Aoyagi Kouzan", KaiTi, serif';g.textAlign='center';g.textBaseline='middle';g.fillText(s.entry.glyph,80,80);
+    g.font='120px "uddigikyokasho-pro", sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(s.entry.glyph,80,80);
     const d=g.getImageData(0,0,160,160).data,points=[];
     for(let y=0;y<160;y+=5)for(let x=0;x<160;x+=5)if(d[(y*160+x)*4+3]>100)points.push([x/160-.5,y/160-.5]);
     return s.inkPoints=points;
@@ -28,7 +30,7 @@
   function dissolve(g,s,t,w,h,fade,kind,reduced){
     if(reduced||t>4)return;
     const min=Math.min(w,h),x=s.x??w*.5,y=s.y??h*.5,points=glyphPoints(s),p=ease((t-.25)/2.8);
-    g.globalAlpha=fade*(1-ease((t-.25)/1.4));g.fillStyle='#293335';g.textAlign='center';g.textBaseline='middle';g.font=`${min*.2}px "Aoyagi Kouzan", KaiTi, serif`;g.fillText(s.entry.glyph,x,y);
+    g.globalAlpha=fade*(1-ease((t-.25)/1.4));g.fillStyle='#293335';g.textAlign='center';g.textBaseline='middle';g.font=`${min*.2}px "uddigikyokasho-pro", sans-serif`;g.fillText(s.entry.glyph,x,y);
     points.forEach(([px,py],i)=>{
       const dx=(noise(i+31)-.5)*min*p*.65,dy=kind==='fire'?-p*min*(.15+noise(i)*.6):p*min*(.1+noise(i)*.45);
       g.globalAlpha=fade*ease(t/.4)*(1-ease((t-2)/2));
@@ -267,3 +269,4 @@
   const renderers={tree,fire,moon,snow,wind,river,ocean,water,bamboo,fish,star,cloud,leaves,cat};
   window.TenzerNature={types,snowSample,fishPose,draw(g,s,fade,w,h,reduced){if(!types.has(s.entry.behavior))return false;renderers[s.entry.behavior](g,s,s.life,w,h,fade,reduced);return true}};
 })();
+

@@ -157,7 +157,7 @@
     if (c.state === 'gone') return;
     ctx.save(); ctx.translate(c.x, c.y); ctx.rotate(c.rotation); ctx.scale(c.scale, c.scale);
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.font = `400 ${c.size}px "Aoyagi Kouzan", KaiTi, STKaiti, "Yu Mincho", serif`;
+    ctx.font = `400 ${c.size}px "uddigikyokasho-pro", sans-serif`;
     if(c.kanjiImage) {
       const ratio=c.kanjiImage.naturalWidth/c.kanjiImage.naturalHeight;
       const iw=c.size*Math.min(1,ratio), ih=c.size/Math.max(1,ratio);
@@ -202,7 +202,11 @@
 
   async function loadKanjiFonts() {
     if (!document.fonts) return;
-    await document.fonts.load('400 120px "Aoyagi Kouzan"', entries.map(e=>e.glyph||'').join(''));
+    await window.tenzerFontsReady;
+    await Promise.race([
+      document.fonts.load('400 120px "uddigikyokasho-pro"', entries.map(e=>e.glyph||'').join('')),
+      new Promise(resolve=>setTimeout(resolve,3000))
+    ]);
   }
 
   async function start() {
@@ -277,3 +281,4 @@
   initialize();
   addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (!started) start(); else { const c = characters.find(c => c.state === 'falling'); if (c) burst(c); } } });
 })();
+

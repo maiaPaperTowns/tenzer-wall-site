@@ -1,5 +1,4 @@
-@font-face { font-family: "Aoyagi Kouzan"; src: url("assets/aoyagi-kouzan.ttf") format("truetype"); font-style: normal; font-weight: 400; font-display: block; }
-:root { color-scheme: light; font-family: Georgia, "Yu Mincho", "Hiragino Mincho ProN", serif; }
+:root { color-scheme: light; font-family: "uddigikyokasho-pro", sans-serif; font-weight: 400; font-style: normal; }
 * { box-sizing: border-box; }
 html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #eee8da; }
 body { touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
@@ -21,3 +20,6 @@ button:focus-visible { outline: 3px solid #d699a9; outline-offset: 4px; }
 .sound { position: absolute; z-index: 2; right: max(1rem, env(safe-area-inset-right)); top: max(1rem, env(safe-area-inset-top)); padding: .72rem 1rem; color: rgba(29,50,60,.72); background: rgba(245,246,241,.38); border-color: rgba(41,69,81,.18); box-shadow: none; backdrop-filter: blur(8px); }
 @media (max-width: 600px) { .sound { top: auto; bottom: max(1rem, env(safe-area-inset-bottom)); } .hint { bottom: 4.6rem; } }
 @media (prefers-reduced-motion: reduce) { .intro { transition-duration: .01ms; } }
+
+.eyebrow, button, .hint, .hint span { font-family: "uddigikyokasho-pro", sans-serif; font-weight: 400; font-style: normal; }
+
