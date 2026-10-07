@@ -3,6 +3,8 @@
   const clamp=n=>Math.max(0,Math.min(1,n)),ease=n=>{n=clamp(n);return n*n*(3-2*n)};
   const noise=n=>{const v=Math.sin(n*127.1+311.7)*43758.5453;return v-Math.floor(v)};
   const types=new Set(['tree','fire','moon','snow','wind','river','ocean','water','bamboo','fish','star','cloud','leaves','cat']);
+  const colorCache=new WeakMap();
+  function colored(img,filter){let variants=colorCache.get(img);if(!variants){variants=new Map();colorCache.set(img,variants)}if(!variants.has(filter)){const c=document.createElement('canvas'),scale=Math.min(1,1600/Math.max(img.width,img.height));c.width=Math.round(img.width*scale);c.height=Math.round(img.height*scale);const g=c.getContext('2d');g.filter=filter;g.drawImage(img,0,0,c.width,c.height);variants.set(filter,c)}return variants.get(filter)}
   function cover(g,img,w,h,alpha=1){const k=Math.max(w/img.width,h/img.height);g.globalAlpha=alpha;g.drawImage(img,(w-img.width*k)/2,(h-img.height*k)/2,img.width*k,img.height*k)}
   // Continuous surface displacement; overlapping strips avoid cracks without rotating the photograph.
   function livingWater(g,img,w,h,clock,alpha,start=0,strength=1,full=false){
@@ -161,7 +163,7 @@
   }
   function water(g,s,t,w,h,fade,reduced){
     const min=Math.min(w,h),clock=reduced?3:t,arrive=reduced?1:ease(t/2),x=s.x??w/2,y=s.y??h/2;
-    g.save();g.filter='hue-rotate(-8deg) saturate(.8) brightness(1.17)';livingWater(g,s.entry.images[0],w,h,clock,fade*arrive,0,1);g.restore();
+    livingWater(g,colored(s.entry.images[0],'hue-rotate(-8deg) saturate(.8) brightness(1.17)'),w,h,clock,fade*arrive,0,1);
     for(let origin=0;origin<5;origin++)for(let i=0;i<4;i++){
       const p=(clock*.14+i/4+origin*.17)%1,r=p*min*.54,alpha=Math.sin(p*Math.PI)*(1-p),cx=origin?noise(origin+9)*w:x,cy=origin?(.15+noise(origin+26)*.7)*h:y;
       g.globalAlpha=fade*arrive*alpha*.26;g.strokeStyle=i%2?'#e5f3e9':'#527e83';g.lineWidth=.65+(1-p);
@@ -204,7 +206,7 @@
   }
   function fish(g,s,t,w,h,fade,reduced){
     const min=Math.min(w,h),clock=reduced?8:t,o=s.entry.options,arrive=reduced?1:ease(t/1.8),img=s.entry.images[0];
-    g.save();g.filter='saturate(.92) brightness(1.02)';livingWater(g,s.entry.images[1],w,h,clock,fade*arrive,0,.65);g.restore();
+    livingWater(g,colored(s.entry.images[1],'saturate(.92) brightness(1.02)'),w,h,clock,fade*arrive,0,.65);
     g.globalAlpha=fade*arrive*.07;g.fillStyle='#99dac6';g.fillRect(0,0,w,h);
     for(let i=0;i<(o.count||9);i++){
       const pose=fishPose(i,clock,w,h,o.swimSeconds||26),size=min*(.14+noise(i+38)*.1),sh=size*(img.height/img.width),sw=img.width/2,sy=Math.floor(i%4/2)*img.height/2,sx=(i%2)*sw;

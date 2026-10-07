@@ -83,7 +83,9 @@ Each active object carries its own elapsed lifetime. Scene opacity follows a sin
 
 ### Rendering and performance
 
-- The canvas tracks viewport size and caps device pixel ratio at `2` to control fill cost on high-density displays.
+- The main canvas caps pixel ratio at `1.5` and total backing pixels at approximately 4.2 million. Scene artwork renders to a reusable layer of at most 1.5 million pixels before compositing; input coordinates remain in CSS pixels.
+- Water and pond color treatments are cached once instead of reapplying image filters to every animated strip. The tradeoff is softer background detail on very large/Retina screens, while animation, layout and touch targets are preserved.
+- `perf-budget-check.cjs` compares direct versus budgeted drawing. One local Chrome sample at 1200×750/2× backing measured waterfall 4.3→1.4 ms, moon 10.5→1.6 ms, and flower 9.2→1.8 ms per draw. This is a small rendering benchmark, not an end-to-end FPS or touch-latency guarantee on installation hardware.
 - Frame delta is clamped to prevent large simulation jumps after a suspended tab resumes.
 - Completed characters, particles, ripples, and scenes are removed every frame.
 - Image assets and the brush font are preloaded before interaction where practical.
@@ -118,6 +120,7 @@ The four reference-led landscape revisions are documented in `DREAM-SCENES.md`, 
     ├── nature-scenes.js   # Nature animation systems
     ├── world-scenes.js    # Forest, horse, waterfall, flower, fluffy cat
     ├── dream-scenes.js    # Reference-led flower, thunder, waterfall and moon
+    ├── render-budget.js   # Bounded reusable scene surfaces for responsive rendering
     └── assets/            # Font and composited scene artwork
 ```
 

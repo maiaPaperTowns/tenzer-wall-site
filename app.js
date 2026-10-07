@@ -19,8 +19,8 @@
   const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 
   function resize() {
-    dpr = Math.min(devicePixelRatio || 1, 2);
     w = innerWidth; h = innerHeight;
+    dpr = Math.min(devicePixelRatio || 1, 1.5, Math.sqrt(4200000 / (w*h)));
     canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
@@ -188,7 +188,7 @@
     scenes.forEach(s => {
       s.life += elapsed; const fade = sceneOpacity(s);
       if (s.life < 0 || fade <= 0) return;
-      window.drawStockScene(ctx, s, fade, w, h, reduced);
+      window.TenzerRenderBudget.draw(ctx, s, fade, w, h, reduced);
     });
     resolveCharacterSpacing();
     characters.forEach(c => drawCharacter(c, dt));
