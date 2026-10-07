@@ -1,0 +1,13 @@
+const assert=require('node:assert/strict');
+const {validate}=require('./config-loader.js');
+const raw=require('./config.json'), base='https://example.test/tenzer/config.json';
+const change=fn=>{const copy=structuredClone(raw);fn(copy);return copy};
+assert.equal(validate(raw,base).entries.length,24);
+assert.equal(validate(raw,base).entries.find(e=>e.id==='flower').assets[0],'https://example.test/tenzer/assets/derived/sakura-clusters-v2.png');
+for(const edit of [c=>c.version=2,c=>c.entries=[],c=>c.entries[1].id=c.entries[0].id,c=>c.entries[0].behavior='unknown',c=>c.entries[0].assets=['javascript:bad'],c=>c.entries[0].duration=-1,c=>c.entries.find(e=>e.id==='flower').crops[0].asset=99,c=>c.entries.find(e=>e.id==='flower').crops[0].crop=[.9,0,.2,1],c=>c.entries.find(e=>e.id==='flower').sound.volume=3])assert.throws(()=>validate(change(edit),base));
+assert.equal(validate(change(c=>c.entries.push({...c.entries.find(e=>e.id==='flower'),id:'alternate-flower',glyph:'花',meaning:'Flower'})),base).entries.length,25);
+assert.equal(validate(change(c=>c.entries.push({enabled:false})),base).entries.length,24);
+const custom=validate(change(c=>{c.entries=[{id:'alternate',meaning:'Alternate',kanjiAsset:'glyph.svg',behavior:'reveal',assets:['scene.jpg'],sound:{src:'sound.mp3'}}]}),base).entries[0];
+assert.equal(custom.kanjiAsset,'https://example.test/tenzer/glyph.svg');
+assert.equal(custom.sound.src,'https://example.test/tenzer/sound.mp3');
+console.log('Config validation: 15 assertions passed.');

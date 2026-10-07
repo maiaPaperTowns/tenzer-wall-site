@@ -46,15 +46,22 @@
         else {const crops=[[0,0,.5,.585],[.5,0,.5,.585],[0,.59,.51,.4]], [x,y,w,h]=crops[index],sw=w*atlas.width,sh=h*atlas.height,scale=Math.min(768/sw,768/sh);ctx.drawImage(atlas,x*atlas.width,y*atlas.height,sw,sh,(768-sw*scale)/2,768-sh*scale,sw*scale,sh*scale)}return c});
       s.treeLayer=document.createElement('canvas');s.treeLayer.width=s.treeLayer.height=768;
     }
-    // Far, middle and foreground trees grow in staggered layers, with planted roots.
-    const placements=[[.09,.61,.42,0,.1],[.36,.55,.38,1,.35],[.65,.59,.4,2,.55],[.92,.63,.45,1,.2],[.2,.81,.7,2,.8],[.81,.84,.72,0,1],[.51,1.04,1,3,0]];
+    // 木 remains one rooted tree; small canopy regions unfurl independently.
+    const sizeLimit=Math.min(1.04,w/h*.88),targetX=Math.max(h*sizeLimit*.48,Math.min(w-h*sizeLimit*.48,s.x??w*.5));
+    const placements=[[targetX/w,sizeLimit,1,3,0]];
     const layer=s.treeLayer,c=layer.getContext('2d'),z=layer.width;
     placements.forEach(([nx,scale,opacity,index,delay],i)=>{
       const p=reduced?1:clamp((t-delay)/(s.entry.options.growSeconds||6)),size=h*scale;
       c.clearRect(0,0,z,z);c.globalCompositeOperation='source-over';c.drawImage(s.treeSprites[index],0,0);
       c.globalCompositeOperation='destination-in';
-      const r=Math.max(1,p*z*1.2),mask=c.createRadialGradient(z*.51,z*.96,r*.75,z*.51,z*.96,r);mask.addColorStop(0,'#000');mask.addColorStop(1,'transparent');c.fillStyle=mask;c.fillRect(0,0,z,z);
-      g.save();g.translate(nx*w,h*(i<4?.94:1.035));g.transform(1,0,reduced?0:Math.sin(t*.6+i)*.009,1,0,0);g.globalAlpha=fade*opacity;g.drawImage(layer,-size*.5,-size,size,size);
+      // Build the trunk first, then overlapping soft leaf-cluster masks, not a whole-image fade.
+      if(!s.treeMask){s.treeMask=document.createElement('canvas');s.treeMask.width=s.treeMask.height=z}
+      const m=s.treeMask.getContext('2d');m.clearRect(0,0,z,z);m.fillStyle='#000';
+      const trunk=reduced?1:ease(t/3.5);m.beginPath();m.moveTo(z*.47,z);m.lineTo(z*.48,z*(1-trunk*.76));m.lineTo(z*.55,z*(1-trunk*.76));m.lineTo(z*.57,z);m.fill();
+      for(let j=0;j<38;j++){const ax=.16+noise(j+40)*.69,ay=.08+noise(j+92)*.73,open=reduced?1:ease((t-1.4-(1-ay)*4.5-noise(j)*2)/2.3);if(!open)continue;const r=z*(.1+noise(j+8)*.065)*open,mask=m.createRadialGradient(ax*z,ay*z,0,ax*z,ay*z,r);mask.addColorStop(0,'#000');mask.addColorStop(.7,'#000');mask.addColorStop(1,'transparent');m.fillStyle=mask;m.fillRect(ax*z-r,ay*z-r,r*2,r*2)}
+      m.globalAlpha=reduced?1:ease((t-8)/2);m.fillStyle='#000';m.fillRect(0,0,z,z);m.globalAlpha=1;c.drawImage(s.treeMask,0,0);
+      const emergence=reduced?1:ease(t/4),rootY=(s.y??h*.5)*(1-emergence)+h*1.035*emergence;
+      g.save();g.translate(nx*w,rootY);g.scale(.18+.82*emergence,.18+.82*emergence);g.transform(1,0,reduced?0:Math.sin(t*.6+i)*.009,1,0,0);g.globalAlpha=fade*opacity;g.drawImage(layer,-size*.5,-size,size,size);
       const anchors=index===3?[[.55,.24],[.76,.34],[.43,.45],[.67,.52],[.26,.62],[.8,.68],[.42,.76]]:index===2?[[.3,.5],[.4,.6],[.67,.65],[.78,.76],[.43,.8]]:[[.36,.28],[.63,.32],[.27,.48],[.7,.53],[.43,.62]];
       anchors.forEach(([ax,ay],j)=>{
         const open=reduced?1:ease((t-delay-1.8-(1-ay)*3.8-j*.08)/2.2);if(!open)return;
@@ -134,17 +141,23 @@
     for(let k=0;k<channels.length;k++){
       const path=channels[k];
       const sample=p=>{const f=clamp(p)*(path.length-1),j=Math.min(path.length-2,Math.floor(f)),u=f-j,a=path[Math.max(0,j-1)],b=path[j],c=path[j+1],d=path[Math.min(path.length-1,j+2)];return [0,1].map(n=>.5*((2*b[n])+(-a[n]+c[n])*u+(2*a[n]-5*b[n]+4*c[n]-d[n])*u*u+(-a[n]+3*b[n]-3*c[n]+d[n])*u*u*u))};
-      for(let i=0;i<140;i++){
-        const p=(noise(i+k*143)+clock/((o.flowSeconds||9)*.82))%1,[nx,ny]=sample(p),[ex,ey]=sample(Math.min(1,p+.014));
+      for(let i=0;i<(reduced?70:220);i++){
+        const p=(noise(i+k*143)+clock/((o.flowSeconds||4.8)*(.8+noise(i+8)*.3)))%1,[nx,ny]=sample(p),[ex,ey]=sample(Math.min(1,p+.026));
         const offset=(noise(i+11)-.5)*iw*.025,x=ox+nx*iw+offset,y=oy+ny*ih;
-        g.globalAlpha=fade*arrive*Math.sin(p*Math.PI)*(.05+noise(i)*.14);g.strokeStyle='#e0eeeb';g.lineWidth=.5+noise(i+8)*.8;g.beginPath();g.moveTo(x,y);g.quadraticCurveTo((x+ox+ex*iw+offset)/2+min*.004,(y+oy+ey*ih)/2,ox+ex*iw+offset,oy+ey*ih);g.stroke();
+        g.globalAlpha=fade*arrive*Math.sin(p*Math.PI)*(.12+noise(i)*.23);g.strokeStyle='#e0eeeb';g.lineWidth=.6+noise(i+8)*1.1;g.beginPath();g.moveTo(x,y);g.quadraticCurveTo((x+ox+ex*iw+offset)/2+min*.004,(y+oy+ey*ih)/2,ox+ex*iw+offset,oy+ey*ih);g.stroke();
       }
     }
   }
   function ocean(g,s,t,w,h,fade,reduced){
     const clock=reduced?2:t,min=Math.min(w,h),arrive=reduced?1:ease(t/1.6);
-    // Retain the supplied shore photograph, with a stable horizon and living water below it.
-    g.save();g.filter='saturate(.9) brightness(1.07)';livingWater(g,s.entry.images[1],w,h,clock,fade*arrive,.52,1,true);g.restore();
+    // A stable sky above the painting's horizon, with coherent shoreward wave compression below.
+    const img=s.entry.images[0],horizon=.283,step=3;g.globalAlpha=fade*arrive;
+    g.drawImage(img,0,0,img.width,img.height*horizon,0,0,w,h*horizon);
+    for(let y=h*horizon;y<h;y+=step){const depth=(y/h-horizon)/(1-horizon),phase=depth*15-clock*1.15;
+      const dy=h*.019*Math.sin(phase)*Math.sin(depth*Math.PI),dx=w*.003*Math.sin(phase*.7)*depth;
+      const sy=Math.max(img.height*horizon,Math.min(img.height-(step+1)*img.height/h,(y+dy)*img.height/h));
+      g.drawImage(img,0,sy,img.width,(step+1)*img.height/h,-w*.006+dx,y,w*1.012,step+1);
+    }
   }
   function water(g,s,t,w,h,fade,reduced){
     const min=Math.min(w,h),clock=reduced?3:t,arrive=reduced?1:ease(t/2),x=s.x??w/2,y=s.y??h/2;
@@ -166,8 +179,8 @@
   function bamboo(g,s,t,w,h,fade,reduced){
     const min=Math.min(w,h),o=s.entry.options,clock=reduced?30:t,count=o.count||5;
     for(let i=0;i<count;i++){
-      const height=h*(.54+noise(i+85)*.39),base=(i+.5)*w/count,width=min*(.01+noise(i+6)*.008);
-      const growth=ease((clock-i*.45)/(o.growSeconds||7)),angle=(noise(i+7)-.5)*.19+(reduced?0:Math.sin(t*.6+i)*.018);
+      const height=h*(.58+noise(i+85)*.35),base=(i+.3+noise(i+42)*.5)*w/count,width=min*(.008+noise(i+6)*.006);
+      const growth=ease((clock-i*.8)/(o.growSeconds||9)),angle=(noise(i+7)-.5)*.22+(reduced?0:Math.sin(t*.48+i*.6)*.012);
       g.save();g.translate(base,h*1.04);g.rotate(angle);g.globalAlpha=fade*(.62+noise(i)*.35);
       for(let j=0;j<8;j++){
         const part=clamp(growth*8-j);if(!part)continue;
@@ -175,8 +188,8 @@
         const green=g.createLinearGradient(-width/2,0,width/2,0);green.addColorStop(0,'#365e43');green.addColorStop(.45,'#91ab73');green.addColorStop(1,'#55794e');
         g.fillStyle=green;g.beginPath();g.moveTo(-width/2,y);g.lineTo(-width*.45,y-len);g.quadraticCurveTo(0,y-len-2,width*.45,y-len);g.lineTo(width/2,y);g.fill();
         g.strokeStyle='#c0c9a0';g.lineWidth=Math.max(1,min*.002);g.beginPath();g.moveTo(-width*.55,y);g.quadraticCurveTo(0,y+2,width*.55,y);g.stroke();
-        if(j===3||j===5||j===7&&i%2===0){const open=ease((clock-i*.45-j*.8-1.8)/3.2);if(open){
-          const side=(i+j)%2?1:-1,size=min*(.16+noise(i*13+j)*.09)*open;
+        if((j===4||j===6)&&part>.95){const open=ease((clock-i*.8-j*.65-1.8)/3.7);if(open){
+          const side=(i+j)%2?1:-1,size=min*(.12+noise(i*13+j)*.075)*open;
           g.save();g.translate(0,y);g.rotate(-side*.13+(reduced?0:Math.sin(t*1.1+i+j)*.07));g.scale(side,1);
           const img=s.entry.images[0];g.drawImage(img,-size*.035,-size*.53*img.height/img.width,size,size*img.height/img.width);g.restore();
         }}
@@ -269,4 +282,3 @@
   const renderers={tree,fire,moon,snow,wind,river,ocean,water,bamboo,fish,star,cloud,leaves,cat};
   window.TenzerNature={types,snowSample,fishPose,draw(g,s,fade,w,h,reduced){if(!types.has(s.entry.behavior))return false;renderers[s.entry.behavior](g,s,s.life,w,h,fade,reduced);return true}};
 })();
-

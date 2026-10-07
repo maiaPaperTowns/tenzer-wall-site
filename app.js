@@ -79,7 +79,7 @@
   function burst(c) {
     if (c.state !== 'falling') return;
     c.state = 'opening'; c.life = 0;
-    ripples.push({ x: c.x, y: c.y, r: c.size * .38, alpha: .62, hue: c.hue });
+    if(!['horse','waterfall'].includes(c.behavior))ripples.push({ x: c.x, y: c.y, r: c.size * .38, alpha: .62, hue: c.hue });
     const activeScenes = scenes.filter(scene => scene.life >= 0 && scene.life < scene.max);
     const currentScene = activeScenes[activeScenes.length - 1];
     const outgoingFadeTime = c.transitions.switch;
@@ -146,6 +146,8 @@
 
   function drawCharacter(c, dt) {
     c.life += dt; c.phase += dt * .6;
+    // These scenes own the exact enlargement/material transition of their glyph.
+    if(c.state!=='falling'&&['horse','waterfall'].includes(c.behavior)){c.state='gone';return;}
     if (c.state === 'falling') {
       c.alpha = Math.min(1, c.alpha + dt * .7);
       c.y += c.vy * dt * (h / 700); c.x += Math.sin(c.phase) * c.drift * dt;
@@ -281,4 +283,3 @@
   initialize();
   addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (!started) start(); else { const c = characters.find(c => c.state === 'falling'); if (c) burst(c); } } });
 })();
-

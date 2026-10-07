@@ -1,6 +1,6 @@
 /* Dataset validation is independent of the canvas renderer and testable in Node. */
 (() => {
-  const behaviors = ['bloom', 'glow', 'fly', 'reveal', 'mountain', 'lightning', 'rain', 'rainbow', 'tree', 'fire', 'moon', 'snow', 'wind', 'river', 'ocean', 'water', 'bamboo', 'fish', 'star', 'cloud', 'leaves', 'cat'];
+  const behaviors = ['bloom', 'glow', 'fly', 'reveal', 'mountain', 'lightning', 'rain', 'rainbow', 'tree', 'forest', 'horse', 'waterfall', 'fire', 'moon', 'snow', 'wind', 'river', 'ocean', 'water', 'bamboo', 'fish', 'star', 'cloud', 'leaves', 'cat'];
   const fail = message => { throw new Error(message); };
   function assetURL(value, base) {
     if (typeof value !== 'string' || !value.trim()) fail('Asset path must be a non-empty string.');

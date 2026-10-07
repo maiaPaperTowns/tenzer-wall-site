@@ -157,12 +157,13 @@
   }
   window.drawStockScene = (g,s,fade,w,h,reduced) => {
     const entry=s.entry, assets=entry.images, options=entry.options;
-    const countVariants=entry.behavior==='glow'?entry.variants.length:entry.behavior==='fly'?entry.crops.length:assets.length;
+    const countVariants=entry.behavior==='forest'?3:entry.behavior==='glow'?entry.variants.length:entry.behavior==='fly'?entry.crops.length:assets.length;
     if (s.stockVariant == null) {
       const next=sequence.get(entry.id)||0; s.stockVariant=next%countVariants; sequence.set(entry.id,next+1);
     }
     const t=s.life, min=Math.min(w,h);
     g.save();
+    if(window.TenzerWorld?.draw(g,s,fade,w,h,reduced)){g.restore();return;}
     if(window.TenzerNature?.draw(g,s,fade,w,h,reduced)){g.restore();return;}
     if (entry.behavior==='bloom') {
       const count=Math.round(reduced?(options.reducedCount||30):Math.min(options.countMax||150,Math.max(options.countMin||90,Math.round(w*h/35000))));
@@ -316,13 +317,13 @@
       g.globalAlpha=fade*.76;g.drawImage(layer,-w*(arcScale-1)/2,h*(1-arcScale)*.65+(reduced?0:-(1-progress)*h*.07),w*arcScale,h*arcScale);
     } else if(entry.behavior==='lightning') {
       cover(g,assets[0],w,h,fade);
-      const interval=Math.max(1.8,options.intervalSeconds||2.1),elapsed=Math.max(0,t-.6),strike=Math.floor(elapsed/interval);
+      const interval=Math.max(.9,options.intervalSeconds||1.15),elapsed=Math.max(0,t-.6),strike=Math.floor(elapsed/interval);
       const age=elapsed%interval,span=options.strikeSeconds||1.1;
       const intensity=reduced?.28:(t<.6?0:ease(age/.055)*(1-ease((age-.12)/(span-.12))));
       if(intensity>0){
         if(!s.bolts||s.boltIndex!==(reduced?0:strike)||s.boltReduced!==reduced){
           const seed=17+(reduced?0:strike)*53;
-          s.bolts=reduced?bolt(seed):[0,1].flatMap(b=>bolt(seed+b*97).map(path=>path.map(([x,y])=>[x*.62+(b?.38:.02),y])));
+          s.bolts=reduced?bolt(seed):[0,1,2,3].flatMap(b=>bolt(seed+b*97).map(path=>path.map(([x,y])=>[x*.3+b*.23,y])));
           s.boltIndex=reduced?0:strike;s.boltReduced=reduced;
         }
         const light=g.createRadialGradient(w*.5,h*.35,0,w*.5,h*.35,min*.65);
