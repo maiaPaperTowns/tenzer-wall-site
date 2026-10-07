@@ -14,17 +14,17 @@ The current vocabulary contains 24 concepts. Configuration lives in `config.json
 
 | Kanji | Concept | Scene behavior |
 | --- | --- | --- |
-| 花 | Flower | Four generated, branch-free sakura clusters unfurl in staggered, airy drifts. |
+| 花 | Flower | Sakura canopies bloom around a pastel mountain lake; independent petals drift across the scene. |
 | 日 | Sun | A warm radial atmosphere expands softly while painted currents and cloud forms settle independently. |
 | 虹 | Rainbow | A large rainbow appears against an uncluttered sky. |
 | 雨 | Rain | Layered rainfall crosses the complete painting at varied depth, speed, opacity, and scale. |
 | 鳥 | Bird | A flock traverses the canvas; the rendered bird species varies between activations. |
 | 山 | Mountain | Separate mountain strata rise sequentially through mist to create spatial depth. |
-| 雷 | Thunder | Storm imagery, screen illumination, and procedurally generated branching lightning combine in timed pulses. |
+| 雷 | Thunder | Indigo storm clouds drift over a mountain lake; branching lightning illuminates clouds and reflects in the water. |
 | 木 | Tree | One prominent tree grows from the selected character; canopy clusters unfold in stages. |
 | 森 | Forest | Multiple tree layers and three reference paintings surround the viewer. |
 | 馬 | Horse | The glyph enlarges and dissolves into a horse; walking accelerates into a horizontal gallop and exit. |
-| 滝 | Waterfall | Ink strokes drip, vertical streams develop, and a rock-and-forest waterfall environment emerges. |
+| 滝 | Waterfall | Ink drips become a luminous blue-white waterfall, with moving water, forest cliffs, mist and spray. |
 | 川 | River | Three flowing river channels with faster downstream current trails. |
 | 水 | Water | A continuously rippling surface with expanding rings. |
 | 海 | Ocean / Sea | A new painted seascape with a fixed horizon and shoreward rolling water. |
@@ -35,7 +35,7 @@ The current vocabulary contains 24 concepts. Configuration lives in `config.json
 | 星 | Star | Stars twinkle in a dark sky. |
 | 魚 | Fish | Koi swim through a bright pond with surface rings. |
 | 火 | Fire | Layered flame artwork flickers with rising embers. |
-| 月 | Moon | The sky darkens and a cutout moon rises. |
+| 月 | Moon | The existing cutout moon rises over an indigo lake, with a warm halo and rippling reflection. |
 | 雪 | Snow | White flakes fall and dissolve at ground contact. |
 | 風 | Wind | Trees bend while leaves, petals, and drawn gusts cross the scene. |
 
@@ -98,7 +98,9 @@ Typography uses Adobe Fonts **UD Digi Kyokasho Pro** (`uddigikyokasho-pro`, weig
 
 Branch-free flower variants, a new ocean painting, and a fluffy cat rig were generated with the built-in image tool. Asset paths and prompts are documented in `REFRESH-20261007.md`. Existing reference art is retained separately. Lightning now has four branched bolts per strike at 1.15-second intervals, with localized glow rather than repeated full-screen white flashes. Reduced-motion mode uses a static, restrained strike.
 
-`world-check.cjs` checks ten changed scenes for animation, deterministic reduced-motion rendering, and clean fade-out, plus horse exit coordinates at 1200 and 7680 pixels. These browser checks do not replace an on-wall hardware/performance or accessibility review.
+The four reference-led landscape revisions are documented in `DREAM-SCENES.md`, including generated asset paths and prompts. Each uses its own environment; cherry blossoms are not added to every scene.
+
+`world-check.cjs` checks eleven changed scenes for animation, deterministic reduced-motion rendering, and clean fade-out, plus horse exit coordinates at 1200 and 7680 pixels. These browser checks do not replace an on-wall hardware/performance or accessibility review.
 
 ## Project structure
 
@@ -115,6 +117,7 @@ Branch-free flower variants, a new ocean painting, and a fluffy cat rig were gen
     ├── stock-scenes.js    # Asset preparation and scene dispatch
     ├── nature-scenes.js   # Nature animation systems
     ├── world-scenes.js    # Forest, horse, waterfall, flower, fluffy cat
+    ├── dream-scenes.js    # Reference-led flower, thunder, waterfall and moon
     └── assets/            # Font and composited scene artwork
 ```
 

@@ -163,6 +163,7 @@
     }
     const t=s.life, min=Math.min(w,h);
     g.save();
+    if(window.TenzerDream?.draw(g,s,fade,w,h,reduced)){g.restore();return;}
     if(window.TenzerWorld?.draw(g,s,fade,w,h,reduced)){g.restore();return;}
     if(window.TenzerNature?.draw(g,s,fade,w,h,reduced)){g.restore();return;}
     if (entry.behavior==='bloom') {

@@ -67,5 +67,5 @@
     }
     const mist=reduced?1:ease((t-4)/4);for(let i=0;i<12;i++){const x=w*(.2+noise(i)*.6)+(reduced?0:Math.sin(t*.3+i)*w*.015),y=h*(.70+noise(i+30)*.12),r=h*(.06+noise(i+12)*.04),gr=g.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,'rgba(228,240,227,.12)');gr.addColorStop(1,'transparent');g.fillStyle=gr;g.globalAlpha=fade*mist;g.fillRect(x-r,y-r,r*2,r*2)}
   }
-  const renderers={bloom,cat,forest,horse,waterfall};window.TenzerWorld={horsePose,draw(g,s,fade,w,h,reduced){const f=renderers[s.entry.behavior];if(!f)return false;f(g,s,s.life,w,h,fade,reduced);return true}};
+  const renderers={bloom,cat,forest,horse,waterfall};window.TenzerWorld={glyph,horsePose,draw(g,s,fade,w,h,reduced){const f=renderers[s.entry.behavior];if(!f)return false;f(g,s,s.life,w,h,fade,reduced);return true}};
 })();
