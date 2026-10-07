@@ -35,9 +35,10 @@
     // The torso covers all four hip joints; paws remain short and grounded.
     g.save();g.translate(0,reduced?0:Math.sin(phase*2)*size*(cat?.003:.007+gallop*.014));part('body',-size*.48,hipY-bodyHeight*.82,size,bodyHeight);g.restore();g.restore();
   }
-  function cat(g,s,t,w,h,fade,reduced){const size=Math.min(w*.32,h*.43),clock=reduced?8:t,x=reduced?w*.5:-size+(clock/(s.entry.options.crossSeconds||20))*(w+size*2);animal(g,s.entry.images[0],'cat',x,h*.8,size,clock,0,fade*(reduced?1:ease(t/.6)),reduced)}
+  function cat(g,s,t,w,h,fade,reduced){const size=Math.min(w*.32,h*.43),clock=reduced?8:t,x=reduced?w*.5:-size+(clock/(s.entry.options.crossSeconds||20))*(w+size*2);if(s.entry.images[1]){g.globalAlpha=fade*(reduced?1:ease(t/2));g.drawImage(s.entry.images[1],0,0,w,h)}animal(g,s.entry.images[0],'cat',x,h*.68,size,clock,0,fade*(reduced?1:ease(t/.6)),reduced)}
   function horsePose(t,w,size,x){const walk=clamp((t-2.5)/4),run=ease((t-6.5)/13.5),direction=x>w*.5?-1:1;return {x:x+direction*(walk*w*.08+run*(direction>0?w-x+size:x+size)),direction,gallop:ease((t-5)/3)}}
   function horse(g,s,t,w,h,fade,reduced){
+    if(s.entry.images[1]){g.globalAlpha=fade*(reduced?1:ease(t/2.8));g.drawImage(s.entry.images[1],0,0,w,h)}
     const size=Math.min(w*.43,h*.57),origin=s.x??w/2,pose=reduced?{x:w*.5,direction:1,gallop:0}:horsePose(t,w,size,origin);
     if(!reduced&&t<4.2)glyph(g,s,t,w,h,fade);
     const emerge=reduced?1:ease((t-1.2)/2.2),ground=reduced?h*.84:(s.y??h*.5)*(1-ease((t-2)/3))+h*.84*ease((t-2)/3);
@@ -45,11 +46,12 @@
     if(!reduced)for(let i=0;i<18;i++){const p=(t*.6+noise(i))%1;g.globalAlpha=fade*pose.gallop*(1-p)*.085;g.fillStyle='#ad9873';g.beginPath();g.ellipse(pose.x-pose.direction*(size*.3+p*size),ground-p*size*.12,size*(.015+p*.07),size*(.008+p*.025),0,0,Math.PI*2);g.fill()}
   }
   function forest(g,s,t,w,h,fade,reduced){
-    const img=s.entry.images[(s.stockVariant||0)%3],p=reduced?1:ease(t/8),scale=Math.max(w/img.width,h/img.height),iw=img.width*scale,ih=img.height*scale;
+    const img=s.entry.images[0],p=reduced?1:ease(t/8),scale=Math.max(w/img.width,h/img.height),iw=img.width*scale,ih=img.height*scale;
     // Edge strips grow inward and upward, surrounding the opening instead of spawning one tree.
     for(let i=0;i<64;i++){const x=i*w/64,edge=Math.abs(i/63-.5)*2,open=reduced?1:ease((t-(1-edge)*4)/4),height=h*open;if(!height)continue;
       g.globalAlpha=fade*open;g.drawImage(img,(x-(w-iw)/2)/scale,((h-height)-(h-ih)/2)/scale,w/64/scale,height/scale,x,h-height,w/64+1,height);
     }
+    if(s.entry.images.length===1){if(!reduced)for(let i=0;i<28;i++){const x=w*noise(i+4)+Math.sin(t*.25+i)*h*.018,y=h*(.25+noise(i+9)*.7)+Math.cos(t*.3+i)*h*.02,r=1+noise(i)*1.2;g.globalAlpha=fade*p*(.15+.5*Math.pow(.5+.5*Math.sin(t+i),2));g.fillStyle='#ffe6a6';g.beginPath();g.arc(x,y,r,0,Math.PI*2);g.fill()}return}
     const atlas=s.entry.images[3],count=Math.max(4,Math.ceil(w/h*3));
     for(let i=0;i<count;i++){const open=reduced?1:ease((t-2-i*.25)/5),size=h*(.65+noise(i)*.25),x=w*(i%2?1-Math.floor(i/2)*.11:Math.floor(i/2)*.11);g.save();g.translate(x,h*1.04);g.transform(1,0,reduced?0:Math.sin(t*.42+i)*.006,1,0,0);g.globalAlpha=fade*open*.58;crop(g,atlas,[(i%2)*.5,0,.5,.585],-size*.35,-size*open,size*.7,size*open);g.restore()}
   }

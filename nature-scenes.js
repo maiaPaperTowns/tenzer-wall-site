@@ -206,8 +206,7 @@
   }
   function fish(g,s,t,w,h,fade,reduced){
     const min=Math.min(w,h),clock=reduced?8:t,o=s.entry.options,arrive=reduced?1:ease(t/1.8),img=s.entry.images[0];
-    livingWater(g,colored(s.entry.images[1],'saturate(.92) brightness(1.02)'),w,h,clock,fade*arrive,0,.65);
-    g.globalAlpha=fade*arrive*.07;g.fillStyle='#99dac6';g.fillRect(0,0,w,h);
+    livingWater(g,s.entry.images[1],w,h,clock,fade*arrive,0,.45);
     for(let i=0;i<(o.count||9);i++){
       const pose=fishPose(i,clock,w,h,o.swimSeconds||26),size=min*(.14+noise(i+38)*.1),sh=size*(img.height/img.width),sw=img.width/2,sy=Math.floor(i%4/2)*img.height/2,sx=(i%2)*sw;
       g.save();g.translate(pose.x,pose.y);g.rotate(pose.angle);g.globalAlpha=fade*arrive*(.64+noise(i+4)*.18);g.filter='saturate(.85) contrast(.88)';
@@ -228,14 +227,16 @@
     g.save();g.globalCompositeOperation='screen';livingWater(g,s.entry.images[1],w,h,clock,fade*arrive*.12,0,.85);g.restore();
   }
   function star(g,s,t,w,h,fade,reduced){
-    const clock=reduced?4:t,o=s.entry.options,arrive=reduced?1:ease(t/(o.nightSeconds||3)),img=s.entry.images[s.stockVariant%s.entry.images.length];
-    g.globalAlpha=fade*arrive;g.fillStyle='#060d20';g.fillRect(0,0,w,h);cover(g,img,w,h,fade*arrive*.42);
+    const clock=reduced?4:t,o=s.entry.options,arrive=reduced?1:ease(t/(o.nightSeconds||3)),img=s.entry.images[(s.stockVariant||0)%s.entry.images.length];
+    // Crop to the sky; only a trace of distant peaks remains along the bottom.
+    g.globalAlpha=fade*arrive;g.drawImage(img,0,0,img.width,img.height*.66,0,0,w,h);
     for(let i=0;i<(o.count||130);i++){
-      const x=noise(i+5)*w,y=noise(i+92)*h,r=Math.min(w,h)*(.0012+noise(i+8)*.0028),pulse=.08+.92*Math.pow(.5+.5*Math.sin(clock*(1+noise(i)*1.2)+i*2.4),3);
+      const x=noise(i+5)*w,y=noise(i+92)*h*.94,r=Math.min(w,h)*(.0012+noise(i+8)*.0028),pulse=.08+.92*Math.pow(.5+.5*Math.sin(clock*(1+noise(i)*1.2)+i*2.4),3);
       g.globalAlpha=fade*arrive*pulse;const glow=g.createRadialGradient(x,y,0,x,y,r*6);glow.addColorStop(0,'rgba(235,246,255,.8)');glow.addColorStop(.22,'rgba(159,198,236,.4)');glow.addColorStop(1,'rgba(159,198,236,0)');g.fillStyle=glow;g.fillRect(x-r*6,y-r*6,r*12,r*12);
       g.fillStyle=i%4?'#ecf5ff':'#ffe4b7';g.beginPath();g.arc(x,y,r*.55,0,Math.PI*2);g.fill();
       if(i%11===0){g.strokeStyle='#e1efff';g.lineWidth=.65;g.beginPath();g.moveTo(x-r*4*pulse,y);g.lineTo(x+r*4*pulse,y);g.moveTo(x,y-r*5*pulse);g.lineTo(x,y+r*5*pulse);g.stroke()}
     }
+    if(!reduced)for(let i=0;i<3;i++){const period=[5.7,8.9,14.3][i],age=(t+[0,2.4,5.2][i])%period,duration=i===2?3.8:1.2;if(age>duration)continue;const p=age/duration,cycle=Math.floor((t+[0,2.4,5.2][i])/period),x=w*(.3+noise(cycle+i*41)*.55-p*.24),y=h*(.05+noise(cycle+i*51)*.24+p*.5),len=w*(i===2?.11:.065),dy=h*(i===2?.12:.1),gr=g.createLinearGradient(x,y,x+len,y-dy);gr.addColorStop(0,i===2?'#ffe8ce':'#e4f4ff');gr.addColorStop(1,'transparent');g.globalAlpha=fade*arrive*Math.sin(p*Math.PI)*.8;g.strokeStyle=gr;g.lineWidth=i===2?2.5:1.4;g.beginPath();g.moveTo(x,y);g.lineTo(x+len,y-dy);g.stroke();g.fillStyle='#fff5e8';g.beginPath();g.arc(x,y,i===2?2:1.3,0,Math.PI*2);g.fill()}
   }
   function cloud(g,s,t,w,h,fade,reduced){
     const clock=reduced?8:t,min=Math.min(w,h),o=s.entry.options,arrive=reduced?1:ease(t/2.2);
@@ -248,8 +249,9 @@
   }
   function leaves(g,s,t,w,h,fade,reduced){
     const clock=reduced?15:t,min=Math.min(w,h),o=s.entry.options,count=o.count||24;
+    if(s.entry.images[1]){g.globalAlpha=fade*(reduced?1:ease(t/2));g.drawImage(s.entry.images[1],0,0,w,h)}
     for(let i=0;i<count;i++){
-      const side=i%2?1:-1,x=w*(.04+noise(i+170)*.92),y=h*(.08+noise(i+290)*.8);
+      const side=i%2?1:-1,x=w*((noise(i+170)+clock*(.008+noise(i+55)*.012))%1),y=h*(.08+noise(i+290)*.75)+(reduced?0:Math.sin(clock*.45+i)*h*.055);
       const open=ease((clock-noise(i+4)*2)/(o.growSeconds||3)),size=min*(.14+noise(i+20)*.1)*open;
       const rotation=side*(.12+noise(i)*1.5)+(reduced?0:Math.sin(t*.8+i)*.06);
       leaf(g,s.entry.images[0],i%4,x,y+size*.4,size,rotation,fade*open*(.7+noise(i+3)*.3));

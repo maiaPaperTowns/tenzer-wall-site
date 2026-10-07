@@ -32,19 +32,19 @@ const assert=require('node:assert/strict');
   const lightning=await page.evaluate(()=>{
    const entry=weatherEntries.find(e=>e.id==='lightning'),c=document.createElement('canvas');c.width=700;c.height=400;const g=c.getContext('2d');
    const s={entry,life:.7,stockVariant:0};drawStockScene(g,s,1,700,400,false);const paths=s.bolts.length;
-   s.life=1.85;drawStockScene(g,s,1,700,400,false);const second=s.boltIndex;
+   s.life=4;drawStockScene(g,s,1,700,400,false);const second=s.boltIndex;
    drawStockScene(g,s,1,700,400,true);
    return {paths,second,reducedPaths:s.bolts.length,interval:entry.options.intervalSeconds};
   });
-  assert.equal(lightning.paths,24);assert.equal(lightning.second,1);assert.equal(lightning.reducedPaths,6);assert.equal(lightning.interval,1.15);
+  assert.equal(lightning.paths,6);assert.ok(lightning.second>=1);assert.equal(lightning.reducedPaths,6);assert.equal(lightning.interval,1.15);
   const rainVariants=await page.evaluate(()=>{
    const entry=weatherEntries.find(e=>e.id==='rain'),c=document.createElement('canvas');c.width=700;c.height=400;const g=c.getContext('2d');
    const render=(variant,life,reduced=false,fade=1)=>{g.clearRect(0,0,700,400);drawStockScene(g,{entry,life,stockVariant:variant},fade,700,400,reduced);return c.toDataURL()};
    g.clearRect(0,0,700,400);const blank=c.toDataURL();
-   return entry.images.length===2&&new Set(entry.images.map((_,i)=>render(i,2))).size===2&&entry.images.every((_,i)=>render(i,1)!==render(i,2)&&render(i,1,true)===render(i,2,true)&&render(i,2,false,0)===blank);
+   return entry.images.length===1&&new Set(entry.images.map((_,i)=>render(i,2))).size===1&&entry.images.every((_,i)=>render(i,1)!==render(i,2)&&render(i,1,true)===render(i,2,true)&&render(i,2,false,0)===blank);
   });
-  assert.ok(rainVariants,'Both dark/purple rain surfaces animate, remain stable in reduced motion, and exit cleanly');
-  for(let variant=1;variant<2;variant++){
+  assert.ok(rainVariants,'The sakura rain surface animate, remain stable in reduced motion, and exit cleanly');
+  for(let variant=1;variant<1;variant++){
    await page.evaluate(variant=>{const g=document.querySelector('canvas').getContext('2d');g.clearRect(0,0,innerWidth,innerHeight);drawStockScene(g,{entry:weatherEntries.find(e=>e.id==='rain'),life:2,stockVariant:variant},1,innerWidth,innerHeight,false)},variant);
    await page.screenshot({path:`/private/tmp/weather-rain-variant-${variant}.png`});
   }

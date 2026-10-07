@@ -10,34 +10,41 @@ An interactive, full-screen generative artwork exploring how brush-written kanji
 
 Living Ink investigates a simple interaction model: **one character, one touch, one world**. The interface deliberately removes conventional navigation so the artwork can remain approachable in a public space. Meaning is revealed through motion rather than explanatory UI.
 
-The current vocabulary contains 24 concepts. Configuration lives in `config.json`; scene renderers preserve distinct motion for similar meanings.
+The current vocabulary contains 29 concepts. Configuration lives in `config.json`; scene renderers preserve distinct motion for similar meanings.
 
 | Kanji | Concept | Scene behavior |
 | --- | --- | --- |
-| 花 | Flower | Sakura canopies bloom around a pastel mountain lake; independent petals drift across the scene. |
+| 花 | Flower | Pink, yellow, orange, purple and white wildflowers open in clusters; no woody branches. |
 | 日 | Sun | A warm radial atmosphere expands softly while painted currents and cloud forms settle independently. |
 | 虹 | Rainbow | A large rainbow appears against an uncluttered sky. |
-| 雨 | Rain | Layered rainfall crosses the complete painting at varied depth, speed, opacity, and scale. |
+| 雨 | Rain | Rain falls into a purple twilight pond framed by cherry blossoms, with contact ripples. |
 | 鳥 | Bird | A flock traverses the canvas; the rendered bird species varies between activations. |
 | 山 | Mountain | Separate mountain strata rise sequentially through mist to create spatial depth. |
-| 雷 | Thunder | Indigo storm clouds drift over a mountain lake; branching lightning illuminates clouds and reflects in the water. |
-| 木 | Tree | One prominent tree grows from the selected character; canopy clusters unfold in stages. |
-| 森 | Forest | Multiple tree layers and three reference paintings surround the viewer. |
-| 馬 | Horse | The glyph enlarges and dissolves into a horse; walking accelerates into a horizontal gallop and exit. |
+| 雷 | Thunder | One branching bolt at a time; changing positions and shapes, irregular pauses, localized light and reflections. |
+| 木 | Tree | One ancient green tree with a prominent trunk and exposed roots; canopy regions unfold in stages. |
+| 森 | Forest | A misty green forest grows inward from the sides, with layered trunks and warm fireflies. |
+| 馬 | Horse | The glyph becomes a horse; walking accelerates into a horizontal gallop across a pastel mountain meadow. |
 | 滝 | Waterfall | Ink drips become a luminous blue-white waterfall, with moving water, forest cliffs, mist and spray. |
-| 川 | River | Three flowing river channels with faster downstream current trails. |
+| 川 | River | Three fast blue-white channels around rocks, green banks and distant mountains; no cherry blossoms. |
 | 水 | Water | Blue-white painted water; one gentle drop every 3.8 seconds, followed by expanding rings. |
 | 海 | Ocean / Sea | Panoramic peach sunset and turquoise surf, fixed horizon and shoreward rolling water. |
-| 竹 | Bamboo | Slender stems grow at varied times; sparse leaf sprays slowly open and sway. |
-| 猫 | Cat | A fluffy cat walks across the wall with four staggered leg contacts and an independent tail. |
-| 葉 | Leaf | Textured leaves form a loose, irregular composition. |
+| 竹 | Bamboo | A deep teal bamboo grove emerges and sways gently in filtered sunlight. |
+| 猫 | Cat | A fluffy cat walks along a stone wall beneath a pink sunset and cherry blossoms. |
+| 葉 | Leaf | Green leaves flutter over a warm pink, blossom-framed backdrop. |
 | 雲 | Cloud | Layered clouds drift gently. |
-| 星 | Star | Stars twinkle in a dark sky. |
-| 魚 | Fish | Koi swim through a bright pond with surface rings. |
-| 火 | Fire | Layered flame artwork flickers with rising embers. |
-| 月 | Moon | The existing cutout moon rises over an indigo lake, with a warm halo and rippling reflection. |
+| 星 | Star | Sky-first framing, asynchronous twinkling, quick meteors and a slower comet-like trail; minimal mountains. |
+| 魚 | Fish | Koi swim independently beneath a clear blue painted pond with ripples and corner flowers. |
+| 火 | Fire | Golden-orange painted flames curl above dark charcoal with rising embers. |
+| 月 | Moon | A 25% larger cutout moon rises over an indigo lake, with a soft halo and reflection. |
 | 雪 | Snow | White flakes fall and dissolve at ground contact. |
-| 風 | Wind | Trees bend while leaves, petals, and drawn gusts cross the scene. |
+| 風 | Wind | Pale pink-white gust ribbons and petals sweep across a luminous sky. |
+| 氷 | Ice | Foreground ice emerges and catches small asynchronous glints. |
+| 蓮 | Lotus | Pink lotus flowers and green pads on a still pond with localized water shimmer. |
+| 桜 | Cherry Blossom | Branches of pink sakura fill the edges while clusters open and petals drift. |
+| 砂 | Sand | Sunset dunes with subtle foreground movement and drifting fine sand. |
+| 藤 | Wisteria | Hanging purple flowers sway beneath a lantern-lit pergola; petals drift down. |
+
+The October 7 reference refresh contains 29 characters. Its 20 new runtime WebP images total about 6.2 MB (versus 52.9 MB of source PNGs); source images are preserved locally. The 1.5-million-pixel scene-render budget remains enabled. See `NATURE-REFERENCE-PROMPTS.md` for generated asset paths and prompt specifications. `nature-reference-check.cjs` verifies changed scenes, stable reduced motion, clean exits, and varied sequential lightning.
 
 ## Interaction design
 
@@ -116,7 +123,7 @@ The later 3:1 waterfall, slow-drip water and sunset-sea revisions are documented
     ├── index.html         # Semantic shell and installation controls
     ├── styles.css         # Responsive presentation and accessibility states
     ├── app.js             # Simulation, interaction, audio, and rendering systems
-    ├── config.json        # 24 concepts and scene parameters
+    ├── config.json        # 29 concepts and scene parameters
     ├── config-loader.js   # Validated configuration
     ├── stock-scenes.js    # Asset preparation and scene dispatch
     ├── nature-scenes.js   # Nature animation systems
@@ -162,7 +169,7 @@ Useful measurements include time to first interaction, successful-target rate, r
 
 ## Roadmap
 
-- Evaluate the expanded 24-concept scene registry on the physical wall.
+- Evaluate the expanded 29-concept scene registry on the physical wall.
 - Add deterministic random seeds for repeatable studies and visual regression tests.
 - Separate simulation, rendering, and content configuration into testable modules.
 - Introduce automated checks for keyboard access, reduced motion, and multiple aspect ratios.
