@@ -48,7 +48,7 @@
       "hue": 210,
       "duration": 26,
       "assets": [
-        "assets/derived/waterfall-world-v2.png"
+        "assets/derived/waterfall-panorama-v3.png"
       ],
       "options": {},
       "transitions": {
@@ -154,7 +154,7 @@
       "hue": 195,
       "duration": 20,
       "assets": [
-        "assets/stock/water-pattern.jpg"
+        "assets/derived/water-drip-world-v1.png"
       ],
       "options": {}
     },
@@ -397,7 +397,7 @@
       "hue": 195,
       "duration": 22,
       "assets": [
-        "assets/derived/ocean-painting-v2.png"
+        "assets/derived/ocean-panorama-v3.png"
       ],
       "options": {
         "waveSeconds": 6

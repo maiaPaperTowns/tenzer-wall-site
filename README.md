@@ -26,8 +26,8 @@ The current vocabulary contains 24 concepts. Configuration lives in `config.json
 | 馬 | Horse | The glyph enlarges and dissolves into a horse; walking accelerates into a horizontal gallop and exit. |
 | 滝 | Waterfall | Ink drips become a luminous blue-white waterfall, with moving water, forest cliffs, mist and spray. |
 | 川 | River | Three flowing river channels with faster downstream current trails. |
-| 水 | Water | A continuously rippling surface with expanding rings. |
-| 海 | Ocean / Sea | A new painted seascape with a fixed horizon and shoreward rolling water. |
+| 水 | Water | Blue-white painted water; one gentle drop every 3.8 seconds, followed by expanding rings. |
+| 海 | Ocean / Sea | Panoramic peach sunset and turquoise surf, fixed horizon and shoreward rolling water. |
 | 竹 | Bamboo | Slender stems grow at varied times; sparse leaf sprays slowly open and sway. |
 | 猫 | Cat | A fluffy cat walks across the wall with four staggered leg contacts and an independent tail. |
 | 葉 | Leaf | Textured leaves form a loose, irregular composition. |
@@ -101,6 +101,8 @@ Typography uses Adobe Fonts **UD Digi Kyokasho Pro** (`uddigikyokasho-pro`, weig
 Branch-free flower variants, a new ocean painting, and a fluffy cat rig were generated with the built-in image tool. Asset paths and prompts are documented in `REFRESH-20261007.md`. Existing reference art is retained separately. Lightning now has four branched bolts per strike at 1.15-second intervals, with localized glow rather than repeated full-screen white flashes. Reduced-motion mode uses a static, restrained strike.
 
 The four reference-led landscape revisions are documented in `DREAM-SCENES.md`, including generated asset paths and prompts. Each uses its own environment; cherry blossoms are not added to every scene.
+
+The later 3:1 waterfall, slow-drip water and sunset-sea revisions are documented in `WATER-PANORAMA-PROMPTS.md`; they closely follow the supplied card references with lettering and blossoms removed.
 
 `world-check.cjs` checks eleven changed scenes for animation, deterministic reduced-motion rendering, and clean fade-out, plus horse exit coordinates at 1200 and 7680 pixels. These browser checks do not replace an on-wall hardware/performance or accessibility review.
 

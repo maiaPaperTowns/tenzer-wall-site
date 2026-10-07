@@ -20,7 +20,7 @@ const assert=require('node:assert/strict');
    const rain=entries.find(e=>e.id==='rain');
    return {entries:entries.length,waterArcs:arcs,waterRipples:ellipses,noGlyphParticles:!s.inkPoints,snowContinuous,meltObserved,noFold,transparent,rainSurfaces:rain.assets.length,noBlueRain:rain.assets.every(a=>!a.includes('umbrella')),skyOnly:entries.find(e=>e.id==='rainbow').assets[0].includes('rainbow-sky-v3')};
   });
-  assert.equal(result.entries,24);assert.equal(result.waterArcs,0);assert.equal(result.waterRipples,20);assert.equal(result.rainSurfaces,2);
+  assert.equal(result.entries,24);assert.equal(result.waterArcs,0);assert.equal(result.waterRipples,1);assert.equal(result.rainSurfaces,2);
   for(const key of ['noGlyphParticles','snowContinuous','meltObserved','noFold','transparent','noBlueRain','skyOnly'])assert.ok(result[key],key);
   console.log(JSON.stringify(result));
  }finally{await browser.close()}

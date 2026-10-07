@@ -153,10 +153,10 @@
   function ocean(g,s,t,w,h,fade,reduced){
     const clock=reduced?2:t,min=Math.min(w,h),arrive=reduced?1:ease(t/1.6);
     // A stable sky above the painting's horizon, with coherent shoreward wave compression below.
-    const img=s.entry.images[0],horizon=.283,step=3;g.globalAlpha=fade*arrive;
+    const img=s.entry.images[0],horizon=.36,step=3;g.globalAlpha=fade*arrive;
     g.drawImage(img,0,0,img.width,img.height*horizon,0,0,w,h*horizon);
     for(let y=h*horizon;y<h;y+=step){const depth=(y/h-horizon)/(1-horizon),phase=depth*15-clock*1.15;
-      const dy=h*.019*Math.sin(phase)*Math.sin(depth*Math.PI),dx=w*.003*Math.sin(phase*.7)*depth;
+      const dy=h*.024*Math.sin(phase)*Math.sin(depth*Math.PI),dx=w*.003*Math.sin(phase*.7)*depth;
       const sy=Math.max(img.height*horizon,Math.min(img.height-(step+1)*img.height/h,(y+dy)*img.height/h));
       g.drawImage(img,0,sy,img.width,(step+1)*img.height/h,-w*.006+dx,y,w*1.012,step+1);
     }
