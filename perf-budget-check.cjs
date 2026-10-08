@@ -2,10 +2,10 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict');
 (async()=>{
  const b=await chromium.launch({headless:true,executablePath:'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'});
  try{
-  const p=await b.newPage();await p.goto('http://127.0.0.1:4183/');
+  const p=await b.newPage();await p.goto('http://127.0.0.1:4183/',{waitUntil:'domcontentloaded'});await p.waitForFunction(()=>window.TenzerScenes);
   const results=await p.evaluate(async()=>{
    requestAnimationFrame=()=>0;
-   const es=await Promise.all((await TenzerConfig.load('config.json')).entries.filter(e=>['flower','waterfall','moon'].includes(e.id)).map(TenzerScenes.prepare)),out=[];
+   const es=await Promise.all((await TenzerConfig.load('config.json')).entries.filter(e=>['flower','waterfall','moon','wind','river','fire','bamboo','rain','ocean'].includes(e.id)).map(TenzerScenes.prepare)),out=[];
    for(const entry of es)for(const budget of [false,true]){
     const c=document.createElement('canvas');c.width=2400;c.height=1500;const g=c.getContext('2d');g.scale(2,2);const s={entry,life:8,x:600,y:350};
     const draw=()=>budget?TenzerRenderBudget.draw(g,s,1,1200,750,false):drawStockScene(g,s,1,1200,750,false);draw();

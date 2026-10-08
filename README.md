@@ -12,6 +12,14 @@ Living Ink investigates a simple interaction model: **one character, one touch, 
 
 The current vocabulary contains 29 concepts. Configuration lives in `config.json`; scene renderers preserve distinct motion for similar meanings.
 
+### Layered-motion revision — October 7, 2026
+
+Landscape plates now use proportional cover fitting on portrait, landscape and wide-wall displays, without stretching the source artwork. Transparent sprites retain their own aspect ratios. Animation remains within the existing 1.5-million-pixel scene budget.
+
+Horse motion uses eight intact full-body gallop poses rather than a sheared torso/limb rig. The cat now sits on the wall with a separately animated tail. Ice, wind ribbons, ocean crests, floating lotus flowers, wisteria, bamboo and the tree canopy are independently animated layers. All wildflowers and cherry blossoms grow from clean plates with no stationary flowers baked behind them. Leaves have no flowers. Star and storm plates are sky-only; rain and water plates have no baked circular rings. Water motion eases across boundaries to avoid visible seams; river foam moves while rocks remain anchored. Additional atmospheric layers keep mountain, sun and rainbow scenes moving after their reveals.
+
+See `LAYERED-MOTION-20261007.md` for saved artwork and the image-generation prompt set. `layered-motion-check.cjs` exercises all 29 scenes in portrait and landscape, continued animation, reduced motion, clean exits and proportional background fitting.
+
 | Kanji | Concept | Scene behavior |
 | --- | --- | --- |
 | 花 | Flower | Pink, yellow, orange, purple and white wildflowers open in clusters; no woody branches. |
@@ -20,26 +28,26 @@ The current vocabulary contains 29 concepts. Configuration lives in `config.json
 | 雨 | Rain | Rain falls into a purple twilight pond framed by cherry blossoms, with contact ripples. |
 | 鳥 | Bird | A flock traverses the canvas; the rendered bird species varies between activations. |
 | 山 | Mountain | Separate mountain strata rise sequentially through mist to create spatial depth. |
-| 雷 | Thunder | One branching bolt at a time; changing positions and shapes, irregular pauses, localized light and reflections. |
+| 雷 | Thunder | Sky-only storm; one branching bolt at a time, changing shapes and irregular pauses. |
 | 木 | Tree | One ancient green tree with a prominent trunk and exposed roots; canopy regions unfold in stages. |
 | 森 | Forest | A misty green forest grows inward from the sides, with layered trunks and warm fireflies. |
 | 馬 | Horse | The glyph becomes a horse; walking accelerates into a horizontal gallop across a pastel mountain meadow. |
 | 滝 | Waterfall | Ink drips become a luminous blue-white waterfall, with moving water, forest cliffs, mist and spray. |
 | 川 | River | Three fast blue-white channels around rocks, green banks and distant mountains; no cherry blossoms. |
 | 水 | Water | Blue-white painted water; one gentle drop every 3.8 seconds, followed by expanding rings. |
-| 海 | Ocean / Sea | Panoramic peach sunset and turquoise surf, fixed horizon and shoreward rolling water. |
+| 海 | Ocean / Sea | Peach sunset, moving distant water and separate advancing turquoise breaking crests. |
 | 竹 | Bamboo | A deep teal bamboo grove emerges and sways gently in filtered sunlight. |
-| 猫 | Cat | A fluffy cat walks along a stone wall beneath a pink sunset and cherry blossoms. |
-| 葉 | Leaf | Green leaves flutter over a warm pink, blossom-framed backdrop. |
+| 猫 | Cat | A fluffy cat sits on the stone wall and gently sways its separate tail. |
+| 葉 | Leaf | Green leaves flutter with moving leafy branches; no flowers. |
 | 雲 | Cloud | Layered clouds drift gently. |
-| 星 | Star | Sky-first framing, asynchronous twinkling, quick meteors and a slower comet-like trail; minimal mountains. |
+| 星 | Star | Sky-only framing, asynchronous twinkling and five independently timed meteor/comet trails. |
 | 魚 | Fish | Koi swim independently beneath a clear blue painted pond with ripples and corner flowers. |
 | 火 | Fire | Golden-orange painted flames curl above dark charcoal with rising embers. |
 | 月 | Moon | A 25% larger cutout moon rises over an indigo lake, with a soft halo and reflection. |
 | 雪 | Snow | White flakes fall and dissolve at ground contact. |
 | 風 | Wind | Pale pink-white gust ribbons and petals sweep across a luminous sky. |
 | 氷 | Ice | Foreground ice emerges and catches small asynchronous glints. |
-| 蓮 | Lotus | Pink lotus flowers and green pads on a still pond with localized water shimmer. |
+| 蓮 | Lotus | Separate pink flowers and green pads drift and bob over moving pond reflections. |
 | 桜 | Cherry Blossom | Branches of pink sakura fill the edges while clusters open and petals drift. |
 | 砂 | Sand | Sunset dunes with subtle foreground movement and drifting fine sand. |
 | 藤 | Wisteria | Hanging purple flowers sway beneath a lantern-lit pergola; petals drift down. |

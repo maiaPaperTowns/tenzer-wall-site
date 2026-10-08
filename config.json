@@ -30,7 +30,7 @@
       "hue": 30,
       "duration": 24,
       "assets": [
-        "assets/derived/horse-rig-v1.png",
+        "assets/derived/horse-gallop-v2.webp",
         "assets/derived/horse-meadow-v2.webp"
       ],
       "options": {},
@@ -61,7 +61,7 @@
       "hue": 35,
       "duration": 22,
       "assets": [
-        "assets/derived/cat-fluffy-rig-v3.png",
+        "assets/derived/cat-seated-v4.webp",
         "assets/derived/cat-wall-world-v2.webp"
       ],
       "options": {
@@ -77,7 +77,7 @@
       "duration": 20,
       "assets": [
         "assets/derived/leaf-atlas-v1.png",
-        "assets/derived/leaf-world-v2.webp"
+        "assets/derived/leaf-plate-v4.webp"
       ],
       "options": {
         "count": 24,
@@ -107,7 +107,7 @@
       "hue": 220,
       "duration": 22,
       "assets": [
-        "assets/derived/star-lake-world-v3.webp"
+        "assets/derived/star-sky-v4.webp"
       ],
       "options": {
         "count": 130,
@@ -138,7 +138,7 @@
       "hue": 115,
       "duration": 22,
       "assets": [
-        "assets/derived/bamboo-world-v2.webp"
+        "assets/derived/bamboo-cutouts-v3.webp"
       ],
       "options": {
         "count": 5,
@@ -153,7 +153,7 @@
       "hue": 195,
       "duration": 20,
       "assets": [
-        "assets/derived/water-drip-world-v1.png"
+        "assets/derived/water-plate-v2.webp"
       ],
       "options": {}
     },
@@ -166,7 +166,8 @@
       "duration": 22,
       "assets": [
         "assets/derived/green-tree-world-v2.webp",
-        "assets/derived/green-tree-plate-v2.webp"
+        "assets/derived/green-tree-plate-v2.webp",
+        "assets/derived/tree-cutouts-v3.webp"
       ],
       "options": {
         "growSeconds": 6
@@ -180,7 +181,8 @@
       "hue": 25,
       "duration": 20,
       "assets": [
-        "assets/derived/fire-world-v3.webp"
+        "assets/derived/fire-world-v3.webp",
+        "assets/derived/fire-frames-v4.webp"
       ],
       "options": {
         "spreadSeconds": 3.5,
@@ -227,7 +229,9 @@
       "hue": 130,
       "duration": 20,
       "assets": [
-        "assets/derived/wind-world-v2.webp"
+        "assets/derived/wind-plate-v3.webp",
+        "assets/derived/wind-ribbons-v3.webp",
+        "assets/derived/cloud-atlas-v1.png"
       ],
       "options": {
         "count": 48,
@@ -312,7 +316,8 @@
       "hue": 195,
       "duration": 22,
       "assets": [
-        "assets/derived/ocean-panorama-v3.png"
+        "assets/derived/ocean-plate-v4.webp",
+        "assets/derived/ocean-crests-v4.webp"
       ],
       "options": {
         "waveSeconds": 6
@@ -342,7 +347,7 @@
       "hue": 250,
       "duration": 16,
       "assets": [
-        "assets/derived/storm-lake-v2.png"
+        "assets/derived/storm-sky-v3.webp"
       ],
       "options": {
         "intervalSeconds": 1.15,
@@ -357,7 +362,7 @@
       "hue": 215,
       "duration": 18,
       "assets": [
-        "assets/derived/rain-sakura-world-v3.webp"
+        "assets/derived/rain-plate-v4.webp"
       ],
       "options": {
         "count": 520,
@@ -380,7 +385,7 @@
       },
       "assets": [
         "assets/derived/wildflower-clusters-v1.webp",
-        "assets/derived/wildflower-world-v5.webp"
+        "assets/derived/flower-plate-v6.webp"
       ],
       "crops": [
         {
@@ -885,7 +890,8 @@
       "hue": 200,
       "duration": 24,
       "assets": [
-        "assets/derived/ice-world-v1.webp"
+        "assets/derived/ice-plate-v2.webp",
+        "assets/derived/ice-clusters-v2.webp"
       ],
       "options": {}
     },
@@ -897,7 +903,8 @@
       "hue": 335,
       "duration": 24,
       "assets": [
-        "assets/derived/lotus-world-v1.webp"
+        "assets/derived/lotus-plate-v2.webp",
+        "assets/derived/lotus-floats-v2.webp"
       ],
       "options": {}
     },
@@ -909,8 +916,8 @@
       "hue": 340,
       "duration": 24,
       "assets": [
-        "assets/derived/sakura-clusters-v2.png",
-        "assets/derived/sakura-world-v4.webp"
+        "assets/derived/sakura-clusters-v6.webp",
+        "assets/derived/sakura-plate-v5.webp"
       ],
       "options": {}
     },
@@ -922,7 +929,7 @@
       "hue": 35,
       "duration": 24,
       "assets": [
-        "assets/derived/sand-world-v1.webp"
+        "assets/derived/sand-world-v2.webp"
       ],
       "options": {}
     },
@@ -934,7 +941,8 @@
       "hue": 280,
       "duration": 24,
       "assets": [
-        "assets/derived/wisteria-world-v1.webp"
+        "assets/derived/wisteria-plate-v2.webp",
+        "assets/derived/wisteria-clusters-v2.webp"
       ],
       "options": {}
     }

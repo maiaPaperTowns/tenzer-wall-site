@@ -139,6 +139,13 @@
     const clock=reduced?3:t,min=Math.min(w,h),o=s.entry.options,arrive=reduced?1:ease(t/2.4);
     const img=s.entry.images[0],scale=Math.max(w/img.width,h/img.height),iw=img.width*scale,ih=img.height*scale,ox=(w-iw)/2,oy=(h-ih)/2;
     cover(g,img,w,h,fade*arrive);
+    if(!reduced){
+      if(!s.flowWater){const c=document.createElement('canvas');c.width=1200;c.height=Math.round(1200*h/w);const q=c.getContext('2d');q.drawImage(img,0,0,c.width,c.height);const p=q.getImageData(0,0,c.width,c.height);
+        for(let y=0;y<c.height;y++)for(let x=0;x<c.width;x++){const k=(y*c.width+x)*4,r=p.data[k],green=p.data[k+1],b=p.data[k+2],blue=clamp((b-r-8)/22)*clamp((b-green+10)/20),foam=clamp((Math.min(r,green,b)-180)/45);p.data[k+3]*=Math.max(blue,foam)*clamp((y/c.height-.4)/.06)}q.putImageData(p,0,0);s.flowWater=c;
+      }
+      const c=s.flowWater;g.globalAlpha=fade*arrive*.9;
+      for(let j=0;j<90;j++){const v=j/90,shift=Math.sin(v*38-clock*2.2)*h*.008;g.drawImage(c,0,v*c.height,c.width,c.height/90,Math.sin(v*24-clock*1.7)*h*.004,v*h+shift,w,h/90+1)}
+    }
     const channels=s.entry.options.channels;
     for(let k=0;k<channels.length;k++){
       const path=channels[k];
@@ -155,10 +162,18 @@
     // A stable sky above the painting's horizon, with coherent shoreward wave compression below.
     const img=s.entry.images[0],horizon=.36,step=3;g.globalAlpha=fade*arrive;
     g.drawImage(img,0,0,img.width,img.height*horizon,0,0,w,h*horizon);
+    // Sky motion is independent of the accepted wave cycle; feather at the horizon.
+    if(!s.seaSky||s.seaSkySize!==w+':'+h){const c=document.createElement('canvas');c.width=Math.min(1200,w);c.height=Math.round(c.width*h*horizon/w);const q=c.getContext('2d');q.drawImage(img,0,0,img.width,img.height*horizon,0,0,c.width,c.height);q.globalCompositeOperation='destination-in';const mask=q.createLinearGradient(0,0,0,c.height);mask.addColorStop(0,'#000');mask.addColorStop(.72,'#000');mask.addColorStop(1,'transparent');q.fillStyle=mask;q.fillRect(0,0,c.width,c.height);s.seaSky=c;s.seaSkySize=w+':'+h;}
+    const skyShift=reduced?0:Math.sin(clock*.055)*w*.022;g.drawImage(s.seaSky,-w*.03+skyShift,-h*.003,w*1.06,h*horizon*1.015);
     for(let y=h*horizon;y<h;y+=step){const depth=(y/h-horizon)/(1-horizon),phase=depth*15-clock*1.15;
       const dy=h*.024*Math.sin(phase)*Math.sin(depth*Math.PI),dx=w*.003*Math.sin(phase*.7)*depth;
       const sy=Math.max(img.height*horizon,Math.min(img.height-(step+1)*img.height/h,(y+dy)*img.height/h));
       g.drawImage(img,0,sy,img.width,(step+1)*img.height/h,-w*.006+dx,y,w*1.012,step+1);
+    }
+    const atlas=s.entry.images[1];s.surf=[];
+    for(let i=0;i<3;i++){const p=(clock/(11+i*1.3)+i*.33)%1,depth=.12+p*.82,y=h*(horizon+(1-horizon)*depth),width=w*(.6+depth*.45),height=Math.min(h*.13,width*(atlas.height/2)/atlas.width*.65)*(.6+.4*depth),alpha=Math.sin(p*Math.PI)**2*(1-ease((p-.72)/.28)),x=w*(.38+noise(i+71)*.24)+Math.sin(clock*.12+i)*w*.012;s.surf.push({x,y,alpha});
+      g.save();g.translate(x,y);g.globalAlpha=fade*arrive*alpha*.55;
+      for(let j=0;j<64;j++){const u=j/64,bend=Math.sin(u*9-clock*.65+i)*height*.025;g.drawImage(atlas,u*atlas.width,(i%2)*atlas.height/2,atlas.width/64,atlas.height/2,(u-.5)*width,-height+bend,width/64+.5,height)}g.restore();
     }
   }
   function water(g,s,t,w,h,fade,reduced){
@@ -228,15 +243,15 @@
   }
   function star(g,s,t,w,h,fade,reduced){
     const clock=reduced?4:t,o=s.entry.options,arrive=reduced?1:ease(t/(o.nightSeconds||3)),img=s.entry.images[(s.stockVariant||0)%s.entry.images.length];
-    // Crop to the sky; only a trace of distant peaks remains along the bottom.
-    g.globalAlpha=fade*arrive;g.drawImage(img,0,0,img.width,img.height*.66,0,0,w,h);
-    for(let i=0;i<(o.count||130);i++){
+    // Entire plate is sky, preserving its detail instead of enlarging a cropped patch.
+    g.globalAlpha=fade*arrive;g.drawImage(img,0,0,w,h);
+    for(let i=0;i<280;i++){
       const x=noise(i+5)*w,y=noise(i+92)*h*.94,r=Math.min(w,h)*(.0012+noise(i+8)*.0028),pulse=.08+.92*Math.pow(.5+.5*Math.sin(clock*(1+noise(i)*1.2)+i*2.4),3);
       g.globalAlpha=fade*arrive*pulse;const glow=g.createRadialGradient(x,y,0,x,y,r*6);glow.addColorStop(0,'rgba(235,246,255,.8)');glow.addColorStop(.22,'rgba(159,198,236,.4)');glow.addColorStop(1,'rgba(159,198,236,0)');g.fillStyle=glow;g.fillRect(x-r*6,y-r*6,r*12,r*12);
       g.fillStyle=i%4?'#ecf5ff':'#ffe4b7';g.beginPath();g.arc(x,y,r*.55,0,Math.PI*2);g.fill();
       if(i%11===0){g.strokeStyle='#e1efff';g.lineWidth=.65;g.beginPath();g.moveTo(x-r*4*pulse,y);g.lineTo(x+r*4*pulse,y);g.moveTo(x,y-r*5*pulse);g.lineTo(x,y+r*5*pulse);g.stroke()}
     }
-    if(!reduced)for(let i=0;i<3;i++){const period=[5.7,8.9,14.3][i],age=(t+[0,2.4,5.2][i])%period,duration=i===2?3.8:1.2;if(age>duration)continue;const p=age/duration,cycle=Math.floor((t+[0,2.4,5.2][i])/period),x=w*(.3+noise(cycle+i*41)*.55-p*.24),y=h*(.05+noise(cycle+i*51)*.24+p*.5),len=w*(i===2?.11:.065),dy=h*(i===2?.12:.1),gr=g.createLinearGradient(x,y,x+len,y-dy);gr.addColorStop(0,i===2?'#ffe8ce':'#e4f4ff');gr.addColorStop(1,'transparent');g.globalAlpha=fade*arrive*Math.sin(p*Math.PI)*.8;g.strokeStyle=gr;g.lineWidth=i===2?2.5:1.4;g.beginPath();g.moveTo(x,y);g.lineTo(x+len,y-dy);g.stroke();g.fillStyle='#fff5e8';g.beginPath();g.arc(x,y,i===2?2:1.3,0,Math.PI*2);g.fill()}
+    if(!reduced)for(let i=0;i<5;i++){const period=[5.7,8.9,14.3,6.1,10.7][i],offset=[0,2.4,5.2,1.5,4.1][i],age=(t+offset)%period,duration=i===2?3.8:1.2;if(age>duration)continue;const p=age/duration,cycle=Math.floor((t+offset)/period),x=w*(.3+noise(cycle+i*41)*.55-p*.24),y=h*(.05+noise(cycle+i*51)*.24+p*.5),len=w*(i===2?.11:.065),dy=h*(i===2?.12:.1),gr=g.createLinearGradient(x,y,x+len,y-dy);gr.addColorStop(0,i===2?'#ffe8ce':'#e4f4ff');gr.addColorStop(1,'transparent');g.globalAlpha=fade*arrive*Math.sin(p*Math.PI)*.8;g.strokeStyle=gr;g.lineWidth=i===2?2.5:1.4;g.beginPath();g.moveTo(x,y);g.lineTo(x+len,y-dy);g.stroke();g.fillStyle='#fff5e8';g.beginPath();g.arc(x,y,i===2?2:1.3,0,Math.PI*2);g.fill()}
   }
   function cloud(g,s,t,w,h,fade,reduced){
     const clock=reduced?8:t,min=Math.min(w,h),o=s.entry.options,arrive=reduced?1:ease(t/2.2);
@@ -249,11 +264,15 @@
   }
   function leaves(g,s,t,w,h,fade,reduced){
     const clock=reduced?15:t,min=Math.min(w,h),o=s.entry.options,count=o.count||24;
-    if(s.entry.images[1]){g.globalAlpha=fade*(reduced?1:ease(t/2));g.drawImage(s.entry.images[1],0,0,w,h)}
+    const sky=g.createLinearGradient(0,0,w*.4,h);sky.addColorStop(0,'#a4cbd6');sky.addColorStop(.6,'#e3e9d7');sky.addColorStop(1,'#b6c9a5');g.globalAlpha=fade*(reduced?1:ease(t/2));g.fillStyle=sky;g.fillRect(0,0,w,h);
+    // Every background leaf is an independent alpha cutout, not a painted plate.
+    for(let i=0;i<72;i++){const edge=i%3,n=noise(i+870),x=edge===0?n*w:edge===1?w*(.02+n*.20):w*(.78+n*.20),y=edge===0?h*noise(i+930)*.23:h*noise(i+930),size=min*(.09+noise(i+450)*.14),sway=reduced?0:Math.sin(clock*.48+i*.7)*.16;
+      leaf(g,s.entry.images[0],i%4,x+(reduced?0:Math.sin(clock*.38+i)*size*.04),y,size,(noise(i+630)-.5)*2+sway,fade*(reduced?1:ease(t/2))*(.4+noise(i+7)*.4));
+    }
     for(let i=0;i<count;i++){
       const side=i%2?1:-1,x=w*((noise(i+170)+clock*(.008+noise(i+55)*.012))%1),y=h*(.08+noise(i+290)*.75)+(reduced?0:Math.sin(clock*.45+i)*h*.055);
       const open=ease((clock-noise(i+4)*2)/(o.growSeconds||3)),size=min*(.14+noise(i+20)*.1)*open;
-      const rotation=side*(.12+noise(i)*1.5)+(reduced?0:Math.sin(t*.8+i)*.06);
+      const rotation=side*(.12+noise(i)*1.5)+(reduced?0:Math.sin(t*.8+i)*.32);
       leaf(g,s.entry.images[0],i%4,x,y+size*.4,size,rotation,fade*open*(.7+noise(i+3)*.3));
     }
     if(!reduced)for(let i=0;i<7;i++){
