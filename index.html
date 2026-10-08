@@ -22,21 +22,29 @@
     });
   </script>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23edf1ee'/%3E%3Cpath d='M32 49V28m0 8c-8-1-13-6-14-13 8-1 14 3 14 10m0 3c8-1 13-6 14-13-8-1-14 3-14 10' fill='none' stroke='%23354b59' stroke-width='4' stroke-linecap='round'/%3E%3Ccircle cx='32' cy='18' r='7' fill='%23dd9dad'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="styles.css?v=20261008-bottom-sound">
+  <link rel="stylesheet" href="styles.css?v=20261008-welcome-about">
 </head>
 <body>
   <main id="experience" aria-label="Interactive falling Kanji artwork">
     <canvas id="art" aria-hidden="true"></canvas>
     <div class="veil" aria-hidden="true"></div>
     <section class="intro" id="intro">
-      <p class="eyebrow">TENZER WALL STUDY · PROTOTYPE 02</p>
-      <h1>Touch the living ink.</h1>
-      <p>Each character holds a world.</p>
-      <button id="begin" type="button">Begin</button>
+      <p class="eyebrow">AN IMMERSIVE ARTISTIC EXPERIENCE</p>
+      <h1>Welcome to the Kanji Wall</h1>
+      <p>Welcome to the Kanji Wall, an immersive artistic experience that connects Kanji characters to their meanings. To explore, click on a falling Kanji character to see it transformed into its meaning. Enjoy!</p>
+      <button id="begin" type="button">Explore</button>
       <p id="dataset-status" role="status" aria-live="polite"></p>
     </section>
     <div class="hint" id="hint" aria-live="polite">Touch a character</div>
-    <button class="sound" id="sound" type="button" aria-label="Toggle ambient sound" aria-pressed="false">Sound off</button>
+    <div class="wall-controls">
+      <button class="sound" id="sound" type="button" aria-label="Toggle ambient sound" aria-pressed="false">Sound off</button>
+      <button class="sound" id="about" type="button" aria-haspopup="dialog" aria-controls="about-dialog">About</button>
+    </div>
+    <dialog id="about-dialog" aria-labelledby="about-title">
+      <h2 id="about-title">About the Kanji Wall</h2>
+      <p>This immersive Kanji Wall was designed to provide an artistic experience to help people connect Kanji characters to their meaning. The experience was designed by Dave Berque, Hiroko Chiba and Maia Le and was implemented by Maia Le. The experience is modeled after a museum exhibit produced by a Japanese design group called teamLab. At DePauw, the project was supported by the Tenzer Technology Center and the Information Technology Associates (ITAP) program.</p>
+      <form method="dialog"><button type="submit" autofocus>Close</button></form>
+    </dialog>
   </main>
   <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script src="config-loader.js?v=20261007-layered"></script>
@@ -45,6 +53,6 @@
   <script src="nature-scenes.js?v=20261008-final"></script>
   <script src="stock-scenes.js?v=20261008-final"></script>
   <script src="render-budget.js?v=20261007-perf"></script>
-  <script src="app.js?v=20261008-shared-sound"></script>
+  <script src="app.js?v=20261008-welcome-about"></script>
 </body>
 </html>

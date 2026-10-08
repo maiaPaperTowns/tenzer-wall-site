@@ -42,15 +42,10 @@
     const size = clamp(Math.min(w, h) * rand(.105, .17) * wallScale, 84, 360);
     const y = startY ?? -size * .7;
     const margin = Math.min(size * .78, w * .24);
-    let x = w * .5, bestScore = -Infinity;
-    const laneCount = clamp(Math.floor(w / Math.max(150, size * 1.35)), 3, 8);
-    for (let i = 0; i < laneCount; i++) {
-      const laneX = margin + (w - margin * 2) * ((i + .5) / laneCount);
-      const proposedX = clamp(laneX + rand(-size * .12, size * .12), margin, w - margin);
-      const nearby = characters.filter(c => c.state === 'falling' && Math.abs(c.y - y) < (c.size + size) * 1.15);
-      const score = nearby.length ? Math.min(...nearby.map(c => Math.abs(c.x - proposedX) / ((c.size + size) * .5))) : 99;
-      if (score > bestScore) { bestScore = score; x = proposedX; }
-    }
+    let x = rand(margin,w-margin);
+    const nearby = characters.filter(c => c.state === 'falling' && Math.abs(c.y-y)<(c.size+size)*1.15);
+    // Random sampling across the whole width avoids the old leftmost-lane tie bias.
+    for(let attempt=0;attempt<7&&nearby.some(c=>Math.abs(c.x-x)<(c.size+size)*.57);attempt++)x=rand(margin,w-margin);
     characters.push({
       ...type, x, y, size,
       vy: reduced ? 8 : rand(17, 28), drift: rand(-7, 7), phase: rand(0, Math.PI * 2),
@@ -81,6 +76,7 @@
 
   function burst(c) {
     if (c.state !== 'falling') return;
+    intro.classList.add('hidden');
     c.state = 'opening'; c.life = 0;
     if(!['horse','waterfall'].includes(c.behavior))ripples.push({ x: c.x, y: c.y, r: c.size * .38, alpha: .62, hue: c.hue });
     const activeScenes = scenes.filter(scene => scene.life >= 0 && scene.life < scene.max);
@@ -212,8 +208,9 @@
     ]);
   }
 
-  async function start() {
-    if (started || !ready) return; started = true; intro.classList.add('hidden');
+  async function start(keepWelcome=false) {
+    if(keepWelcome!==true)intro.classList.add('hidden');
+    if (started || !ready) return; started = true;
     const initialCount = clamp(Math.round(w / 1600) + 2, 3, 7);
     for (let i = 0; i < initialCount; i++) {
       spawnCharacter(h * (.1 + (i / Math.max(1, initialCount - 1)) * .78));
@@ -233,7 +230,7 @@
       spawnCounts=entries.map(()=>0);
       await loadKanjiFonts().catch(()=>{});
       status.textContent=missing.length?'Unavailable artwork: '+missing.join(', ')+'. Other characters are ready.':'';
-      ready=true;begin.disabled=false;begin.textContent='Begin';
+      ready=true;begin.disabled=false;begin.textContent='Explore';start(true);
     } catch(error) {
       status.textContent='Unable to start: '+error.message;
       begin.textContent='Artwork unavailable';
@@ -280,7 +277,11 @@
   addEventListener('resize', resize); resize(); requestAnimationFrame(frame);
   begin.addEventListener('click', start);
   soundButton.addEventListener('click', toggleSound);
+  const aboutButton=document.querySelector('#about'),aboutDialog=document.querySelector('#about-dialog');
+  aboutButton.addEventListener('click',()=>aboutDialog.showModal());
+  aboutDialog.addEventListener('click',e=>{if(e.target!==aboutDialog)return;const r=aboutDialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)aboutDialog.close();});
+  aboutDialog.addEventListener('close',()=>aboutButton.focus());
   bindWallInput();
   initialize();
-  addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (!started) start(); else { const c = characters.find(c => c.state === 'falling'); if (c) burst(c); } } });
+  addEventListener('keydown', e => { if(aboutDialog.open||e.target.closest?.('button,a,input,textarea,select'))return; if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (!started) start(); else { const c = characters.find(c => c.state === 'falling'); if (c) burst(c); } } });
 })();
