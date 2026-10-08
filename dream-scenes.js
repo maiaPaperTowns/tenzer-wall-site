@@ -49,7 +49,8 @@
     const time=reduced?2:t;g.globalAlpha=fade;g.drawImage(s.entry.images[0],0,0,w,h);
     // Feathered cloud texture drifts while the mountains and lake horizon stay fixed.
     if(!s.cloudLayer){const c=document.createElement('canvas');c.width=768;c.height=512;const q=c.getContext('2d');q.drawImage(s.entry.images[0],0,0,768,512);q.globalCompositeOperation='destination-in';const mask=q.createLinearGradient(0,0,0,512);mask.addColorStop(0,'#000');mask.addColorStop(.43,'#000');mask.addColorStop(.65,'transparent');q.fillStyle=mask;q.fillRect(0,0,768,512);s.cloudLayer=c}
-    g.globalAlpha=fade*.3;g.drawImage(s.cloudLayer,-w*.025+Math.sin(time*.09)*w*.018,0,w*1.05,h);
+    g.globalAlpha=fade*.8;g.drawImage(s.cloudLayer,-w*.055+Math.sin(time*.14)*w*.045,-h*.015+Math.sin(time*.19)*h*.009,w*1.11,h*1.025);
+    g.globalAlpha=fade*.18;g.drawImage(s.cloudLayer,-w*.065+Math.sin(time*.08+1.7)*w*.05,h*.025,w*1.13,h*.96);
     const event=strikeSample(t),strike=reduced?0:event.index,age=event.age,span=.22+noise(strike+83)*.16,intensity=reduced?.25:(age<0?0:ease(age/.025)*(1-ease((age-.05)/(span-.05))));
     if(!s.bolts||s.boltIndex!==strike||s.boltReduced!==reduced){s.bolts=[];for(let b=0;b<1;b++){const trunk=[],seed=strike*31+b*101;let x=.18+noise(seed+71)*.64;for(let j=0;j<24;j++){x+=(noise(seed+j*8)-.5)*.036;trunk.push([x,.10+j*.027])}s.bolts.push(trunk);for(let k=0;k<5;k++){const start=5+k*3,path=[trunk[start]],dir=k%2?1:-1;for(let j=1;j<7;j++){const a=path[j-1];path.push([a[0]+dir*(.012+noise(seed+k*6+j)*.018),a[1]+.02])}s.bolts.push(path)}}s.boltIndex=strike;s.boltReduced=reduced}
     if(!intensity)return;
