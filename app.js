@@ -13,22 +13,9 @@
   let entries = [], ready = false;
   let w = 0, h = 0, dpr = 1, last = performance.now(), started = false;
   let audio, wind, sceneSound;
-  let effectNodes=[],effectGain;
-  function stopEffect(){if(effectGain&&audio){effectGain.gain.cancelScheduledValues(audio.currentTime);effectGain.gain.setTargetAtTime(.0001,audio.currentTime,.06);}for(const n of effectNodes){try{n.stop(audio.currentTime+.3)}catch{}}effectNodes=[];}
-  function sceneEffect(c){
-    stopEffect();if(!audio||audio.state!=='running')return;
-    const now=audio.currentTime,duration=Math.min(30,c.duration||20),id=c.id||c.behavior,seed=[...id].reduce((n,x)=>n+x.charCodeAt(0),0),gain=audio.createGain();effectGain=gain;gain.gain.setValueAtTime(0,now);gain.gain.linearRampToValueAtTime(1,now+.4);gain.gain.setTargetAtTime(.0001,now+duration-.5,.15);gain.connect(audio.destination);
-    const tone=(at,f,len,volume=.018,end=f)=>{const o=audio.createOscillator(),v=audio.createGain();o.frequency.setValueAtTime(f,now+at);o.frequency.exponentialRampToValueAtTime(Math.max(20,end),now+at+len);v.gain.setValueAtTime(.0001,now+at);v.gain.linearRampToValueAtTime(volume,now+at+.025);v.gain.exponentialRampToValueAtTime(.0001,now+at+len);o.connect(v).connect(gain);o.start(now+at);o.stop(now+at+len+.03);effectNodes.push(o);};
-    const noise=(at,len,f,volume,type='lowpass')=>{const b=audio.createBuffer(1,Math.ceil(audio.sampleRate*len),audio.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;const n=audio.createBufferSource(),filter=audio.createBiquadFilter(),v=audio.createGain();n.buffer=b;filter.type=type;filter.frequency.value=f;v.gain.setValueAtTime(.0001,now+at);v.gain.linearRampToValueAtTime(volume,now+at+Math.min(.15,len*.2));v.gain.exponentialRampToValueAtTime(.0001,now+at+len);n.connect(filter).connect(v).connect(gain);n.start(now+at);n.stop(now+at+len);effectNodes.push(n);};
-    if(['waterfall','river','ocean','rain','water','fish','lotus'].includes(id)){for(let at=0;at<duration-2;at+=id==='waterfall'?2:3.8){if(id==='water'){tone(at+1.45,840,.28,.025,260);tone(at+1.55,510,.4,.012,170);}else noise(at,Math.min(4,duration-at),id==='rain'?3700:id==='ocean'?900:1800,id==='waterfall'?.045:.025);}}
-    else if(['wind','leaves','bamboo','forest','tree','cloud','sand','snow','ice'].includes(id)){for(let at=0;at<duration-3;at+=4.1)noise(at,4.8,id==='sand'?2300:650+seed%800,id==='wind'?.035:.016,'bandpass');if(id==='ice')for(let at=1;at<duration;at+=3.7)tone(at,1700+seed,1.3,.009);}
-    else if(id==='fire'){for(let at=0;at<duration-1;at+=2)noise(at,2.4,650,.025);for(let at=.3;at<duration;at+=.6+(seed%7)*.07)noise(at,.07,2300,.012);}
-    else if(id==='lightning'){for(let at=.7;at<duration-2;at+=3.3){noise(at,1.8,170,.065);tone(at,60,1.5,.024,30);}}
-    else if(id==='horse'){for(let at=.1;at<duration-.5;at+=.7){for(const offset of [0,.12,.31]){noise(at+offset,.08,550,.035);tone(at+offset,130,.09,.025,65);}}}
-    else if(id==='cat'){tone(.2,440,.8,.018,570);tone(.85,570,.45,.012,260);for(let at=1.5;at<duration-1;at+=2)tone(at,45,1.7,.01,42);}
-    else if(id==='bird'){for(let at=.3;at<duration-.8;at+=2.6){tone(at,1500,.2,.015,2700);tone(at+.23,2400,.25,.012,1600);}}
-    else{const f=260+seed%500;for(let at=.1;at<duration-2;at+=4.5){tone(at,f,2,.015);tone(at+.2,f*1.5,2.3,.008);tone(at+.4,f*2,1.8,.006);}}
-  }
+  let effectNodes=[];
+  function stopEffect(){for(const node of effectNodes){try{node.stop()}catch{}}effectNodes=[];}
+  function sceneEffect(){stopEffect();if(audio?.state==='running')chime(523.25);}
   const characters = [], ripples = [], scenes = [];
   let spawnCounts = [];
   const rand = (a, b) => a + Math.random() * (b - a);
@@ -113,12 +100,6 @@
     });
     if(sceneSound) {sceneSound.pause();sceneSound=null;}
     sceneEffect(c);
-    if (audio?.state === 'running' && c.sound) {
-      if(c.sound.src) {
-        sceneSound=new Audio(c.sound.src);sceneSound.volume=c.sound.volume ?? .5;
-        sceneSound.play().catch(()=>{hint.textContent='Sound unavailable — touch another character';});
-      }
-    }
     setTimeout(() => { if (started) spawnCharacter(); }, reduced ? 700 : 2200);
   }
 
@@ -130,6 +111,7 @@
       gain.gain.setValueAtTime(0, now + i * .06); gain.gain.linearRampToValueAtTime(.035 / (i + 1), now + .12 + i * .06);
       gain.gain.exponentialRampToValueAtTime(.0001, now + 2.2 + i * .2);
       osc.connect(gain).connect(audio.destination); osc.start(now + i * .06); osc.stop(now + 2.5 + i * .2);
+      effectNodes.push(osc);
     });
   }
 

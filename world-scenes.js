@@ -38,6 +38,8 @@
   function cat(g,s,t,w,h,fade,reduced){
     const size=Math.min(w*.44,h*.44),clock=reduced?8:t,x=w*.55,ground=h*.68,img=s.entry.images[0],cw=img.width/2,ch=img.height;
     g.globalAlpha=fade*(reduced?1:ease(t/2));g.drawImage(s.entry.images[1],0,0,w,h);
+    if(!s.catSky||s.catSkySize!==w+':'+h){const bg=s.entry.images[1],c=document.createElement('canvas');c.width=Math.min(w,1200);c.height=Math.round(c.width*h/w*.44);const q=c.getContext('2d');q.drawImage(bg,0,0,bg.width,bg.height*.44,0,0,c.width,c.height);q.globalCompositeOperation='destination-in';const mask=q.createLinearGradient(0,0,0,c.height);mask.addColorStop(0,'#000');mask.addColorStop(.68,'#000');mask.addColorStop(1,'transparent');q.fillStyle=mask;q.fillRect(0,0,c.width,c.height);s.catSky=c;s.catSkySize=w+':'+h;}
+    g.drawImage(s.catSky,-w*.035+(reduced?0:Math.sin(clock*.06)*w*.026),-h*.004,w*1.07,h*.45);
     if(s.catFoot===undefined){const c=document.createElement('canvas');c.width=Math.ceil(cw);c.height=ch;const q=c.getContext('2d');q.drawImage(img,0,0,cw,ch,0,0,cw,ch);const p=q.getImageData(0,0,c.width,c.height).data;let bottom=0;for(let y=0;y<ch;y++)for(let xx=0;xx<c.width;xx++)if(p[(y*c.width+xx)*4+3]>120)bottom=Math.max(bottom,y);s.catFoot=(bottom+1)/ch;}
     g.globalAlpha=fade*(reduced?1:ease(t/2))*.25;g.fillStyle='#302b34';g.beginPath();g.ellipse(x+size*.05,ground,size*.26,size*.025,0,0,Math.PI*2);g.fill();
     g.save();g.translate(x,ground+size*(1-s.catFoot));g.globalAlpha=fade*(reduced?1:ease(t/2));

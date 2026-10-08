@@ -14,6 +14,8 @@
   function bloom(g,s,t,w,h,fade,reduced){
     if(s.entry.behavior==='sakura'){sakura(g,s,t,w,h,fade,reduced);return}
     const time=reduced?12:t,min=Math.min(w,h),arrive=reduced?1:ease(t/3.2);g.globalAlpha=fade*arrive;g.drawImage(s.entry.images[1],0,0,w,h);
+    if(!s.flowerSky||s.flowerSkySize!==w+':'+h){const img=s.entry.images[1],c=document.createElement('canvas');c.width=Math.min(w,1200);c.height=Math.round(c.width*h/w*.54);const q=c.getContext('2d');q.drawImage(img,0,0,img.width,img.height*.54,0,0,c.width,c.height);q.globalCompositeOperation='destination-in';const mask=q.createLinearGradient(0,0,0,c.height);mask.addColorStop(0,'#000');mask.addColorStop(.70,'#000');mask.addColorStop(1,'transparent');q.fillStyle=mask;q.fillRect(0,0,c.width,c.height);s.flowerSky=c;s.flowerSkySize=w+':'+h;}
+    g.drawImage(s.flowerSky,-w*.035+(reduced?0:Math.sin(time*.055)*w*.026),-h*.004,w*1.07,h*.55);
     const img=s.entry.images[0],count=Math.min(180,Math.max(65,Math.round(w/h*45)));s.flowers=[];
     for(let i=0;i<count;i++){
       const depth=.54+.46*i/count,x=w*(.02+noise(i+81)*.96),target=h*depth,open=reduced?1:ease((t-.3-noise(i+20)*3.2)/2.4),size=min*(.045+depth*.13)*(.08+.92*open),y=target+(1-open)*min*.025,sway=reduced?0:Math.sin(time*.7+i*.9)*size*.1,rootY=Math.min(h*1.04,target+min*(.11+noise(i+18)*.09)),rootX=x+(noise(i+57)-.5)*size*.7;
@@ -30,8 +32,11 @@
   function sakura(g,s,t,w,h,fade,reduced){
     const plate=s.entry.images[1],atlas=s.entry.images[0],clock=reduced?12:t;g.globalAlpha=fade*(reduced?1:ease(t/2));g.drawImage(plate,0,0,w,h);
     if(!s.blossomAnchors){const c=document.createElement('canvas');c.width=384;c.height=Math.round(384*h/w);const q=c.getContext('2d');q.drawImage(plate,0,0,c.width,c.height);const p=q.getImageData(0,0,c.width,c.height).data,points=[];for(let y=0;y<c.height;y+=3)for(let x=0;x<c.width;x+=3){const k=(y*c.width+x)*4;if(p[k]<145&&p[k+1]<125&&p[k+2]<140)points.push([x/c.width,y/c.height])}s.blossomAnchors=points.length?points:[[.2,.2],[.8,.3]];}
-    s.flowers=[];const count=Math.min(260,Math.max(150,Math.round(w/h*90))),points=s.blossomAnchors;
-    for(let i=0;i<count;i++){const [nx,ny]=points[Math.floor(noise(i+78)*points.length)],open=reduced?1:ease((t-.3-noise(i+40)*4)/2.6),size=Math.min(w,h)*(.085+noise(i+13)*.10)*open,x=nx*w+(reduced?0:Math.sin(clock*.65+i)*size*.055),y=ny*h+(reduced?0:Math.sin(clock*.48+i)*size*.025);s.flowers.push({x,y,open});
+    const branches=[[1,.20,.64,.28,.31,.42],[0,.56,.30,.47,.65,.61],[1,.88,.73,.72,.47,.76]];
+    g.globalAlpha=fade*.6;g.strokeStyle='#735558';g.lineWidth=Math.max(1,Math.min(w,h)*.003);for(const [a,b,c,d,e,f] of branches){g.beginPath();g.moveTo(a*w,b*h);g.quadraticCurveTo(c*w,d*h,e*w,f*h);g.stroke();}
+    if(!s.interiorBlossoms){const points=[];for(const [a,b,c,d,e,f] of branches)for(let j=1;j<=28;j++){const u=j/28;points.push([(1-u)**2*a+2*(1-u)*u*c+u*u*e,(1-u)**2*b+2*(1-u)*u*d+u*u*f]);}s.interiorBlossoms=points;}
+    s.flowers=[];const count=Math.min(300,Math.max(185,Math.round(w/h*100))),points=s.blossomAnchors;
+    for(let i=0;i<count;i++){const candidates=i%3===0?s.interiorBlossoms:points,[nx,ny]=candidates[Math.floor(noise(i+78)*candidates.length)],open=reduced?1:ease((t-.3-noise(i+40)*4)/2.6),size=Math.min(w,h)*(.085+noise(i+13)*.10)*open,x=nx*w+(reduced?0:Math.sin(clock*.65+i)*size*.055),y=ny*h+(reduced?0:Math.sin(clock*.48+i)*size*.025);s.flowers.push({x,y,open});
       g.save();g.translate(x,y);g.rotate((noise(i)-.5)*2+Math.sin(clock*.55+i)*.045);g.scale(.3+.7*open,1);g.globalAlpha=fade*open;g.drawImage(atlas,(i%2)*atlas.width/2,(Math.floor(i/2)%2)*atlas.height/2,atlas.width/2,atlas.height/2,-size/2,-size/2,size,size*atlas.height/atlas.width);g.restore();
     }if(!reduced){petalDrift(g,clock,w,h,fade,false);petalDrift(g,clock+17,w,h,fade*.8,false);}
   }
@@ -46,11 +51,11 @@
   }
   function strikeSample(t){let index=0,start=.6;while(start+.95+noise(index+901)*1.7<=t){start+=.95+noise(index+901)*1.7;index++}return {index,age:t-start,start}}
   function lightning(g,s,t,w,h,fade,reduced){
-    const time=reduced?2:t;g.globalAlpha=fade;g.drawImage(s.entry.images[0],0,0,w,h);
+    const time=reduced?2:t,img=s.entry.images[0];g.globalAlpha=fade;
+    // Replace the entire sky with moving material bands: no stationary cloud plate remains.
+    for(let y=0;y<h;y+=3){const v=y/h,dy=Math.sin(time*.23+v*8)*h*.006,dx=(Math.sin(time*.16+v*4)+.4*Math.sin(time*.27+v*11))*w*.012,sh=Math.min(img.height,4*img.height/h),sy=Math.max(0,Math.min(img.height-sh,(y+dy)*img.height/h));g.drawImage(img,0,sy,img.width,sh,-w*.025+dx,y,w*1.05,4);}
     // Feathered cloud texture drifts while the mountains and lake horizon stay fixed.
     if(!s.cloudLayer){const c=document.createElement('canvas');c.width=768;c.height=512;const q=c.getContext('2d');q.drawImage(s.entry.images[0],0,0,768,512);q.globalCompositeOperation='destination-in';const mask=q.createLinearGradient(0,0,0,512);mask.addColorStop(0,'#000');mask.addColorStop(.43,'#000');mask.addColorStop(.65,'transparent');q.fillStyle=mask;q.fillRect(0,0,768,512);s.cloudLayer=c}
-    g.globalAlpha=fade*.8;g.drawImage(s.cloudLayer,-w*.055+Math.sin(time*.14)*w*.045,-h*.015+Math.sin(time*.19)*h*.009,w*1.11,h*1.025);
-    g.globalAlpha=fade*.18;g.drawImage(s.cloudLayer,-w*.065+Math.sin(time*.08+1.7)*w*.05,h*.025,w*1.13,h*.96);
     const event=strikeSample(t),strike=reduced?0:event.index,age=event.age,span=.22+noise(strike+83)*.16,intensity=reduced?.25:(age<0?0:ease(age/.025)*(1-ease((age-.05)/(span-.05))));
     if(!s.bolts||s.boltIndex!==strike||s.boltReduced!==reduced){s.bolts=[];for(let b=0;b<1;b++){const trunk=[],seed=strike*31+b*101;let x=.18+noise(seed+71)*.64;for(let j=0;j<24;j++){x+=(noise(seed+j*8)-.5)*.036;trunk.push([x,.10+j*.027])}s.bolts.push(trunk);for(let k=0;k<5;k++){const start=5+k*3,path=[trunk[start]],dir=k%2?1:-1;for(let j=1;j<7;j++){const a=path[j-1];path.push([a[0]+dir*(.012+noise(seed+k*6+j)*.018),a[1]+.02])}s.bolts.push(path)}}s.boltIndex=strike;s.boltReduced=reduced}
     if(!intensity)return;
@@ -112,12 +117,13 @@
   }
   function tree(g,s,t,w,h,fade,reduced){
     const clock=reduced?12:t,atlas=s.entry.images[2],cw=atlas.width/2,ch=atlas.height/2,size=Math.min(h*.74,w*.58),x=w*.52,ground=h*.95,open=1;
+    if(!s.treeCells){s.treeCells=[];for(let i=0;i<4;i++){const c=document.createElement('canvas');c.width=cw;c.height=ch;const q=c.getContext('2d');const inset=12;q.drawImage(atlas,(i%2)*cw+inset,Math.floor(i/2)*ch+inset,cw-inset*2,ch-inset*2,inset,inset,cw-inset*2,ch-inset*2);s.treeCells.push(c);}}
     g.globalAlpha=fade;g.drawImage(s.entry.images[1],0,0,w,h);
     // Full rooted trunk and canopy are present from the first frame; only foliage sways.
-    g.globalAlpha=fade*open;g.drawImage(atlas,0,0,cw,ch,x-size*cw/ch/2,ground-size*open,size*cw/ch,size*open);
+    g.globalAlpha=fade*open;g.drawImage(s.treeCells[0],x-size*cw/ch/2,ground-size,size*cw/ch,size);
     const anchors=[[-.43,-.88],[-.2,-1.00],[.05,-1.04],[.30,-.96],[.48,-.79],[-.4,-.64],[-.13,-.78],[.15,-.80],[.38,-.60]];s.canopyClusters=[];
     anchors.forEach(([ax,ay],i)=>{const grow=1,height=size*(.42+noise(i+14)*.14),angle=reduced?0:Math.sin(clock*(.6+noise(i)*.2)+i)*.025,dx=reduced?0:Math.sin(clock*.7+i)*size*.009,index=1+i%3;s.canopyClusters.push({angle,grow});
-      g.save();g.translate(x+ax*size+dx,ground+ay*size*open);g.rotate(angle);g.globalAlpha=fade*grow;g.drawImage(atlas,(index%2)*cw,Math.floor(index/2)*ch,cw,ch,-height*cw/ch*.5,-height*.35,height*cw/ch*grow,height*grow);g.restore();
+      g.save();g.translate(x+ax*size+dx,ground+ay*size*open);g.rotate(angle);g.globalAlpha=fade*grow;g.drawImage(s.treeCells[index],-height*cw/ch*.5,-height*.35,height*cw/ch,height);g.restore();
     });
   }
   function swayCanopy(g,s,img,w,h,t,fade,reduced){
@@ -133,8 +139,8 @@
   }
   function bamboo(g,s,t,w,h,fade,reduced){
     const img=s.entry.images[0],clock=reduced?12:t,sky=g.createLinearGradient(0,0,0,h);sky.addColorStop(0,'#a7bd95');sky.addColorStop(.5,'#d7d9ad');sky.addColorStop(1,'#294b3e');g.globalAlpha=fade*(reduced?1:ease(t/2));g.fillStyle=sky;g.fillRect(0,0,w,h);
-    const count=Math.max(7,Math.ceil(w/h*5)),cw=img.width/2,ch=img.height/2;s.stalks=[];
-    for(let i=0;i<count;i++){const depth=.45+noise(i+13)*.55,height=h*(1.3+depth*.9),width=height*cw/ch,x=w*(i+.5)/count,open=reduced?1:ease((t-noise(i+25)*.7)/3.2),bend=reduced?0:Math.sin(clock*(.22+depth*.06)+i*.7)*.004*depth;s.stalks.push({x,bend});g.save();g.translate(x,h*1.35+(1-open)*h*.06);g.rotate(bend);g.globalAlpha=fade*open*(.35+depth*.65);
+    const count=Math.max(5,Math.ceil(w/h*3)),cw=img.width/2,ch=img.height/2;s.stalks=[];
+    for(let i=0;i<count;i++){const depth=.45+noise(i+13)*.55,height=h*(1.25+depth*.22),width=height*cw/ch,x=w*(i+.5)/count,open=1,bend=reduced?0:Math.sin(clock*(.22+depth*.06)+i*.7)*.006*depth;s.stalks.push({x,bend});g.save();g.translate(x,h*1.12);g.rotate(bend);g.globalAlpha=fade*(.65+depth*.35);
       // Continuous curvature anchored at the root; leaves at different heights lag the stalk.
       g.beginPath();g.rect(-width,-height*open,width*2,height*open+h);g.clip();
       for(let j=0;j<96;j++){const u=j/96,dx=reduced?0:Math.sin(clock*.3+i+u*.7)*height*.0025*(1-u)**2;g.drawImage(img,(i%2)*cw,(Math.floor(i/2)%2)*ch+u*ch,cw,ch/96,-width*.5+dx,-height+u*height,width,height/96+.5)}g.restore();
