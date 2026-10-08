@@ -73,6 +73,8 @@
     if(!reduced){const c=s.forestLeaves;g.globalAlpha=fade*p*.8;for(let j=0;j<96;j++){const u=j/96,bend=Math.sin(t*.43+u*7)*Math.min(w,h)*.003;g.drawImage(c,u*c.width,0,c.width/96,c.height,u*w+bend,Math.sin(t*.37+u*9)*h*.0015,w/96+.5,h);}
       const glow=g.createRadialGradient(w*.52,h*.23,0,w*.52,h*.23,h*.65);glow.addColorStop(0,'rgba(244,239,195,.10)');glow.addColorStop(1,'transparent');g.globalAlpha=fade*p*(.5+.3*Math.sin(t*.35));g.fillStyle=glow;g.fillRect(0,0,w,h);
     }
+    // Slow drifting dust catches the sunbeam; brighter motes are nearer the viewer.
+    for(let i=0;i<65;i++){const clock=reduced?12:t,depth=.25+noise(i+516)*.75,phase=(noise(i+331)+clock*(.009+depth*.012))%1,x=w*(.22+noise(i+221)*.55)+Math.sin(clock*.19+i)*h*.018,y=h*(.08+phase*.78),r=Math.max(.45,Math.min(w,h)*(.0008+depth*.002)),light=Math.max(0,1-Math.abs(x/w-.51)*2.5),alpha=Math.sin(phase*Math.PI)*light*(.12+depth*.32);g.globalAlpha=fade*p*alpha;g.fillStyle=i%3?'#f4edcb':'#dce9d4';g.beginPath();g.arc(x,y,r,0,Math.PI*2);g.fill();}
     if(s.entry.images.length===1){if(!reduced)for(let i=0;i<28;i++){const x=w*noise(i+4)+Math.sin(t*.25+i)*h*.018,y=h*(.25+noise(i+9)*.7)+Math.cos(t*.3+i)*h*.02,r=1+noise(i)*1.2;g.globalAlpha=fade*p*(.15+.5*Math.pow(.5+.5*Math.sin(t+i),2));g.fillStyle='#ffe6a6';g.beginPath();g.arc(x,y,r,0,Math.PI*2);g.fill()}return}
     const atlas=s.entry.images[3],count=Math.max(4,Math.ceil(w/h*3));
     for(let i=0;i<count;i++){const open=reduced?1:ease((t-2-i*.25)/5),size=h*(.65+noise(i)*.25),x=w*(i%2?1-Math.floor(i/2)*.11:Math.floor(i/2)*.11);g.save();g.translate(x,h*1.04);g.transform(1,0,reduced?0:Math.sin(t*.42+i)*.006,1,0,0);g.globalAlpha=fade*open*.58;crop(g,atlas,[(i%2)*.5,0,.5,.585],-size*.35,-size*open,size*.7,size*open);g.restore()}
