@@ -15,7 +15,7 @@
     if(s.entry.behavior==='sakura'){sakura(g,s,t,w,h,fade,reduced);return}
     const time=reduced?12:t,min=Math.min(w,h),arrive=reduced?1:ease(t/3.2);g.globalAlpha=fade*arrive;g.drawImage(s.entry.images[1],0,0,w,h);
     if(!s.flowerSky||s.flowerSkySize!==w+':'+h){const img=s.entry.images[1],c=document.createElement('canvas');c.width=Math.min(w,1200);c.height=Math.round(c.width*h/w*.54);const q=c.getContext('2d');q.drawImage(img,0,0,img.width,img.height*.54,0,0,c.width,c.height);q.globalCompositeOperation='destination-in';const mask=q.createLinearGradient(0,0,0,c.height);mask.addColorStop(0,'#000');mask.addColorStop(.70,'#000');mask.addColorStop(1,'transparent');q.fillStyle=mask;q.fillRect(0,0,c.width,c.height);s.flowerSky=c;s.flowerSkySize=w+':'+h;}
-    g.drawImage(s.flowerSky,-w*.035+(reduced?0:Math.sin(time*.055)*w*.026),-h*.004,w*1.07,h*.55);
+    g.drawImage(s.flowerSky,-w*.07+(reduced?0:Math.sin(time*.11)*w*.06),-h*.004,w*1.14,h*.55);
     const img=s.entry.images[0],count=Math.min(180,Math.max(65,Math.round(w/h*45)));s.flowers=[];
     for(let i=0;i<count;i++){
       const depth=.54+.46*i/count,x=w*(.02+noise(i+81)*.96),target=h*depth,open=reduced?1:ease((t-.3-noise(i+20)*3.2)/2.4),size=min*(.045+depth*.13)*(.08+.92*open),y=target+(1-open)*min*.025,sway=reduced?0:Math.sin(time*.7+i*.9)*size*.1,rootY=Math.min(h*1.04,target+min*(.11+noise(i+18)*.09)),rootX=x+(noise(i+57)-.5)*size*.7;
@@ -32,9 +32,9 @@
   function sakura(g,s,t,w,h,fade,reduced){
     const plate=s.entry.images[1],atlas=s.entry.images[0],clock=reduced?12:t;g.globalAlpha=fade*(reduced?1:ease(t/2));g.drawImage(plate,0,0,w,h);
     if(!s.blossomAnchors){const c=document.createElement('canvas');c.width=384;c.height=Math.round(384*h/w);const q=c.getContext('2d');q.drawImage(plate,0,0,c.width,c.height);const p=q.getImageData(0,0,c.width,c.height).data,points=[];for(let y=0;y<c.height;y+=3)for(let x=0;x<c.width;x+=3){const k=(y*c.width+x)*4;if(p[k]<145&&p[k+1]<125&&p[k+2]<140)points.push([x/c.width,y/c.height])}s.blossomAnchors=points.length?points:[[.2,.2],[.8,.3]];}
-    const branches=[[1,.20,.64,.28,.31,.42],[0,.56,.30,.47,.65,.61],[1,.88,.73,.72,.47,.76]];
-    g.globalAlpha=fade*.6;g.strokeStyle='#735558';g.lineWidth=Math.max(1,Math.min(w,h)*.003);for(const [a,b,c,d,e,f] of branches){g.beginPath();g.moveTo(a*w,b*h);g.quadraticCurveTo(c*w,d*h,e*w,f*h);g.stroke();}
-    if(!s.interiorBlossoms){const points=[];for(const [a,b,c,d,e,f] of branches)for(let j=1;j<=28;j++){const u=j/28;points.push([(1-u)**2*a+2*(1-u)*u*c+u*u*e,(1-u)**2*b+2*(1-u)*u*d+u*u*f]);}s.interiorBlossoms=points;}
+    const branchAtlas=s.entry.images[2],branchWidth=Math.min(w*.74,h*2),branchHeight=branchWidth*branchAtlas.height/2/branchAtlas.width,layouts=[[w*1.03-branchWidth,h*.30,false],[-w*.03,h*.63,true]];
+    if(!s.sakuraBranchCells){s.sakuraBranchCells=[];s.sakuraTwigPixels=[];for(let i=0;i<2;i++){const c=document.createElement('canvas');c.width=384;c.height=Math.round(384*branchAtlas.height/2/branchAtlas.width);const q=c.getContext('2d');q.drawImage(branchAtlas,0,i*branchAtlas.height/2,branchAtlas.width,branchAtlas.height/2,0,0,c.width,c.height);const p=q.getImageData(0,0,c.width,c.height).data,points=[];for(let y=3;y<c.height-3;y+=3)for(let x=3;x<c.width-3;x+=3)if(p[(y*c.width+x)*4+3]>150)points.push([x/c.width,y/c.height]);s.sakuraBranchCells.push(c);s.sakuraTwigPixels.push(points);}}
+    s.interiorBlossoms=[];layouts.forEach(([x,y,flip],i)=>{g.save();g.globalAlpha=fade*ease(clock/2);g.translate(x+branchWidth/2,y+branchHeight/2);g.scale(flip?-1:1,1);g.drawImage(s.sakuraBranchCells[i],-branchWidth/2,-branchHeight/2,branchWidth,branchHeight);g.restore();for(const [nx,ny] of s.sakuraTwigPixels[i])s.interiorBlossoms.push([(x+(flip?1-nx:nx)*branchWidth)/w,(y+ny*branchHeight)/h]);});
     s.flowers=[];const count=Math.min(300,Math.max(185,Math.round(w/h*100))),points=s.blossomAnchors;
     for(let i=0;i<count;i++){const candidates=i%3===0?s.interiorBlossoms:points,[nx,ny]=candidates[Math.floor(noise(i+78)*candidates.length)],open=reduced?1:ease((t-.3-noise(i+40)*4)/2.6),size=Math.min(w,h)*(.085+noise(i+13)*.10)*open,x=nx*w+(reduced?0:Math.sin(clock*.65+i)*size*.055),y=ny*h+(reduced?0:Math.sin(clock*.48+i)*size*.025);s.flowers.push({x,y,open});
       g.save();g.translate(x,y);g.rotate((noise(i)-.5)*2+Math.sin(clock*.55+i)*.045);g.scale(.3+.7*open,1);g.globalAlpha=fade*open;g.drawImage(atlas,(i%2)*atlas.width/2,(Math.floor(i/2)%2)*atlas.height/2,atlas.width/2,atlas.height/2,-size/2,-size/2,size,size*atlas.height/atlas.width);g.restore();
@@ -82,7 +82,7 @@
     // Repeated falling texture is masked inside the water, never moving rock faces.
     if(!s.fallLayer){const c=document.createElement('canvas');c.width=512;c.height=768;const q=c.getContext('2d');q.drawImage(img,img.width*.53,img.height*.10,img.width*.16,img.height*.60,0,0,512,768);q.globalCompositeOperation='destination-in';const mask=q.createLinearGradient(0,0,512,0);mask.addColorStop(0,'transparent');mask.addColorStop(.17,'#000');mask.addColorStop(.83,'#000');mask.addColorStop(1,'transparent');q.fillStyle=mask;q.fillRect(0,0,512,768);s.fallLayer=c}
     const mist=reduced?1:ease((t-3.8)/3);for(let i=0;i<20;i++){const p=noise(i),x=w*(.27+p*.46)+(reduced?0:Math.sin(time*.35+i)*w*.02),y=h*(.73+noise(i+7)*.09),r=h*(.045+noise(i+13)*.065),gr=g.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,'rgba(228,247,252,.2)');gr.addColorStop(1,'transparent');g.globalAlpha=fade*mist;g.fillStyle=gr;g.fillRect(x-r,y-r,r*2,r*2)}
-    if(!reduced)for(let i=0;i<55;i++){const p=(time*.42+noise(i))%1,x=w*(.49+noise(i+5)*.22)+(noise(i+13)-.5)*w*.12*p,y=h*.80-h*.13*Math.sin(p*Math.PI);g.globalAlpha=fade*mist*(1-p)*.27;g.fillStyle='#e2f5ff';g.beginPath();g.arc(x,y,.5+noise(i)*1.2,0,Math.PI*2);g.fill()}
+    if(!reduced)for(let i=0;i<115;i++){const age=(time*(.65+noise(i+93)*.35)+noise(i))%1,base=w*(.51+noise(i+5)*.20),vx=(noise(i+13)-.5)*w*.15,vy=h*(.11+noise(i+17)*.12),x=base+vx*age,y=h*.79-vy*age+h*.26*age*age;g.globalAlpha=fade*(1-ease((age-.5)/.5))*(.3+noise(i+82)*.35);g.fillStyle='#f3fbff';g.beginPath();g.ellipse(x,y,Math.max(.7,h*(.001+noise(i)*.003)),Math.max(.7,h*(.001+noise(i)*.002)),age,0,Math.PI*2);g.fill();}
   }
   function dropSample(time){const period=3.8,flight=1.45,cycle=Math.floor(time/period),age=time-cycle*period;return {period,flight,cycle,age,falling:age<flight,fall:clamp(age/flight),impactAge:age-flight}}
   function water(g,s,t,w,h,fade,reduced){
@@ -140,10 +140,10 @@
   function bamboo(g,s,t,w,h,fade,reduced){
     const img=s.entry.images[0],clock=reduced?12:t,sky=g.createLinearGradient(0,0,0,h);sky.addColorStop(0,'#a7bd95');sky.addColorStop(.5,'#d7d9ad');sky.addColorStop(1,'#294b3e');g.globalAlpha=fade*(reduced?1:ease(t/2));g.fillStyle=sky;g.fillRect(0,0,w,h);
     const count=Math.max(5,Math.ceil(w/h*3)),cw=img.width/2,ch=img.height/2;s.stalks=[];
-    for(let i=0;i<count;i++){const depth=.45+noise(i+13)*.55,height=h*(1.25+depth*.22),width=height*cw/ch,x=w*(i+.5)/count,open=1,bend=reduced?0:Math.sin(clock*(.22+depth*.06)+i*.7)*.006*depth;s.stalks.push({x,bend});g.save();g.translate(x,h*1.12);g.rotate(bend);g.globalAlpha=fade*(.65+depth*.35);
+    for(let i=0;i<count;i++){const depth=.45+noise(i+13)*.55,height=h*(1.25+depth*.22),width=height*cw/ch,x=w*(i+.5)/count,open=1,bend=reduced?0:Math.sin(clock*(.30+depth*.08)+i*.7)*.012*depth;s.stalks.push({x,bend});g.save();g.translate(x,h*1.12);g.rotate(bend);g.globalAlpha=fade*(.65+depth*.35);
       // Continuous curvature anchored at the root; leaves at different heights lag the stalk.
       g.beginPath();g.rect(-width,-height*open,width*2,height*open+h);g.clip();
-      for(let j=0;j<96;j++){const u=j/96,dx=reduced?0:Math.sin(clock*.3+i+u*.7)*height*.0025*(1-u)**2;g.drawImage(img,(i%2)*cw,(Math.floor(i/2)%2)*ch+u*ch,cw,ch/96,-width*.5+dx,-height+u*height,width,height/96+.5)}g.restore();
+      for(let j=0;j<96;j++){const u=j/96,dx=reduced?0:(Math.sin(clock*.42+i+u*.7)*height*.004+Math.sin(clock*.8+i+u*5)*height*.0008)*(1-u)**2;g.drawImage(img,(i%2)*cw,(Math.floor(i/2)%2)*ch+u*ch,cw,ch/96,-width*.5+dx,-height+u*height,width,height/96+.5)}g.restore();
     }
   }
   function wind(g,s,t,w,h,fade,reduced){
@@ -170,7 +170,7 @@
   function sand(g,s,t,w,h,fade,reduced){
     const img=s.entry.images[0],clock=reduced?5:t,open=1;g.globalAlpha=fade;g.drawImage(img,0,0,w,h);
     if(reduced)return;
-    for(let y=Math.floor(h*.6);y<h;y+=5){const q=y/h,dx=Math.sin(q*32-clock*.35)*w*.002*(q-.6);g.drawImage(img,0,q*img.height,img.width,Math.min(img.height-q*img.height,6/h*img.height),dx-w*.003,y,w*1.006,6)}
+    for(let y=Math.floor(h*.6);y<h;y+=5){const q=y/h,envelope=ease((q-.6)/.18),dx=Math.sin(q*32-clock*.35)*w*.002*(q-.6)*envelope;g.drawImage(img,0,q*img.height,img.width,Math.min(img.height-q*img.height,6/h*img.height),dx,y,w,6)}
     for(let i=0;i<230;i++){const p=(noise(i)+clock*(.045+noise(i+41)*.04))%1,x=p*w,y=h*(.52+noise(i+15)*.48)+Math.sin(p*9+i)*h*.022;g.globalAlpha=fade*open*Math.sin(p*Math.PI)*(.25+noise(i)*.3);g.strokeStyle='#fff0ce';g.lineWidth=.5+noise(i)*.6;g.beginPath();g.moveTo(x,y);g.lineTo(x+h*.006,y-h*.002);g.stroke()}
   }
   function wisteria(g,s,t,w,h,fade,reduced){

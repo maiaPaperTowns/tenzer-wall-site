@@ -15,7 +15,12 @@
   let audio, wind, sceneSound;
   let effectNodes=[];
   function stopEffect(){for(const node of effectNodes){try{node.stop()}catch{}}effectNodes=[];}
-  function sceneEffect(){stopEffect();if(audio?.state==='running')chime(523.25);}
+  function sceneEffect(character){
+    stopEffect();if(audio?.state!=='running')return;
+    // Same gentle legacy timbre, one distinct and stable pitch per configured character.
+    const index=entries.findIndex(entry=>entry.id===character?.id);
+    chime(index<0?523.25:440*Math.pow(2,(50+index-69)/12));
+  }
   const characters = [], ripples = [], scenes = [];
   let spawnCounts = [];
   const rand = (a, b) => a + Math.random() * (b - a);
@@ -221,7 +226,7 @@
     const status=document.querySelector('#dataset-status');
     begin.disabled=true;begin.textContent='Loading artwork…';
     try {
-      const dataset=await window.TenzerConfig.load(new URLSearchParams(location.search).get('dataset') || 'config.json');
+      const dataset=await window.TenzerConfig.load(new URLSearchParams(location.search).get('dataset') || 'config.json?v=20261008-watercolor');
       document.title=dataset.title;document.body.style.background=dataset.background;
       const results=await Promise.allSettled(dataset.entries.map(window.TenzerScenes.prepare));
       entries=results.filter(r=>r.status==='fulfilled').map(r=>r.value);
@@ -230,7 +235,7 @@
       spawnCounts=entries.map(()=>0);
       await loadKanjiFonts().catch(()=>{});
       status.textContent=missing.length?'Unavailable artwork: '+missing.join(', ')+'. Other characters are ready.':'';
-      ready=true;begin.disabled=false;begin.textContent='Explore';start(true);
+      ready=true;begin.disabled=false;begin.innerHTML='Explore <span aria-hidden="true">→</span>';start(true);
     } catch(error) {
       status.textContent='Unable to start: '+error.message;
       begin.textContent='Artwork unavailable';
