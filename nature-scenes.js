@@ -139,12 +139,22 @@
     const clock=reduced?3:t,min=Math.min(w,h),o=s.entry.options,arrive=reduced?1:ease(t/2.4);
     const img=s.entry.images[0],scale=Math.max(w/img.width,h/img.height),iw=img.width*scale,ih=img.height*scale,ox=(w-iw)/2,oy=(h-ih)/2;
     cover(g,img,w,h,fade*arrive);
+    // Isolate sky above the original mountain silhouette, then drift it over the fixed valley.
+    if(!s.riverSky){
+      const original=(s.originalEntry||s.entry).images[0],c=document.createElement('canvas');c.width=original.width;c.height=original.height;
+      const q=c.getContext('2d');q.drawImage(original,0,0);const pixels=q.getImageData(0,0,c.width,c.height);
+      const ridge=[[0,0],[.10,0],[.18,.08],[.24,.15],[.28,.14],[.32,.18],[.35,.13],[.39,.19],[.44,.16],[.49,.17],[.54,.10],[.57,.025],[.60,.065],[.65,.14],[.69,.14],[.74,.09],[.79,.04],[.85,.035],[.90,0],[1,0]];
+      for(let x=0;x<c.width;x++){const nx=x/c.width;let k=0;while(k<ridge.length-2&&nx>ridge[k+1][0])k++;const a=ridge[k],b=ridge[k+1],edge=a[1]+(b[1]-a[1])*(nx-a[0])/(b[0]-a[0]);for(let y=0;y<c.height;y++)pixels.data[(y*c.width+x)*4+3]*=clamp((edge-y/c.height)/.025);}
+      q.putImageData(pixels,0,0);s.riverSky=c;
+    }
+    const cloudScale=Math.max(w/s.riverSky.width,h/s.riverSky.height),cloudW=s.riverSky.width*cloudScale,cloudH=s.riverSky.height*cloudScale;
+    g.globalAlpha=fade*arrive;g.drawImage(s.riverSky,(w-cloudW)/2+(reduced?0:Math.sin(clock*.085)*cloudW*.012),(h-cloudH)/2,cloudW,cloudH);
     if(!reduced){
       if(!s.flowWater){const c=document.createElement('canvas');c.width=1200;c.height=Math.round(1200*h/w);const q=c.getContext('2d');q.drawImage(img,0,0,c.width,c.height);const p=q.getImageData(0,0,c.width,c.height);
         for(let y=0;y<c.height;y++)for(let x=0;x<c.width;x++){const k=(y*c.width+x)*4,r=p.data[k],green=p.data[k+1],b=p.data[k+2],blue=clamp((b-r-8)/22)*clamp((b-green+10)/20),foam=clamp((Math.min(r,green,b)-180)/45);p.data[k+3]*=Math.max(blue,foam)*clamp((y/c.height-.4)/.06)}q.putImageData(p,0,0);s.flowWater=c;
       }
       const c=s.flowWater;g.globalAlpha=fade*arrive*.9;
-      for(let j=0;j<90;j++){const v=j/90,shift=Math.sin(v*38-clock*2.2)*h*.008;g.drawImage(c,0,v*c.height,c.width,c.height/90,Math.sin(v*24-clock*1.7)*h*.004,v*h+shift,w,h/90+1)}
+      for(let y=0;y<h;y+=3){const v=y/h,shift=Math.sin(v*38-clock*2.2)*h*.008,sh=4*c.height/h,sy=Math.max(0,Math.min(c.height-sh,(y+shift)*c.height/h));g.drawImage(c,0,sy,c.width,sh,Math.sin(v*24-clock*1.7)*h*.004,y,w,4)}
     }
     const channels=s.entry.options.channels;
     for(let k=0;k<channels.length;k++){

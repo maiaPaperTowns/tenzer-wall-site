@@ -330,6 +330,7 @@
       mask.addColorStop(0,'#000');mask.addColorStop(1,'transparent');c.fillStyle=mask;c.fillRect(0,0,lw,lh);
       const arcScale=options.scale||1.2;
       g.globalAlpha=fade*.76;g.drawImage(layer,-w*(arcScale-1)/2,h*(1-arcScale)*.65+(reduced?0:-(1-progress)*h*.07),w*arcScale,h*arcScale);
+      if(!reduced)for(let i=0;i<100;i++){const depth=.35+noise(i+710)*.65,phase=(noise(i+720)+t*(.28+depth*.28))%1,x=((noise(i+730)*w+t*w*.012*depth)%(w+20))-10,y=phase*(h+40)-20;g.globalAlpha=fade*(.09+depth*.19);g.strokeStyle='#ecf3f5';g.lineWidth=.5+depth*.6;g.beginPath();g.moveTo(x,y);g.lineTo(x+h*.005*depth,y+h*(.012+depth*.013));g.stroke();}
     } else if(entry.behavior==='lightning') {
       cover(g,assets[0],w,h,fade);
       const interval=Math.max(.9,options.intervalSeconds||1.15),elapsed=Math.max(0,t-.6),strike=Math.floor(elapsed/interval);

@@ -36,7 +36,10 @@
     g.save();g.translate(0,reduced?0:Math.sin(phase*2)*size*(cat?.003:.007+gallop*.014));part('body',-size*.48,hipY-bodyHeight*.82,size,bodyHeight);g.restore();g.restore();
   }
   function cat(g,s,t,w,h,fade,reduced){
-    const size=Math.min(w*.44,h*.44),clock=reduced?8:t,x=w*.55,ground=h*.68,img=s.entry.images[0],cw=img.width/2,ch=img.height;
+    const wall=(s.originalEntry||s.entry).images[1],wallScale=Math.max(w/wall.width,h/wall.height);
+    const size=Math.min(w*.44,h*.44),clock=reduced?8:t,x=w*.55,ground=(h-wall.height*wallScale)/2+wall.height*wallScale*.678,img=s.entry.images[0],cw=img.width/2,ch=img.height;
+    // Contact follows the wall's cover crop, independent of animation time.
+    s.catContact={x,y:ground};
     g.globalAlpha=fade*(reduced?1:ease(t/2));g.drawImage(s.entry.images[1],0,0,w,h);
     if(!s.catSky||s.catSkySize!==w+':'+h){const bg=s.entry.images[1],c=document.createElement('canvas');c.width=Math.min(w,1200);c.height=Math.round(c.width*h/w*.44);const q=c.getContext('2d');q.drawImage(bg,0,0,bg.width,bg.height*.44,0,0,c.width,c.height);q.globalCompositeOperation='destination-in';const mask=q.createLinearGradient(0,0,0,c.height);mask.addColorStop(0,'#000');mask.addColorStop(.68,'#000');mask.addColorStop(1,'transparent');q.fillStyle=mask;q.fillRect(0,0,c.width,c.height);s.catSky=c;s.catSkySize=w+':'+h;}
     g.drawImage(s.catSky,-w*.035+(reduced?0:Math.sin(clock*.06)*w*.026),-h*.004,w*1.07,h*.45);
@@ -44,13 +47,16 @@
     g.globalAlpha=fade*(reduced?1:ease(t/2))*.25;g.fillStyle='#302b34';g.beginPath();g.ellipse(x+size*.05,ground,size*.26,size*.025,0,0,Math.PI*2);g.fill();
     g.save();g.translate(x,ground+size*(1-s.catFoot));g.globalAlpha=fade*(reduced?1:ease(t/2));
     // The tail is attached under the hindquarters; only its distal end flexes.
-    const tailW=size*.95,tailH=tailW*ch/cw,tailX=size*.20;
+    const tailW=size*.70,tailH=tailW*ch/cw,tailX=size*.20;
     for(let j=0;j<32;j++){const u=j/32,bend=reduced?0:Math.sin(clock*.85-u*2)*size*.07*u*u;g.drawImage(img,cw+u*cw,0,cw/32,ch,tailX+u*tailW,-tailH*.91+bend,tailW/32+.5,tailH)}
     g.drawImage(img,0,0,cw,ch,-size*.40,-size,size*cw/ch,size);g.restore();
   }
   function horsePose(t,w,size,x){const direction=x>w*.5?-1:1,speed=Math.min(w*.11,size*.52),span=w+size*2,position=((x+size+direction*t*speed)%span+span)%span-size;return {x:position,direction,gallop:1}}
   function horse(g,s,t,w,h,fade,reduced){
     if(s.entry.images[1]){g.globalAlpha=fade;g.drawImage(s.entry.images[1],0,0,w,h)}
+    if(!s.horseSky){const bg=(s.originalEntry||s.entry).images[1],c=document.createElement('canvas');c.width=bg.width;c.height=bg.height;const q=c.getContext('2d');q.drawImage(bg,0,0);const p=q.getImageData(0,0,c.width,c.height);for(let x=0;x<c.width;x++){const nx=x/c.width,edge=.30-.15*Math.exp(-Math.pow((nx-.47)/.17,2));for(let y=0;y<c.height;y++)p.data[(y*c.width+x)*4+3]*=clamp((edge-y/c.height)/.045);}q.putImageData(p,0,0);s.horseSky=c;}
+    const skyScale=Math.max(w/s.horseSky.width,h/s.horseSky.height),skyW=s.horseSky.width*skyScale,skyH=s.horseSky.height*skyScale;
+    g.globalAlpha=fade;g.drawImage(s.horseSky,(w-skyW)/2+(reduced?0:Math.sin(t*.075)*skyW*.018),(h-skyH)/2,skyW,skyH);
     const size=Math.min(w*.43,h*.57),origin=s.x??w/2,pose=reduced?{x:w*.5,direction:1,gallop:0}:horsePose(t,w,size,origin);
     pose.gallop=1;
     const emerge=1,ground=h*.84;
@@ -71,13 +77,14 @@
   }
   function forest(g,s,t,w,h,fade,reduced){
     const img=s.entry.images[0],p=reduced?1:ease(t/1.4);g.save();g.globalAlpha=fade*p;g.filter='contrast(1.06) saturate(1.04)';
-    if(reduced)g.drawImage(img,0,0,w,h);else for(let y=0;y<h;y+=4){const v=y/h,bend=Math.sin(t*.3+v*.8)*Math.min(w,h)*.002*(1-ease(v/.78)),sh=Math.min(img.height-y*img.height/h,5*img.height/h);g.drawImage(img,0,y*img.height/h,img.width,sh,-w*.003+bend,y,w*1.006,5);}
+    if(reduced)g.drawImage(img,0,0,w,h);else for(let y=0;y<h;y+=4){const v=y/h,bend=Math.sin(t*.3+v*.8)*Math.min(w,h)*.0035*(1-ease(v/.78)),sh=Math.min(img.height-y*img.height/h,5*img.height/h);g.drawImage(img,0,y*img.height/h,img.width,sh,-w*.005+bend,y,w*1.01,5);}
     g.restore();
     if(!s.forestLeaves||s.forestSize!==w+':'+h){const c=document.createElement('canvas');c.width=Math.min(1200,w);c.height=Math.round(c.width*h/w);const q=c.getContext('2d');q.drawImage(img,0,0,c.width,c.height);const a=q.getImageData(0,0,c.width,c.height);for(let y=0;y<c.height;y++)for(let x=0;x<c.width;x++){const k=(y*c.width+x)*4,r=a.data[k],green=a.data[k+1],b=a.data[k+2],ny=y/c.height;const foliage=clamp((green-b+8)/22)*clamp((green-r+20)/35),height=1-ease((ny-.45)/.35);a.data[k+3]=Math.round(255*foliage*height);}q.putImageData(a,0,0);s.forestLeaves=c;s.forestSize=w+':'+h;}
     if(!reduced){const c=s.forestLeaves;g.globalAlpha=fade*p*.8;for(let j=0;j<96;j++){const u=j/96,bend=Math.sin(t*.43+u*7)*Math.min(w,h)*.003;g.drawImage(c,u*c.width,0,c.width/96,c.height,u*w+bend,Math.sin(t*.37+u*9)*h*.0015,w/96+.5,h);}
       const glow=g.createRadialGradient(w*.52,h*.23,0,w*.52,h*.23,h*.65);glow.addColorStop(0,'rgba(244,239,195,.10)');glow.addColorStop(1,'transparent');g.globalAlpha=fade*p*(.5+.3*Math.sin(t*.35));g.fillStyle=glow;g.fillRect(0,0,w,h);
     }
     // Slow drifting dust catches the sunbeam; brighter motes are nearer the viewer.
+    if(!reduced)for(let i=0;i<12;i++){const phase=(noise(i+900)+t*(.022+noise(i+910)*.018))%1,size=Math.min(w,h)*(.004+noise(i+920)*.005),x=w*noise(i+930)+Math.sin(t*.55+i)*w*.025,y=phase*(h+size*4)-size*2;g.save();g.translate(x,y);g.rotate(t*.38+i);g.scale(.35+.65*Math.abs(Math.sin(t*.8+i)),1);g.globalAlpha=fade*p*Math.sin(phase*Math.PI)*.6;g.fillStyle=i%3?'#9ea665':'#d2b878';g.beginPath();g.moveTo(0,-size);g.quadraticCurveTo(size,0,0,size);g.quadraticCurveTo(-size,0,0,-size);g.fill();g.restore();}
     for(let i=0;i<65;i++){const clock=reduced?12:t,depth=.25+noise(i+516)*.75,phase=(noise(i+331)+clock*(.009+depth*.012))%1,x=w*(.22+noise(i+221)*.55)+Math.sin(clock*.19+i)*h*.018,y=h*(.08+phase*.78),r=Math.max(.45,Math.min(w,h)*(.0008+depth*.002)),light=Math.max(0,1-Math.abs(x/w-.51)*2.5),alpha=Math.sin(phase*Math.PI)*light*(.12+depth*.32);g.globalAlpha=fade*p*alpha;g.fillStyle=i%3?'#f4edcb':'#dce9d4';g.beginPath();g.arc(x,y,r,0,Math.PI*2);g.fill();}
     if(s.entry.images.length===1){if(!reduced)for(let i=0;i<28;i++){const x=w*noise(i+4)+Math.sin(t*.25+i)*h*.018,y=h*(.25+noise(i+9)*.7)+Math.cos(t*.3+i)*h*.02,r=1+noise(i)*1.2;g.globalAlpha=fade*p*(.15+.5*Math.pow(.5+.5*Math.sin(t+i),2));g.fillStyle='#ffe6a6';g.beginPath();g.arc(x,y,r,0,Math.PI*2);g.fill()}return}
     const atlas=s.entry.images[3],count=Math.max(4,Math.ceil(w/h*3));

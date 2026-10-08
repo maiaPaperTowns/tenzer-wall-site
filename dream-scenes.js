@@ -169,9 +169,13 @@
     for(let i=0;i<26;i++){const x=noise(i+42)*w,y=h*(.45+noise(i+11)*.55),pulse=reduced?.45:Math.pow(.5+.5*Math.sin(clock*.9+i*2.4),5),r=h*(.007+noise(i)*.009)*pulse;g.globalAlpha=fade*ease(clock/6)*pulse*.8;g.strokeStyle='#f2fbff';g.lineWidth=1;g.beginPath();g.moveTo(x-r,y);g.lineTo(x+r,y);g.moveTo(x,y-r*1.5);g.lineTo(x,y+r*1.5);g.stroke()}
   }
   function sand(g,s,t,w,h,fade,reduced){
-    const img=s.entry.images[0],clock=reduced?5:t,open=1;g.globalAlpha=fade;g.drawImage(img,0,0,w,h);
+    const img=s.entry.images[0],clock=reduced?5:t,open=1;
+    if(!s.sandSurface||s.sandSurface.width!==Math.ceil(w)||s.sandSurface.height!==Math.ceil(h)){s.sandSurface=document.createElement('canvas');s.sandSurface.width=Math.ceil(w);s.sandSurface.height=Math.ceil(h);}
+    const q=s.sandSurface.getContext('2d');q.clearRect(0,0,w,h);q.drawImage(img,0,0,w,h);
+    // Build one opaque painting first; applying fade per overlapping strip made horizontal bars.
+    if(!reduced)for(let y=Math.floor(h*.6);y<h;y+=5){const v=y/h,envelope=ease((v-.6)/.18),dx=Math.sin(v*32-clock*.35)*w*.002*(v-.6)*envelope;q.drawImage(img,0,v*img.height,img.width,Math.min(img.height-v*img.height,6/h*img.height),dx,y,w,6)}
+    g.globalAlpha=fade;g.drawImage(s.sandSurface,0,0,w,h);
     if(reduced)return;
-    for(let y=Math.floor(h*.6);y<h;y+=5){const q=y/h,envelope=ease((q-.6)/.18),dx=Math.sin(q*32-clock*.35)*w*.002*(q-.6)*envelope;g.drawImage(img,0,q*img.height,img.width,Math.min(img.height-q*img.height,6/h*img.height),dx,y,w,6)}
     for(let i=0;i<230;i++){const p=(noise(i)+clock*(.045+noise(i+41)*.04))%1,x=p*w,y=h*(.52+noise(i+15)*.48)+Math.sin(p*9+i)*h*.022;g.globalAlpha=fade*open*Math.sin(p*Math.PI)*(.25+noise(i)*.3);g.strokeStyle='#fff0ce';g.lineWidth=.5+noise(i)*.6;g.beginPath();g.moveTo(x,y);g.lineTo(x+h*.006,y-h*.002);g.stroke()}
   }
   function wisteria(g,s,t,w,h,fade,reduced){
