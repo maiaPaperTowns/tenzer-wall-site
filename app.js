@@ -237,7 +237,7 @@
     const status=document.querySelector('#dataset-status');
     begin.disabled=true;begin.textContent='Loading artwork…';
     try {
-      const dataset=await window.TenzerConfig.load(new URLSearchParams(location.search).get('dataset') || 'config.json?v=20261008-watercolor');
+      const dataset=await window.TenzerConfig.load(new URLSearchParams(location.search).get('dataset') || 'config.json?v=20261008-peony');
       document.title=dataset.title;document.body.style.background=dataset.background;
       const results=await Promise.allSettled(dataset.entries.map(window.TenzerScenes.prepare));
       entries=results.filter(r=>r.status==='fulfilled').map(r=>r.value);

@@ -384,8 +384,8 @@
         "frequency": 523.25
       },
       "assets": [
-        "assets/derived/wildflower-clusters-v1.webp",
-        "assets/derived/flower-plate-v6.webp"
+        "assets/derived/flower-watercolor-atlas-v1.webp",
+        "assets/derived/flower-watercolor-paper-v1.webp"
       ],
       "crops": [
         {
@@ -430,6 +430,7 @@
         }
       ],
       "options": {
+        "watercolor": 1,
         "countMin": 110,
         "countMax": 140,
         "clusterSize": 4,
