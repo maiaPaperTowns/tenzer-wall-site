@@ -1,6 +1,13 @@
 /* Four reference-led landscape scenes. Motion stays local to its material. */
 (() => {
   const clamp=x=>Math.max(0,Math.min(1,x)),ease=x=>{x=clamp(x);return x*x*(3-2*x)},noise=i=>{const n=Math.sin(i*127.1+311.7)*43758.5453;return n-Math.floor(n)};
+  function driftingSky(g,s,key,index,w,h,t,alpha,reduced,ridge,amount,cloudOnly=false){
+    if(!s[key]){const original=(s.originalEntry||s.entry).images[index],c=document.createElement('canvas');c.width=original.width;c.height=original.height;const q=c.getContext('2d');q.drawImage(original,0,0);const p=q.getImageData(0,0,c.width,c.height);
+      for(let x=0;x<c.width;x++){const nx=x/c.width;let k=0;while(k<ridge.length-2&&nx>ridge[k+1][0])k++;const a=ridge[k],b=ridge[k+1],edge=a[1]+(b[1]-a[1])*(nx-a[0])/(b[0]-a[0]),side=ease(nx/.02)*ease((1-nx)/.02);for(let y=0;y<c.height;y++){const i=(y*c.width+x)*4,cloud=cloudOnly?clamp((p.data[i]-p.data[i+2]*.42)/30)*clamp((p.data[i]+p.data[i+1]-65)/100):1;p.data[i+3]*=ease((edge-y/c.height)/.05)*side*cloud;}}
+      q.putImageData(p,0,0);s[key]=c;
+    }
+    const c=s[key],scale=Math.max(w/c.width,h/c.height),sw=c.width*scale,sh=c.height*scale;g.save();g.globalAlpha=alpha;g.drawImage(c,(w-sw)/2+(reduced?0:Math.sin(t*.055)*sw*amount),(h-sh)/2,sw,sh);g.restore();
+  }
   function lake(g,img,w,h,t,fade,line=.75){
     surface(g,img,w,h,t*.65,fade,line);
   }
@@ -34,15 +41,23 @@
     const clock=reduced?10:t,min=Math.min(w,h),arrive=reduced?1:ease(t/2.4),atlas=s.entry.images[0];
     g.globalAlpha=fade*arrive;g.drawImage(s.entry.images[1],0,0,w,h);
     // Airy ink-wash composition: large flowers on the right, quiet paper on the left.
-    const layouts=[[.86,.13,.48,1,-.14],[.92,.34,.52,3,.13],[.72,.57,.88,0,-.08],[.88,.85,.62,3,.22],[.64,.91,.46,1,-.38],[.10,.91,.34,2,.18]];
+    const layouts=[[.86,.13,.48,1,-.14],[.92,.34,.52,3,.13],[.72,.57,.72,0,-.08],[.88,.85,.55,3,.22],[.64,.91,.46,1,-.38],[.10,.91,.42,2,.18],[.12,.19,.34,1,.46],[.06,.43,.38,3,-.3],[.20,.66,.45,2,.3],[.38,.86,.40,0,-.2],[.57,.25,.37,3,.2],[.38,.42,.34,0,.2],[.91,.64,.40,2,-.26],[.41,.09,.31,1,-.4]];
     const cells=[[0,0,.555,.515],[.555,0,.445,.515],[0,.52,.535,.48],[.535,.515,.465,.485]];
     s.flowers=[];
-    layouts.forEach(([nx,ny,k,cell,angle],i)=>{const open=reduced?1:ease((t-.18-i*.12)/3.2),size=min*k*(.82+.18*open),sway=reduced?0:Math.sin(clock*.45+i*.8)*.018,x=nx*w,y=ny*h,[sx,sy,sw,sh]=cells[cell],cw=atlas.width*sw,ch=atlas.height*sh;
+    layouts.forEach(([nx,ny,k,cell,angle],i)=>{const open=reduced?1:ease((t-.18-noise(i+62)*3.2)/3.2),size=min*k*(.68+.32*open),sway=reduced?0:Math.sin(clock*.45+i*.8)*.018,x=nx*w,y=ny*h,[sx,sy,sw,sh]=cells[cell],cw=atlas.width*sw,ch=atlas.height*sh;
       s.flowers.push({x,y,open});g.save();g.translate(x,y+size*.28);g.rotate(angle+sway);g.translate(0,-size*.28);g.scale(.86+.14*open,1);g.globalAlpha=fade*open;g.imageSmoothingQuality='high';g.drawImage(atlas,sx*atlas.width,sy*atlas.height,cw,ch,-size/2,-size/2,size,size*ch/cw);g.restore();
     });
-    if(!reduced)for(let i=0;i<26;i++){const phase=(noise(i+421)+clock*(.025+noise(i+88)*.022))%1,x=w*(noise(i+59)*1.15-phase*.20)+Math.sin(phase*7+i)*min*.05,y=-min*.04+phase*(h+min*.08),size=min*(.009+noise(i+33)*.015);g.save();g.translate(x,y);g.rotate(clock*.32+i);g.scale(.4+.6*Math.abs(Math.sin(clock*.48+i)),1);g.globalAlpha=fade*arrive*Math.sin(phase*Math.PI)*.58;g.fillStyle=i%2?'#d7a193':'#ebc6b8';g.beginPath();g.moveTo(0,-size);g.bezierCurveTo(size*.85,-size*.6,size*.6,size*.7,0,size);g.bezierCurveTo(-size*.6,size*.4,-size*.45,-size*.6,0,-size);g.fill();g.restore();}
+    if(!reduced)for(let i=0;i<32;i++){const phase=(noise(i+421)+clock*(.025+noise(i+88)*.022))%1,x=w*(noise(i+59)*1.15-phase*.20)+Math.sin(phase*7+i)*min*.05,y=-min*.04+phase*(h+min*.08),size=min*(.009+noise(i+33)*.015);g.save();g.translate(x,y);g.rotate(clock*.32+i);g.scale(.4+.6*Math.abs(Math.sin(clock*.48+i)),1);g.globalAlpha=fade*arrive*Math.sin(phase*Math.PI)*.7;g.fillStyle=i%2?'#fffdf6':'#e9e3d6';g.beginPath();g.moveTo(0,-size);g.bezierCurveTo(size*.85,-size*.6,size*.6,size*.7,0,size);g.bezierCurveTo(-size*.6,size*.4,-size*.45,-size*.6,0,-size);g.fill();g.restore();}
+  }
+  function bridgeSakura(g,s,t,w,h,fade,reduced){
+    if(!s.mutedSakura){s.mutedSakura=s.entry.images.map((img,i)=>{const c=document.createElement('canvas');c.width=img.width;c.height=img.height;const q=c.getContext('2d');q.filter=i===0?'saturate(.52) contrast(.94) brightness(1.025)':'saturate(.70) contrast(.97)';q.drawImage(img,0,0);return c;});}
+    const atlas=s.mutedSakura[0],clock=reduced?12:t,min=Math.min(w,h);g.globalAlpha=fade;g.drawImage(s.mutedSakura[1],0,0,w,h);
+    const placements=[[.02,.02,1.05,0,-.16],[.26,-.05,1.05,1,.08],[.54,-.09,1.0,0,-.05],[.80,-.04,1.05,1,.12],[1,.08,1.05,2,-.22],[.04,.32,.76,2,.18],[.98,.39,.85,3,-.2],[.04,.66,.60,3,.25],[.98,.71,.67,2,-.14],[.08,.97,.55,0,-.08],[.93,.96,.55,1,.08]];
+    s.flowers=[];placements.forEach(([nx,ny,k,cell,angle],i)=>{const open=reduced?1:ease((t-noise(i+94)*2.8)/3),size=min*k*(.76+.24*open),cw=atlas.width/2,ch=atlas.height/2,sway=reduced?0:Math.sin(clock*.42+i)*.016;s.flowers.push({x:nx*w,y:ny*h,open});g.save();g.translate(nx*w,ny*h);g.rotate(angle+sway);g.globalAlpha=fade*open;g.imageSmoothingQuality='high';g.drawImage(atlas,(cell%2)*cw,Math.floor(cell/2)*ch,cw,ch,-size/2,-size/2,size,size*ch/cw);g.restore();});
+    if(!reduced){g.save();g.filter='saturate(.45)';petalDrift(g,clock,w,h,fade*.8,false);petalDrift(g,clock+19,w,h,fade*.5,false);g.restore();}
   }
   function sakura(g,s,t,w,h,fade,reduced){
+    if(s.entry.options.bridge){bridgeSakura(g,s,t,w,h,fade,reduced);return;}
     const plate=s.entry.images[1],atlas=s.entry.images[0],clock=reduced?12:t;g.globalAlpha=fade*(reduced?1:ease(t/2));g.drawImage(plate,0,0,w,h);
     if(!s.blossomAnchors){const c=document.createElement('canvas');c.width=384;c.height=Math.round(384*h/w);const q=c.getContext('2d');q.drawImage(plate,0,0,c.width,c.height);const p=q.getImageData(0,0,c.width,c.height).data,points=[];for(let y=0;y<c.height;y+=3)for(let x=0;x<c.width;x+=3){const k=(y*c.width+x)*4;if(p[k]<145&&p[k+1]<125&&p[k+2]<140)points.push([x/c.width,y/c.height])}s.blossomAnchors=points.length?points:[[.2,.2],[.8,.3]];}
     const branchAtlas=s.entry.images[2],branchWidth=Math.min(w*.74,h*2),branchHeight=branchWidth*branchAtlas.height/2/branchAtlas.width,layouts=[[w*1.03-branchWidth,h*.30,false],[-w*.03,h*.63,true]];
@@ -57,6 +72,7 @@
   function moon(g,s,t,w,h,fade,reduced){
     const time=reduced?10:t,night=reduced?1:ease(t/3),rise=reduced?1:ease((t-.5)/6),min=Math.min(w,h),x=w*.59,y=h*(.67-.38*rise),r=min*.15625;
     lake(g,s.entry.images[1],w,h,time,fade*night,.755);
+    driftingSky(g,s,'moonClouds',1,w,h,time,fade*night,reduced,[[0,.59],[.09,.62],[.16,.59],[.23,.59],[.34,.64],[.44,.65],[.55,.67],[.67,.65],[.76,.65],[.88,.61],[1,.65]],.022,true);
     const halo=g.createRadialGradient(x,y,r*.4,x,y,r*2.7);halo.addColorStop(0,'rgba(255,225,187,.3)');halo.addColorStop(.4,'rgba(255,228,193,.13)');halo.addColorStop(1,'rgba(255,228,193,0)');g.globalAlpha=fade*night*rise;g.fillStyle=halo;g.fillRect(x-r*3,y-r*3,r*6,r*6);
     g.save();g.globalCompositeOperation='screen';g.globalAlpha=fade*night*ease(rise*3);g.filter='sepia(.2) brightness(1.15)';g.drawImage(s.entry.images[0],x-r,y-r,r*2,r*2);g.restore();
     for(let i=0;i<65;i++){const p=i/65,yy=h*(.765+p*.235),xx=x+Math.sin(i*1.3+time*.65)*min*.025*p,len=min*(.006+p*.14)*( .3+noise(i)*.7);
@@ -133,6 +149,7 @@
     const clock=reduced?12:t,atlas=s.entry.images[2],cw=atlas.width/2,ch=atlas.height/2,size=Math.min(h*.74,w*.58),x=w*.52,ground=h*.95,open=1;
     if(!s.treeCells){s.treeCells=[];for(let i=0;i<4;i++){const c=document.createElement('canvas');c.width=cw;c.height=ch;const q=c.getContext('2d');const inset=12;q.drawImage(atlas,(i%2)*cw+inset,Math.floor(i/2)*ch+inset,cw-inset*2,ch-inset*2,inset,inset,cw-inset*2,ch-inset*2);s.treeCells.push(c);}}
     g.globalAlpha=fade;g.drawImage(s.entry.images[1],0,0,w,h);
+    driftingSky(g,s,'treeClouds',1,w,h,clock,fade,reduced,[[0,.13],[.04,.15],[.10,.22],[.12,.10],[.16,.24],[.20,.23],[.25,.39],[.32,.35],[.40,.43],[.47,.39],[.53,.40],[.59,.32],[.65,.43],[.70,.49],[.78,.42],[.86,.50],[.95,.36],[1,.34]],.017);
     // Full rooted trunk and canopy are present from the first frame; only foliage sways.
     g.globalAlpha=fade*open;g.drawImage(s.treeCells[0],x-size*cw/ch/2,ground-size,size*cw/ch,size);
     const anchors=[[-.43,-.88],[-.2,-1.00],[.05,-1.04],[.30,-.96],[.48,-.79],[-.4,-.64],[-.13,-.78],[.15,-.80],[.38,-.60]];s.canopyClusters=[];
@@ -185,6 +202,16 @@
     const img=s.entry.images[0],clock=reduced?5:t,open=1;
     if(!s.sandSurface||s.sandSurface.width!==Math.ceil(w)||s.sandSurface.height!==Math.ceil(h)){s.sandSurface=document.createElement('canvas');s.sandSurface.width=Math.ceil(w);s.sandSurface.height=Math.ceil(h);}
     const q=s.sandSurface.getContext('2d');q.clearRect(0,0,w,h);q.drawImage(img,0,0,w,h);
+    if(!s.sandClouds){
+      const original=(s.originalEntry||s.entry).images[0],c=document.createElement('canvas');c.width=original.width;c.height=original.height;const sky=c.getContext('2d');sky.drawImage(original,0,0);const pixels=sky.getImageData(0,0,c.width,c.height);
+      // Feather above the dune skyline so only the painted sky travels.
+      const ridge=[[0,.45],[.2,.47],[.4,.48],[.5,.43],[.6,.395],[.694,.31],[.78,.355],[.89,.34],[1,.40]];
+      for(let x=0;x<c.width;x++){const nx=x/c.width;let k=0;while(k<ridge.length-2&&nx>ridge[k+1][0])k++;const a=ridge[k],b=ridge[k+1],edge=a[1]+(b[1]-a[1])*(nx-a[0])/(b[0]-a[0]),side=ease(nx/.025)*ease((1-nx)/.025);for(let y=0;y<c.height;y++)pixels.data[(y*c.width+x)*4+3]*=ease((edge-y/c.height)/.065)*side;}
+      sky.putImageData(pixels,0,0);s.sandClouds=c;
+    }
+    const skyScale=Math.max(w/s.sandClouds.width,h/s.sandClouds.height),skyW=s.sandClouds.width*skyScale,skyH=s.sandClouds.height*skyScale;
+    const cloudDrift=reduced?0:Math.sin(clock*.055)*skyW*.018;
+    q.drawImage(s.sandClouds,(w-skyW)/2+cloudDrift,(h-skyH)/2,skyW,skyH);
     // Build one opaque painting first; applying fade per overlapping strip made horizontal bars.
     if(!reduced)for(let y=Math.floor(h*.6);y<h;y+=5){const v=y/h,envelope=ease((v-.6)/.18),dx=Math.sin(v*32-clock*.35)*w*.002*(v-.6)*envelope;q.drawImage(img,0,v*img.height,img.width,Math.min(img.height-v*img.height,6/h*img.height),dx,y,w,6)}
     g.globalAlpha=fade;g.drawImage(s.sandSurface,0,0,w,h);

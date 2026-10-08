@@ -61,7 +61,7 @@
       "hue": 35,
       "duration": 22,
       "assets": [
-        "assets/derived/cat-seated-v4.webp",
+        "assets/derived/cat-calico-v5.webp",
         "assets/derived/cat-wall-world-v2.webp"
       ],
       "options": {
@@ -384,7 +384,7 @@
         "frequency": 523.25
       },
       "assets": [
-        "assets/derived/flower-watercolor-atlas-v1.webp",
+        "assets/derived/flower-white-atlas-v2.webp",
         "assets/derived/flower-watercolor-paper-v1.webp"
       ],
       "crops": [
@@ -917,11 +917,10 @@
       "hue": 340,
       "duration": 24,
       "assets": [
-        "assets/derived/sakura-clusters-v6.webp",
-        "assets/derived/sakura-plate-v5.webp",
-        "assets/derived/sakura-branches-v1.webp"
+        "assets/derived/sakura-painted-atlas-v1.webp",
+        "assets/derived/sakura-bridge-v1.webp"
       ],
-      "options": {}
+      "options": {"bridge": 1}
     },
     {
       "id": "sand",
