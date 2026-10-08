@@ -16,6 +16,6 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict');
    const c=document.createElement('canvas');c.width=600;c.height=375;const g=c.getContext('2d'),s={entry:es[0],life:8,x:300,y:200};
    const blank=c.toDataURL();TenzerRenderBudget.draw(g,s,0,600,375,false);const clean=c.toDataURL()===blank;
    return {out,sizes,clean};
-  });assert.ok(results.clean);assert.ok(results.sizes.every(s=>s.w*s.h<=1500000));console.log(JSON.stringify(results));
+  });assert.ok(results.clean);assert.ok(results.sizes.every(s=>s.w*s.h<=3000000));console.log(JSON.stringify(results));
  }finally{await b.close()}
 })().catch(e=>{console.error(e);process.exitCode=1});

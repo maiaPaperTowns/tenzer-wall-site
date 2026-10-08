@@ -4,7 +4,7 @@ html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background:
 body { touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 #experience { position: relative; width: 100vw; height: 100dvh; min-height: 100%; overflow: hidden; isolation: isolate; cursor: crosshair; }
 .landscape { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -3; filter: saturate(.8) contrast(.92) brightness(1.03); transform: scale(1.006); }
-.veil { position: absolute; inset: 0; z-index: -1; pointer-events: none; background: radial-gradient(ellipse at 4% 90%, rgba(82,101,85,.09), transparent 32%), radial-gradient(ellipse at 95% 8%, rgba(147,123,92,.07), transparent 36%), radial-gradient(ellipse at 48% 42%, #faf7ee, #eee6d5); }
+.veil { position: absolute; inset: 0; z-index: -1; pointer-events: none; background: #f7efe3 url('assets/derived/wall-ink-wash-dawn.png') center center / cover no-repeat; }
 .veil::after { content: ''; position: absolute; inset: 0; opacity: .17; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.72 .12' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.3'/%3E%3C/svg%3E"); mix-blend-mode: multiply; }
 canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; }
 .intro { position: absolute; top: 19%; left: 50%; width: min(580px, calc(100% - 2.5rem)); z-index: 3; display: grid; justify-items: center; padding: clamp(1.2rem, 3vw, 2rem); border: 1px solid rgba(49,75,89,.15); border-radius: 1.5rem; text-align: center; color: #293b40; background: rgba(250,247,238,.90); box-shadow: 0 12px 45px rgba(32,54,66,.12); backdrop-filter: blur(5px); transform: translateX(-50%); animation: welcome-float 9s ease-in-out 1; transition: opacity .7s ease, visibility .7s; }
@@ -57,7 +57,9 @@ button:focus-visible { outline: 3px solid #d699a9; outline-offset: 4px; }
 .about-kanji span { display: block; font: .6rem/1.9 Georgia,serif; letter-spacing: .19em; margin-top: 1rem; }
 #about-dialog form { position: sticky; bottom: 0; margin: .8rem 0 0; padding-top: .5rem; }
 #about-dialog form button { background: #b97785; outline: 3px solid #efd9d9; outline-offset: 3px; padding: .9rem 2.2rem; font-family: Georgia,serif; font-weight: 400; letter-spacing: .22em; }
-.wall-controls { gap: .8rem; }
+.wall-controls { gap: .8rem; left: 50%; right: auto; transform: translateX(-50%); }
+.hint { bottom: calc(max(1rem, env(safe-area-inset-bottom)) + 4rem); }
+.veil::after { content: none; }
 .wall-controls .sound { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: .65rem; padding: .85rem 1.25rem; border: 1px solid #c99b9d; color: #463c3e; background: linear-gradient(90deg,rgba(255,249,245,.9),rgba(255,242,238,.77)),url('assets/derived/about-watercolor-v1.webp') right top/cover; box-shadow: 0 6px 20px rgba(154,101,111,.13); letter-spacing: .13em; }
 #about::before { content: 'ⓘ'; color: #a66a74; font: 1.45rem/1 Georgia,serif; }
 #sound::before { content: ''; width: 1.4rem; height: 1.4rem; background: #a66a74; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 9h4l5-4v14l-5-4H3z'/%3E%3Cpath d='M16 8q4 4 0 8M19 5q7 7 0 14' fill='none' stroke='black' stroke-width='2'/%3E%3C/svg%3E") center/contain no-repeat; }

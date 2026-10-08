@@ -1,6 +1,6 @@
 /* Keep expensive artwork below a fixed pixel budget; UI/kanji stay on the main canvas. */
 (() => {
-  const MAX_PIXELS=1500000;
+  const MAX_PIXELS=3000000;
   function dimensions(w,h){const scale=Math.min(1,Math.sqrt(MAX_PIXELS/(w*h)));return {w:Math.max(1,Math.floor(w*scale)),h:Math.max(1,Math.floor(h*scale)),scale}}
   function draw(ctx,scene,fade,w,h,reduced){
     const size=dimensions(w,h);let layer=scene.renderLayer;

@@ -14,6 +14,8 @@
   let w = 0, h = 0, dpr = 1, last = performance.now(), started = false;
   let audio, wind, sceneSound;
   let effectNodes=[];
+  // Shared envelope and level for every character, independent of pitch.
+  const CHARACTER_VOLUME = .035;
   function stopEffect(){for(const node of effectNodes){try{node.stop()}catch{}}effectNodes=[];}
   function sceneEffect(character){
     stopEffect();if(audio?.state!=='running')return;
@@ -31,30 +33,38 @@
     dpr = Math.min(devicePixelRatio || 1, 1.5, Math.sqrt(4200000 / (w*h)));
     canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const uniformSize=clamp(Math.min(w,h)*.13*(w/Math.max(h,1)>2.4?1.18:1),84,360);
+    characters.forEach(c=>{c.size=uniformSize;c.rotation=0;});
   }
 
   function spawnCharacter(startY = null) {
-    const activeCounts = entries.map(type => characters.filter(c => c.state === 'falling' && c.id === type.id).length);
-    const lowestActive = Math.min(...activeCounts);
+    // Each full round includes every entry exactly once, in a random order.
+    const lowestCount = Math.min(...spawnCounts);
     const candidates = entries.map((type, index) => ({ type, index }))
-      .filter(({ index }) => activeCounts[index] === lowestActive)
+      .filter(({ index }) => spawnCounts[index] === lowestCount)
       .sort((a, b) => spawnCounts[a.index] - spawnCounts[b.index]);
     const leastSpawned=spawnCounts[candidates[0].index];
     const balanced=candidates.filter(candidate=>spawnCounts[candidate.index]===leastSpawned);
     const { type, index:typeIndex } = balanced[Math.floor(Math.random()*balanced.length)];
     spawnCounts[typeIndex]++;
     const wallScale = w / Math.max(h, 1) > 2.4 ? 1.18 : 1;
-    const size = clamp(Math.min(w, h) * rand(.105, .17) * wallScale, 84, 360);
+    const size = clamp(Math.min(w, h) * .13 * wallScale, 84, 360);
     const y = startY ?? -size * .7;
     const margin = Math.min(size * .78, w * .24);
     let x = rand(margin,w-margin);
     const nearby = characters.filter(c => c.state === 'falling' && Math.abs(c.y-y)<(c.size+size)*1.15);
     // Random sampling across the whole width avoids the old leftmost-lane tie bias.
-    for(let attempt=0;attempt<7&&nearby.some(c=>Math.abs(c.x-x)<(c.size+size)*.57);attempt++)x=rand(margin,w-margin);
+    let clearance = -Infinity;
+    for(let attempt=0;attempt<32;attempt++) {
+      const candidate=rand(margin,w-margin);
+      const distance=nearby.length?Math.min(...nearby.map(c=>Math.abs(c.x-candidate))):Infinity;
+      if(distance>clearance){x=candidate;clearance=distance;}
+      if(distance>size*1.65)break;
+    }
     characters.push({
       ...type, x, y, size,
-      vy: reduced ? 8 : rand(17, 28), drift: rand(-7, 7), phase: rand(0, Math.PI * 2),
-      alpha: 0, life: 0, state: 'falling', scale: 1, rotation: rand(-.08, .08)
+      vy: reduced ? 8 : rand(15, 29), drift: rand(-3, 3), phase: rand(0, Math.PI * 2),
+      alpha: 0, life: 0, state: 'falling', scale: 1, rotation: 0
     });
   }
 
@@ -101,7 +111,7 @@
     });
     if(sceneSound) {sceneSound.pause();sceneSound=null;}
     sceneEffect(c);
-    setTimeout(() => { if (started) spawnCharacter(); }, reduced ? 700 : 2200);
+    setTimeout(() => { if (started) spawnCharacter(); }, rand(2600,4800));
   }
 
   function chime(freq) {
@@ -109,7 +119,7 @@
     [1, 1.5, 2].forEach((ratio, i) => {
       const osc = audio.createOscillator(), gain = audio.createGain();
       osc.type = 'sine'; osc.frequency.value = freq * ratio;
-      gain.gain.setValueAtTime(0, now + i * .06); gain.gain.linearRampToValueAtTime(.035 / (i + 1), now + .12 + i * .06);
+      gain.gain.setValueAtTime(0, now + i * .06); gain.gain.linearRampToValueAtTime(CHARACTER_VOLUME / (i + 1), now + .12 + i * .06);
       gain.gain.exponentialRampToValueAtTime(.0001, now + 2.2 + i * .2);
       osc.connect(gain).connect(audio.destination); osc.start(now + i * .06); osc.stop(now + 2.5 + i * .2);
       effectNodes.push(osc);
@@ -151,17 +161,18 @@
     // These scenes own the exact enlargement/material transition of their glyph.
     if(c.state!=='falling'&&['horse','waterfall'].includes(c.behavior)){c.state='gone';return;}
     if (c.state === 'falling') {
-      c.alpha = Math.min(1, c.alpha + dt * .7);
+      const edgeFade=clamp((h+c.size*.25-c.y)/(c.size*1.4),0,1);
+      c.alpha = Math.min(edgeFade, c.alpha + dt * .7);
       c.y += c.vy * dt * (h / 700); c.x += Math.sin(c.phase) * c.drift * dt;
-      if (c.y > h + c.size) { c.state = 'gone'; setTimeout(() => started && spawnCharacter(), 500); }
+      if (c.y > h + c.size) { c.state = 'gone'; setTimeout(() => started && spawnCharacter(), rand(1500,4000)); }
     } else {
-      c.alpha = Math.max(0, 1 - c.life / 1.9); c.scale = 1 + c.life * .34; c.rotation += dt * .08;
+      c.alpha = Math.max(0, 1 - c.life / 3.8); c.scale = 1;
       if (c.alpha <= 0) c.state = 'gone';
     }
     if (c.state === 'gone') return;
     ctx.save(); ctx.translate(c.x, c.y); ctx.rotate(c.rotation); ctx.scale(c.scale, c.scale);
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.font = `400 ${c.size}px "uddigikyokasho-pro", sans-serif`;
+    ctx.font = `700 ${c.size}px "UD Digi Kyokasho NK-B", "uddigikyokasho-pro", sans-serif`;
     if(c.kanjiImage) {
       const ratio=c.kanjiImage.naturalWidth/c.kanjiImage.naturalHeight;
       const iw=c.size*Math.min(1,ratio), ih=c.size/Math.max(1,ratio);
@@ -208,7 +219,7 @@
     if (!document.fonts) return;
     await window.tenzerFontsReady;
     await Promise.race([
-      document.fonts.load('400 120px "uddigikyokasho-pro"', entries.map(e=>e.glyph||'').join('')),
+      document.fonts.load('700 120px "uddigikyokasho-pro"', entries.map(e=>e.glyph||'').join('')),
       new Promise(resolve=>setTimeout(resolve,3000))
     ]);
   }
