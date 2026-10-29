@@ -1,189 +1,159 @@
-# Living Ink — Tenzer Wall Study
+# Living Ink — Tenzer Kanji Wall
 
-An interactive, full-screen generative artwork exploring how brush-written kanji can act as portals into animated landscape scenes. Characters drift through a quiet paper-like canvas; selecting one transforms the entire display into a corresponding visual world.
+An immersive, touch-responsive artwork that connects Kanji characters with their meanings. Falling characters become animated landscapes, plants, animals and weather when selected.
 
-**[Open the live installation →](https://maiapapertowns.github.io/tenzer-wall-site/)**
+**[Explore the live Kanji Wall](https://maiapapertowns.github.io/tenzer-wall-site/)** · [Source repository](https://github.com/maiaPaperTowns/tenzer-wall) · [Deployment repository](https://github.com/maiaPaperTowns/tenzer-wall-site)
 
-> Prototype 02 · DePauw Student Research Associate project · Designed for a 7680 × 2160 Windows display and adaptable to desktop, tablet, and touch installations.
+Prototype 02 · DePauw University · Documentation updated October 29, 2026
 
-## Research premise
+## Experience
 
-Living Ink investigates a simple interaction model: **one character, one touch, one world**. The interface deliberately removes conventional navigation so the artwork can remain approachable in a public space. Meaning is revealed through motion rather than explanatory UI.
+The wall opens on a fixed, misty ink-wash mountain background with a blush watercolor welcome panel. Kanji begin falling after artwork loads, so visitors can see the interaction before dismissing the welcome message with **Explore**.
 
-The current vocabulary contains 29 concepts. Configuration lives in `config.json`; scene renderers preserve distinct motion for similar meanings.
+Click or touch a falling character to reveal its meaning as an animated scene. Selecting another character transitions to its scene; completed scenes fade back to the wall. **Sound** and **About** sit together at the bottom center. The About panel explains the project and credits its contributors.
 
-### Layered-motion revision — October 7, 2026
+The dataset contains **29 characters**. Each complete scheduling round includes every available character once in a random order, keeping appearance counts balanced. Characters share the same size within a viewport and remain upright. Random starting positions, varied fall speeds, gentle horizontal drift and spacing correction create variation without crowding. Activated glyphs fade over approximately 3.8 seconds; characters approaching the bottom also fade gradually.
 
-Landscape plates now use proportional cover fitting on portrait, landscape and wide-wall displays, without stretching the source artwork. Transparent sprites retain their own aspect ratios. Animation remains within the existing 1.5-million-pixel scene budget.
+## Latest artwork and motion
 
-Horse motion uses eight intact full-body gallop poses rather than a sheared torso/limb rig. The cat now sits on the wall with a separately animated tail. Ice, wind ribbons, ocean crests, floating lotus flowers, wisteria, bamboo and the tree canopy are independently animated layers. All wildflowers and cherry blossoms grow from clean plates with no stationary flowers baked behind them. Leaves have no flowers. Star and storm plates are sky-only; rain and water plates have no baked circular rings. Water motion eases across boundaries to avoid visible seams; river foam moves while rocks remain anchored. Additional atmospheric layers keep mountain, sun and rainbow scenes moving after their reveals.
+The current artwork uses separately animated sprites, masked cloud layers, water movement and procedural effects. Backgrounds use proportional cover fitting, with cropping where needed to fill the viewport; foreground sprites preserve their proportions.
 
-See `LAYERED-MOTION-20261007.md` for saved artwork and the image-generation prompt set. `layered-motion-check.cjs` exercises all 29 scenes in portrait and landscape, continued animation, reduced motion, clean exits and proportional background fitting.
+- **Flower:** 14 ivory-white watercolor flower and branch clusters bloom at staggered times, with gentle swaying and drifting petals.
+- **Cherry Blossom:** muted pink flowering branches frame a Japanese wooden bridge and stream. Branches bloom and sway, with falling petals and a softer background palette.
+- **Cat:** a seated calico stays anchored to the stone wall while its separate tail sways. Clouds drift behind it.
+- **Atmosphere:** moving cloud layers extend across sand, tree, moon, river, horse, ocean and flower scenes; storm clouds move around the lightning.
+- **Plants:** tree canopies, forest foliage, leafy branches, bamboo and hanging wisteria have continuing motion. Tree trunks remain established while the canopy moves.
+- **Water:** river flow, ocean crests, pond reflections, rain ripples and waterfall spray provide movement within the landscape.
+- **Reveals:** horse and waterfall scenes enter directly with their animation. Sand appears as a complete scene rather than a horizontal reveal.
 
-| Kanji | Concept | Scene behavior |
+| Kanji | Meaning | Scene |
 | --- | --- | --- |
-| 花 | Flower | Pink, yellow, orange, purple and white wildflowers open in clusters; no woody branches. |
-| 日 | Sun | A warm radial atmosphere expands softly while painted currents and cloud forms settle independently. |
-| 虹 | Rainbow | A large rainbow appears against an uncluttered sky. |
-| 雨 | Rain | Rain falls into a purple twilight pond framed by cherry blossoms, with contact ripples. |
-| 鳥 | Bird | A flock traverses the canvas; the rendered bird species varies between activations. |
-| 山 | Mountain | Separate mountain strata rise sequentially through mist to create spatial depth. |
-| 雷 | Thunder | Sky-only storm; one branching bolt at a time, changing shapes and irregular pauses. |
-| 木 | Tree | One ancient green tree with a prominent trunk and exposed roots; canopy regions unfold in stages. |
-| 森 | Forest | A misty green forest grows inward from the sides, with layered trunks and warm fireflies. |
-| 馬 | Horse | The glyph becomes a horse; walking accelerates into a horizontal gallop across a pastel mountain meadow. |
-| 滝 | Waterfall | Ink drips become a luminous blue-white waterfall, with moving water, forest cliffs, mist and spray. |
-| 川 | River | Three fast blue-white channels around rocks, green banks and distant mountains; no cherry blossoms. |
-| 水 | Water | Blue-white painted water; one gentle drop every 3.8 seconds, followed by expanding rings. |
-| 海 | Ocean / Sea | Peach sunset, moving distant water and separate advancing turquoise breaking crests. |
-| 竹 | Bamboo | A deep teal bamboo grove emerges and sways gently in filtered sunlight. |
-| 猫 | Cat | A fluffy cat sits on the stone wall and gently sways its separate tail. |
-| 葉 | Leaf | Green leaves flutter with moving leafy branches; no flowers. |
-| 雲 | Cloud | Layered clouds drift gently. |
-| 星 | Star | Sky-only framing, asynchronous twinkling and five independently timed meteor/comet trails. |
-| 魚 | Fish | Koi swim independently beneath a clear blue painted pond with ripples and corner flowers. |
-| 火 | Fire | Golden-orange painted flames curl above dark charcoal with rising embers. |
-| 月 | Moon | A 25% larger cutout moon rises over an indigo lake, with a soft halo and reflection. |
-| 雪 | Snow | White flakes fall and dissolve at ground contact. |
-| 風 | Wind | Pale pink-white gust ribbons and petals sweep across a luminous sky. |
-| 氷 | Ice | Foreground ice emerges and catches small asynchronous glints. |
-| 蓮 | Lotus | Separate pink flowers and green pads drift and bob over moving pond reflections. |
-| 桜 | Cherry Blossom | Branches of pink sakura fill the edges while clusters open and petals drift. |
-| 砂 | Sand | Sunset dunes with subtle foreground movement and drifting fine sand. |
-| 藤 | Wisteria | Hanging purple flowers sway beneath a lantern-lit pergola; petals drift down. |
+| 森 | Forest | Layered green woodland, subtle foliage movement, sunlight and airborne particles. |
+| 馬 | Horse | Full-body gallop moving across a meadow, with drifting clouds. |
+| 滝 | Waterfall | Flowing water with white spray, foam and mist at its base. |
+| 猫 | Cat | Calico seated on a wall, with a moving tail and clouds. |
+| 葉 | Leaf | Green leaves and branches flutter and sway. |
+| 花 | Flower | White watercolor flowers bloom across multiple branches. |
+| 桜 | Cherry Blossom | Muted pink blossoms and falling petals around a wooden bridge. |
+| 竹 | Bamboo | Separate bamboo layers sway in filtered light. |
+| 木 | Tree | Established trunk and roots with a moving canopy and sky. |
+| 川 | River | Flowing channels and foam around anchored rocks. |
+| 海 | Ocean / Sea | Moving water, advancing wave crests and drifting sunset clouds. |
+| 水 | Water | Painted water with surface movement and expanding drop rings. |
+| 雨 | Rain | Falling rain, animated surface rings and descending petals. |
+| 雷 | Thunder | Moving storm clouds and irregular branching lightning. |
+| 風 | Wind | Animated gust ribbons, cloud forms and sweeping particles. |
+| 氷 | Ice | Separate ice clusters appear with small glints. |
+| 蓮 | Lotus | Pink blossoms and green pads drift over moving pond reflections. |
+| 藤 | Wisteria | Hanging purple flower clusters sway beneath a pergola. |
+| 砂 | Sand | Sunset dunes with drifting clouds and fine sand movement. |
+| 月 | Moon | Large moon over a lake with cloud and reflection movement. |
+| 星 | Star | Twinkling stars and independently timed meteor trails. |
+| 火 | Fire | Animated painted flames and rising embers. |
+| 雪 | Snow | Falling snowflakes dissolve near the ground. |
+| 雲 | Cloud | Layered clouds drift across the scene. |
+| 日 | Sun | Warm light, atmospheric currents and cloud movement. |
+| 虹 | Rainbow | Rainbow landscape with moving atmospheric and rain effects. |
+| 山 | Mountain | Layered mountain forms and moving mist. |
+| 鳥 | Bird | Animated flocks cross the display. |
+| 魚 | Fish | Koi swim beneath pond ripples. |
 
-The October 7 reference refresh contains 29 characters. Its 20 new runtime WebP images total about 6.2 MB (versus 52.9 MB of source PNGs); source images are preserved locally. The 1.5-million-pixel scene-render budget remains enabled. See `NATURE-REFERENCE-PROMPTS.md` for generated asset paths and prompt specifications. `nature-reference-check.cjs` verifies changed scenes, stable reduced motion, clean exits, and varied sequential lightning.
+## Sound, input and accessibility
 
-## Interaction design
+Sound starts only after the visitor enables it. Characters share the same gentle synthesized chime, gain level and envelope, with a distinct, stable pitch per character. This uses a common volume setting; perceived loudness can still vary with pitch and playback hardware.
 
-- Kanji are distributed through responsive lanes with balanced concept frequency.
-- Pairwise spacing correction prevents falling characters from visually sticking together.
-- Hammer.js normalizes single-touch input with generous movement thresholds for the infrared sensor.
-- Both a short tap and a deliberate press activate the nearest character within an enlarged hit radius.
-- Duplicate gesture suppression prevents one physical contact from opening the same scene twice.
-- `Enter` and `Space` provide an equivalent keyboard interaction.
-- The installation begins behind a restrained onboarding veil and reduces UI prominence after the first interaction.
-- Sound is optional and only starts after explicit user input, respecting browser autoplay policies.
+Mouse, touch and pen input use Hammer.js with a Pointer Events fallback. Enlarged hit areas help selection on the infrared wall, and duplicate gesture suppression reduces repeated activations from one touch. **Enter** or **Space** starts the experience or activates an available character when focus is outside the controls.
 
-## Target installation
+Buttons expose focus states. About uses a native dialog and restores focus when closed. Reduced-motion preferences are passed to the renderers to restrain or freeze scene animation. These features do not constitute a complete accessibility audit.
 
-| Property | Specification |
-| --- | --- |
-| Host | Windows PC running Chrome |
-| Logical canvas | **7680 × 2160** |
-| Video topology | Two 4K outputs; each output drives a 2×2 grid of 1920×1080 panels |
-| Input | Infrared touch, up to 32 simultaneous contacts |
-| Initial interaction level | Single touch, intentionally optimized before multi-touch and gestures |
+Kanji drawing prefers **UD Digi Kyokasho NK-B**, then Adobe Fonts **UD Digi Kyokasho Pro**, then a system sans-serif fallback. The Adobe kit requires connectivity and a permitted domain. Welcome and About headings use serif typography with responsive HTML text.
 
-At the wall's 32:9 aspect ratio, character size and starting density increase automatically while retaining wide separation. Touch targets are larger than their visible glyphs to compensate for infrared imprecision. The current prototype avoids drag, kinetic scrolling, and edge-dependent controls; those patterns are unreliable on this hardware. Multi-touch recognizers can be introduced through the existing Hammer.js manager after single-touch field testing.
+## Run locally
 
-## Technical architecture
+The artwork is a buildless static HTML/CSS/JavaScript application. No package installation is required to serve it. From the repository root:
 
-The prototype is a buildless static HTML/CSS/JavaScript application built on Canvas 2D and Web Audio. Hammer.js provides a focused gesture-recognition boundary while the visual simulation remains framework-free.
-
-```text
-Input (Hammer.js / Pointer Events fallback / keyboard)
-          │
-          ▼
-Character scheduler ──► spatial collision correction
-          │
-          ▼
-Scene state machine ──► particles + image layers + procedural effects
-          │
-          ▼
-requestAnimationFrame render loop ──► responsive Canvas 2D output
+```bash
+python3 -m http.server 4183 --bind 127.0.0.1 --directory authorized-site
 ```
 
-Each active object carries its own elapsed lifetime. Scene opacity follows a sinusoidal envelope, producing a gentle entrance and exit without abrupt cuts. Visual assets are composited with procedural systems—particles, mist, glow, rain, lightning, and easing—so scenes behave as animations rather than static images appearing on top of the canvas.
+Open **http://127.0.0.1:4183/**. Replace `authorized-site` with `dist` to preview the deployment mirror.
 
-### Rendering and performance
+Use HTTP or HTTPS rather than opening `index.html` through `file://`. The configuration loader enforces same-origin URLs; opening the file directly can show **Artwork unavailable** or **Assets and datasets must use this website’s origin**. Use the local server or the live installation link instead.
 
-- The main canvas caps pixel ratio at `1.5` and total backing pixels at approximately 4.2 million. Scene artwork renders to a reusable layer of at most 1.5 million pixels before compositing; input coordinates remain in CSS pixels.
-- Water and pond color treatments are cached once instead of reapplying image filters to every animated strip. The tradeoff is softer background detail on very large/Retina screens, while animation, layout and touch targets are preserved.
-- `perf-budget-check.cjs` compares direct versus budgeted drawing. One local Chrome sample at 1200×750/2× backing measured waterfall 4.3→1.4 ms, moon 10.5→1.6 ms, and flower 9.2→1.8 ms per draw. This is a small rendering benchmark, not an end-to-end FPS or touch-latency guarantee on installation hardware.
-- Frame delta is clamped to prevent large simulation jumps after a suspended tab resumes.
-- Completed characters, particles, ripples, and scenes are removed every frame.
-- Image assets and the brush font are preloaded before interaction where practical.
-- Responsive sizing uses viewport-relative bounds with explicit minimums and maximums.
-- `prefers-reduced-motion` lowers particle and flock counts and accelerates the interaction cadence.
-
-### Typography and visual system
-
-Typography uses Adobe Fonts **UD Digi Kyokasho Pro** (`uddigikyokasho-pro`, weight 400, normal), kit `lyl2dnk`, with a sans-serif fallback and bounded loading timeout. Adobe Fonts needs network access and appropriate kit domain settings. The neutral paper ground and artwork draw on East Asian painting references.
-
-### October 2026 motion refresh
-
-Branch-free flower variants, a new ocean painting, and a fluffy cat rig were generated with the built-in image tool. Asset paths and prompts are documented in `REFRESH-20261007.md`. Existing reference art is retained separately. Lightning now has four branched bolts per strike at 1.15-second intervals, with localized glow rather than repeated full-screen white flashes. Reduced-motion mode uses a static, restrained strike.
-
-The four reference-led landscape revisions are documented in `DREAM-SCENES.md`, including generated asset paths and prompts. Each uses its own environment; cherry blossoms are not added to every scene.
-
-The later 3:1 waterfall, slow-drip water and sunset-sea revisions are documented in `WATER-PANORAMA-PROMPTS.md`; they closely follow the supplied card references with lettering and blossoms removed.
-
-`world-check.cjs` checks eleven changed scenes for animation, deterministic reduced-motion rendering, and clean fade-out, plus horse exit coordinates at 1200 and 7680 pixels. These browser checks do not replace an on-wall hardware/performance or accessibility review.
+For the physical wall, use a current Chromium-based browser in fullscreen or kiosk mode. External font and gesture-library requests need connectivity; font and input fallbacks are provided.
 
 ## Project structure
 
 ```text
-.
-├── .openai/
-│   └── hosting.json       # Static hosting configuration
-└── dist/
-    ├── index.html         # Semantic shell and installation controls
-    ├── styles.css         # Responsive presentation and accessibility states
-    ├── app.js             # Simulation, interaction, audio, and rendering systems
-    ├── config.json        # 29 concepts and scene parameters
-    ├── config-loader.js   # Validated configuration
-    ├── stock-scenes.js    # Asset preparation and scene dispatch
-    ├── nature-scenes.js   # Nature animation systems
-    ├── world-scenes.js    # Forest, horse, waterfall, flower, fluffy cat
-    ├── dream-scenes.js    # Reference-led flower, thunder, waterfall and moon
-    ├── render-budget.js   # Bounded reusable scene surfaces for responsive rendering
-    └── assets/            # Font and composited scene artwork
+authorized-site/                Authoring source
+  index.html                   Welcome, controls, About and canvas shell
+  styles.css                   Responsive watercolor UI and fixed wall background
+  app.js                       Scheduling, interaction, audio and scene lifecycle
+  config.json                  29 concepts, assets, durations and transitions
+  config-loader.js             Validation and same-origin loading
+  stock-scenes.js              Asset preparation and scene dispatch
+  dream-scenes.js              Layered scenes and atmospheric effects
+  world-scenes.js              Landscape, animal and plant animation systems
+  nature-scenes.js             Additional natural effects and renderers
+  render-budget.js             Reusable scene canvas with bounded resolution
+  assets/derived/              Generated artwork and sprite atlases
+  assets/stock/                Supporting photographic assets
+  *.cjs                        Preview, validation and browser-check scripts
+dist/                          Deployment mirror and supporting legacy assets
+research/                      Research drafts, protocols and references
+stock-flower-update/            Earlier flower implementation retained for reference
+CHI-2027-RESEARCH-PLAN.md        Research planning document
 ```
 
-## Run locally
+Edit `authorized-site/` first and synchronize the intended runtime files into `dist/` before publication. Original artwork and runtime images are retained in the source repository. Many active scenes use WebP copies; original PNGs support further editing. Older assets remain for reference and are not all loaded by the current dataset.
 
-No build step is required. Serve `dist/` with any static web server:
+## Configuration and performance
+
+`authorized-site/config.json` defines each glyph, meaning, behavior, assets, duration, options and transition overrides. Defaults are a 1.4-second entrance, 2.2-second exit and 0.75-second scene switch; individual entries can override them. Optional datasets use `?dataset=...`, subject to configuration validation and same-origin rules.
+
+The application uses Canvas 2D, Web Audio and `requestAnimationFrame`, without a frontend framework or compilation step. Each scene tracks elapsed time and composites background plates, sprites and procedural effects into a reusable surface.
+
+- Main canvas: pixel ratio capped at **1.5**, with approximately **4.2 million backing pixels** maximum.
+- Scene surface: capped at **3 million pixels**, preserving aspect ratio.
+- Character movement uses a clamped frame delta to limit jumps after tab suspension.
+- Completed characters, scenes and interaction ripples are removed during the render loop.
+- Images, masks and color treatments are cached where supported by the renderers.
+
+These budgets balance detail and rendering cost; they do not promise native-resolution artwork across the entire 7680 × 2160 wall. Frame rate and touch latency should be measured on installation hardware.
+
+## Validation
+
+The configuration check uses Node.js built-in modules:
 
 ```bash
-cd dist
-python3 -m http.server 4175
+node authorized-site/config.test.cjs
 ```
 
-Then open [http://127.0.0.1:4175](http://127.0.0.1:4175).
+Additional browser checks cover portrait and landscape scene fitting, continuing animation, reduced-motion stability, clean exits, character balance, UI and rendering budgets. Examples include `layered-motion-check.cjs`, `balanced-falling-check.cjs`, `wall-ui-check.cjs` and `perf-budget-check.cjs`. They require the browser tooling and preview setup expected by each script; inspect their setup before running on a new machine.
 
-For installation use, launch a current Chromium-based browser with `F11` or kiosk mode. Hammer.js consumes Pointer Events when available, while the fallback keeps the same canvas usable with a mouse, touch display, or pen if the library cannot load.
+Configuration validation passed 15 assertions during the October 29 repository sync. Earlier scene checks are recorded with the artwork revisions. These checks do not replace on-wall testing or an accessibility review.
 
-## Deployment
+## Artwork documentation
 
-The production build is deployed as a static site:
+- [White flowers, cherry bridge and calico cat](https://github.com/maiaPaperTowns/tenzer-wall/blob/main/authorized-site/WHITE-SAKURA-CALICO-20261008.md)
+- [Watercolor flower revision](https://github.com/maiaPaperTowns/tenzer-wall/blob/main/authorized-site/FLOWER-WATERCOLOR-20261008.md)
+- [Layered motion revision](https://github.com/maiaPaperTowns/tenzer-wall/blob/main/authorized-site/LAYERED-MOTION-20261007.md)
+- [Nature reference prompts](https://github.com/maiaPaperTowns/tenzer-wall/blob/main/authorized-site/NATURE-REFERENCE-PROMPTS.md)
+- [Water and landscape prompts](https://github.com/maiaPaperTowns/tenzer-wall/blob/main/authorized-site/WATER-PANORAMA-PROMPTS.md)
+- [Asset sources](https://github.com/maiaPaperTowns/tenzer-wall/blob/main/authorized-site/ASSET-SOURCES.md)
 
-- **Live:** [maiapapertowns.github.io/tenzer-wall-site](https://maiapapertowns.github.io/tenzer-wall-site/)
-- **Public deployment:** [maiaPaperTowns/tenzer-wall-site](https://github.com/maiaPaperTowns/tenzer-wall-site), files at repository root.
-- **Document root:** `dist/`
-- **Authoring source:** `authorized-site/`, mirrored into `dist/` before GitHub publication. Legacy hosting configuration is not used for this deployment.
+These documents record individual revisions and may describe earlier artwork. The current configuration and active renderers identify what is used now. Public repository visibility does not grant a blanket license to third-party fonts or images; consult source and license information before reuse.
 
-## Evaluation plan
+## Deployment and installation
 
-The next research iteration can evaluate:
+The live experience uses **GitHub Pages**, with runtime files at the root of [tenzer-wall-site](https://github.com/maiaPaperTowns/tenzer-wall-site). [tenzer-wall](https://github.com/maiaPaperTowns/tenzer-wall) contains authoring source, the deployment mirror, original artwork and research materials. Both repositories are public. Legacy hosting configuration is not the active deployment path.
 
-1. **Discoverability:** Do first-time viewers understand that the characters are interactive without instruction?
-2. **Embodied pacing:** Does the character fall rate allow comfortable selection on a large wall display?
-3. **Semantic legibility:** Can viewers associate each transformation with its kanji after repeated exposure?
-4. **Affective response:** Do reveal timing, density, color, and sound sustain a soft, immersive mood?
-5. **Display resilience:** How consistently do composition, hit targets, and frame time hold across aspect ratios and touch hardware?
+The target installation is a Windows PC running Chrome with a **7680 × 2160** logical display and an infrared touch frame supporting up to 32 contacts. Interaction currently centers on selecting one character at a time; hardware capacity is not a claim of tested multi-user interaction. Responsive layouts also support desktop, tablet and portrait previews.
 
-Useful measurements include time to first interaction, successful-target rate, repeat activations per concept, dwell time, frame-time percentiles, and short qualitative interviews. Any analytics should be opt-in and avoid collecting identifying information.
+## Credits and research
 
-## Roadmap
+Designed by **Dave Berque, Hiroko Chiba and Maia Le**; implemented by **Maia Le**. The experience is modeled after a museum exhibit produced by the Japanese design group **teamLab**. At DePauw University, the project was supported by the **Tenzer Technology Center** and the **Information Technology Associates (ITAP) program**.
 
-- Evaluate the expanded 29-concept scene registry on the physical wall.
-- Add deterministic random seeds for repeatable studies and visual regression tests.
-- Separate simulation, rendering, and content configuration into testable modules.
-- Introduce automated checks for keyboard access, reduced motion, and multiple aspect ratios.
-- Add an installation mode with calibration, idle reset, diagnostics, and offline asset verification.
-- Explore multi-character encounters where one scene dissolves naturally into the next.
+The research premise is **one character, one touch, one world**: explore whether artistic interaction helps visitors connect Kanji forms with their meanings. Literature reviews, study protocols and CHI 2027 planning materials are in `research/` and the root research plan. They are working documents, not evidence that a study has been conducted or approved.
 
-## Status
-
-This repository contains a research prototype, not a production installation package. Artwork and interaction parameters are under active iteration. Confirm font and image licensing before redistribution or public commercial use.
+Next steps include on-wall evaluation of discoverability, selection accuracy, pacing, semantic recall and rendering performance, together with accessibility and installation-resilience work.
