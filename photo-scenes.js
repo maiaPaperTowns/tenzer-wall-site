@@ -86,6 +86,37 @@
     }
     const {gl,canvas}=state;gl.viewport(0,0,canvas.width,canvas.height);gl.uniform1f(state.time,t);gl.uniform1f(state.mode,kind==='water'?1:kind==='waterfall'?2:kind==='fire'?4:3);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);return canvas;
   }
+  const snowCache=new WeakMap();
+  function snowLayers(image) {
+    if(snowCache.has(image))return snowCache.get(image);
+    const canvas=document.createElement('canvas'),w=Math.min(1024,image.naturalWidth),h=Math.round(w*image.naturalHeight/image.naturalWidth);
+    canvas.width=w;canvas.height=h;const c=canvas.getContext('2d',{willReadFrequently:true});c.drawImage(image,0,0,w,h);
+    const original=c.getImageData(0,0,w,h),out=c.getImageData(0,0,w,h),lum=new Float32Array(w*h),sum=new Float64Array((w+1)*(h+1));
+    for(let y=0;y<h;y++){let row=0;for(let x=0;x<w;x++){const k=y*w+x,j=k*4;lum[k]=(original.data[j]+original.data[j+1]+original.data[j+2])/765;row+=lum[k];sum[(y+1)*(w+1)+x+1]=sum[y*(w+1)+x+1]+row;}}
+    const mask=new Uint8Array(w*h),seen=new Uint8Array(w*h),sprites=[];
+    for(let y=2;y<h-2;y++)for(let x=2;x<w-2;x++){
+      if(x>w*.58&&y>h*.53&&y<h*.8)continue;
+      const r=15,l=Math.max(0,x-r),rr=Math.min(w,x+r),t=Math.max(0,y-r),b=Math.min(h,y+r);
+      const mean=(sum[b*(w+1)+rr]-sum[t*(w+1)+rr]-sum[b*(w+1)+l]+sum[t*(w+1)+l])/((rr-l)*(b-t));
+      if(lum[y*w+x]>.76&&lum[y*w+x]-mean>.075)mask[y*w+x]=1;
+    }
+    for(let k=0;k<w*h;k++)if(mask[k]&&!seen[k]){
+      const queue=[k];seen[k]=1;let left=w,right=0,top=h,bottom=0;
+      for(let n=0;n<queue.length;n++){const q=queue[n],x=q%w,y=Math.floor(q/w);left=Math.min(left,x);right=Math.max(right,x);top=Math.min(top,y);bottom=Math.max(bottom,y);for(const v of [q-1,q+1,q-w,q+w])if(v>=0&&v<w*h&&mask[v]&&!seen[v]){seen[v]=1;queue.push(v);}}
+      if(queue.length<3||queue.length>1800||right-left>65||bottom-top>65)continue;
+      left=Math.max(1,left-3);right=Math.min(w-2,right+3);top=Math.max(1,top-3);bottom=Math.min(h-2,bottom+3);
+      const sw=right-left+1,sh=bottom-top+1,patch=document.createElement('canvas');patch.width=sw;patch.height=sh;
+      const pc=patch.getContext('2d'),pixels=pc.createImageData(sw,sh);
+      for(let y=top;y<=bottom;y++)for(let x=left;x<=right;x++){
+        const src=(y*w+x)*4,dst=((y-top)*sw+x-left)*4,edgeL=(y*w+left-1)*4,edgeR=(y*w+right+1)*4,u=(x-left+1)/(sw+1);
+        const edge=Math.min(x-left+1,right-x+1,y-top+1,bottom-y+1),alpha=Math.min(1,edge/3);
+        for(let ch=0;ch<3;ch++){pixels.data[dst+ch]=original.data[src+ch];const bg=original.data[edgeL+ch]*(1-u)+original.data[edgeR+ch]*u;out.data[src+ch]=original.data[src+ch]*(1-alpha)+bg*alpha;}
+        pixels.data[dst+3]=Math.round(alpha*255);
+      }
+      pc.putImageData(pixels,0,0);sprites.push({image:patch,x:left/w,y:top/h,w:sw/w,h:sh/h});
+    }
+    c.putImageData(out,0,0);const result={background:canvas,sprites};snowCache.set(image,result);return result;
+  }
   function drawPhoto(ctx,scene,fade,w,h,reduced) {
     const backdrop=scene.entry.images[0];
     const image=scene.entry.images[1] || backdrop;
@@ -99,6 +130,8 @@
     ctx.translate(x,y);
     ctx.beginPath();ctx.rect(0,0,pw,ph);ctx.clip();
     let surface=image;
+    let separatedSnow=null;
+    if(!reduced&&scene.entry.id==='snow'){try{separatedSnow=snowLayers(image);surface=separatedSnow.background;}catch(error){console.warn('Snow layer separation unavailable',error);}}
     if(!reduced && ['water','waterfall','cloud','fire'].includes(scene.entry.id)) {
       try {surface=fluidFrame(image,t,scene.entry.id)||image;} catch(error) {if(!scene.fluidWarning){console.warn(error);scene.fluidWarning=true;}}
     }
@@ -106,6 +139,12 @@
     if(!reduced) {
       const motion=scene.entry.id;
       if(motion==='snow') {
+        if(separatedSnow)for(let i=0;i<separatedSnow.sprites.length;i++){
+          const flake=separatedSnow.sprites[i],depth=.45+noise(i+321)*.55;
+          const px=((flake.x*pw+t*pw*.009*depth+Math.sin(t*.4+i)*pw*.006)%(pw+30)+pw+30)%(pw+30)-15;
+          const py=(flake.y*ph+t*ph*(.035+depth*.04))%(ph+30)-15;
+          ctx.drawImage(flake.image,px,py,flake.w*pw,flake.h*ph);
+        }
         for(let i=0;i<110;i++) {
           const depth=.35+noise(i+91)*.65;
           const px=((noise(i)*pw+t*ph*.035*depth+Math.sin(t*.5+i)*ph*.025)%(pw+16)+pw+16)%(pw+16)-8;
