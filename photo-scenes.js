@@ -39,6 +39,10 @@
             float flow=(sin(q.y*85.-time*13.+sin(q.x*27.))* .006+sin(q.y*173.-time*23.)*.002);
             q.y+=flow*light*region*(1.-credit);
             q.x+=sin(q.y*47.-time*8.)*.0018*light*region*(1.-credit);
+          }else if(mode>3.5){
+            float flame=smoothstep(.12,.38,base.r-base.b)*smoothstep(.25,.65,base.r);
+            q.x+=sin(q.y*31.-time*5.)*.006*flame*(1.-credit);
+            q.y+=sin(q.y*53.-time*8.)*.008*flame*(1.-credit);
           }else{
             // Horizontal wind advection, with subtle different speeds by height.
             float wind=sin(time*.12)*.026+sin(time*.21+q.y*5.)*.005;
@@ -52,7 +56,7 @@
       gl.bindTexture(gl.TEXTURE_2D,gl.createTexture());gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,image);
       state={canvas,gl,program,time:gl.getUniformLocation(program,'time'),mode:gl.getUniformLocation(program,'mode')};fluidCache.set(image,state);
     }
-    const {gl,canvas}=state;gl.viewport(0,0,canvas.width,canvas.height);gl.uniform1f(state.time,t);gl.uniform1f(state.mode,kind==='water'?1:kind==='waterfall'?2:3);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);return canvas;
+    const {gl,canvas}=state;gl.viewport(0,0,canvas.width,canvas.height);gl.uniform1f(state.time,t);gl.uniform1f(state.mode,kind==='water'?1:kind==='waterfall'?2:kind==='fire'?4:3);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);return canvas;
   }
   function drawPhoto(ctx,scene,fade,w,h,reduced) {
     const backdrop=scene.entry.images[0];
@@ -67,7 +71,7 @@
     ctx.translate(x,y);
     ctx.beginPath();ctx.rect(0,0,pw,ph);ctx.clip();
     let surface=image;
-    if(!reduced && ['water','waterfall','cloud'].includes(scene.entry.id)) {
+    if(!reduced && ['water','waterfall','cloud','fire'].includes(scene.entry.id)) {
       try {surface=fluidFrame(image,t,scene.entry.id)||image;} catch(error) {if(!scene.fluidWarning){console.warn(error);scene.fluidWarning=true;}}
     }
     ctx.drawImage(surface,0,0,pw,ph);
@@ -82,24 +86,8 @@
           ctx.arc(px,py,Math.max(.8,ph*.004*depth),0,TAU);ctx.fill();
         }
       } else if(motion==='cloud') {
-        // Independent translucent cloud banks travel across a stable sky.
-        for(let i=0;i<7;i++) {
-          const speed=.012+noise(i+12)*.014;
-          const cx=((noise(i+1)+t*speed)%1.6-.3)*pw;
-          const cy=ph*(.12+noise(i+20)*.65),r=pw*(.08+noise(i+8)*.08);
-          ctx.save();ctx.translate(cx,cy);ctx.scale(1,.42);
-          const mist=ctx.createRadialGradient(0,0,0,0,0,r);
-          mist.addColorStop(0,'rgba(255,255,255,.32)');
-          mist.addColorStop(.55,'rgba(255,255,255,.16)');
-          mist.addColorStop(1,'rgba(255,255,255,0)');
-          ctx.fillStyle=mist;ctx.fillRect(-r,-r,2*r,2*r);ctx.restore();
-        }
+        // Cloud movement is rendered directly from the original photograph above.
       } else if(motion==='fire') {
-        for(let row=0;row<ph;row+=4) {
-          const shift=Math.sin(row*.06-t*4.2)*ph*.006+Math.sin(row*.13+t*2.9)*ph*.0007;
-          const sy=Math.max(0,Math.min(image.naturalHeight-5,(row/ph)*image.naturalHeight+Math.sin(t*5+row*.03)*2));
-          ctx.drawImage(image,0,sy,image.naturalWidth,Math.min(image.naturalHeight-sy,6/scale),shift,row,pw,6);
-        }
         for(let i=0;i<36;i++) {
           const age=(noise(i+40)+t*.12) % 1,px=(noise(i+74)+Math.sin(t+i)*.008)*pw,py=ph*(1-age);
           ctx.globalAlpha=fade*(1-age)*.28;ctx.fillStyle=i%2?'#ffb84c':'#ffe4aa';
@@ -109,7 +97,7 @@
         // A drop accelerates toward the surface, then generates expanding rings.
         for(let i=0;i<5;i++) {
           const cycle=3.8,age=(t+i*.83)%cycle;
-          const cx=pw*(.28+noise(i+30)*.44),cy=ph*(.42+noise(i+90)*.35);
+          const cx=pw*(.31+(i*.137)%.38),cy=ph*(.46+(i*.173)%.28);
           if(age<.65) {
             const u=age/.65,dy=cy-ph*.38*(1-u*u);
             ctx.globalAlpha=fade*.8;ctx.fillStyle='#e9ffff';
