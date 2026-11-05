@@ -1,6 +1,7 @@
 /* Five-photo wall test. Motion is composited over the complete source photographs. */
 (() => {
   const legacyDraw = window.drawStockScene;
+  const wallDisplay = new URLSearchParams(location.search).get('display') === 'wall';
   const TAU = Math.PI * 2;
   const noise = n => { const v=Math.sin(n*127.1+311.7)*43758.5453; return v-Math.floor(v); };
   function drawPhoto(ctx,scene,fade,w,h,reduced) {
@@ -8,12 +9,11 @@
     const image=scene.entry.images[1] || backdrop;
     if(!image?.naturalWidth) return;
     const t=reduced?0:scene.life;
-    // Fill the screen with a soft backdrop, then fit the complete subject above it.
-    const scale=Math.min(w/image.naturalWidth,h/image.naturalHeight);
+    // Web: preserve the complete photo. Wall: crop to fill the projection.
+    const scale=(wallDisplay ? Math.max : Math.min)(w/image.naturalWidth,h/image.naturalHeight);
     const pw=image.naturalWidth*scale,ph=image.naturalHeight*scale,x=(w-pw)/2,y=(h-ph)/2;
     ctx.save();ctx.globalAlpha=fade;
-    const bs=Math.max(w/backdrop.naturalWidth,h/backdrop.naturalHeight);
-    ctx.drawImage(backdrop,(w-backdrop.naturalWidth*bs)/2,(h-backdrop.naturalHeight*bs)/2,backdrop.naturalWidth*bs,backdrop.naturalHeight*bs);
+    ctx.fillStyle='#eee8da';ctx.fillRect(0,0,w,h);
     ctx.translate(x,y);
     ctx.beginPath();ctx.rect(0,0,pw,ph);ctx.clip();
     ctx.drawImage(image,0,0,pw,ph);
