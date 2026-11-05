@@ -46,9 +46,21 @@
             gl_FragColor=vec4(mix(base,moving,light*region*(1.-credit)*.88),1.);
             return;
           }else if(mode>3.5){
-            float flame=smoothstep(.12,.38,base.r-base.b)*smoothstep(.25,.65,base.r);
-            q.x+=sin(q.y*31.-time*5.)*.006*flame*(1.-credit);
-            q.y+=sin(q.y*53.-time*8.)*.008*flame*(1.-credit);
+            // Warm bright pixels define the flame layer, separate from dark backdrop.
+            float flame=smoothstep(.10,.35,base.r-base.b)*smoothstep(.20,.62,base.r);
+            float liftA=fract(time*.48),liftB=fract(time*.48+.5);
+            float blend=abs(liftA-.5)*2.;
+            float wind=sin(q.y*15.-time*2.7+sin(q.x*19.))* .009;
+            float curl=sin(q.y*38.-time*5.4+q.x*23.)*.004;
+            vec2 qa=vec2(q.x+wind+curl,q.y+liftA*.065);
+            vec2 qb=vec2(q.x+wind+curl,q.y+liftB*.065);
+            vec3 first=texture2D(photo,clamp(qa,.001,.999)).rgb;
+            vec3 second=texture2D(photo,clamp(qb,.001,.999)).rgb;
+            vec3 burning=mix(first,second,blend);
+            float flicker=1.+.035*sin(time*7.3+q.x*29.)+.025*sin(time*11.7-q.y*21.);
+            burning*=flicker;
+            gl_FragColor=vec4(mix(base,burning,flame*(1.-credit)),1.);
+            return;
           }else{
             // Horizontal wind advection, with subtle different speeds by height.
             float wind=sin(time*.12)*.026+sin(time*.21+q.y*5.)*.005;
