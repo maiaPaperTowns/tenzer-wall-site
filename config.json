@@ -16,7 +16,8 @@
       "hue": 205,
       "duration": 22,
       "assets": [
-        "assets/wall-crops/IMG_105.jpg"
+        "assets/wall-fit/IMG_105.jpg",
+        "assets/wall-originals/IMG_105.jpg"
       ],
       "options": {
         "photoPrototype": 1
@@ -36,7 +37,8 @@
       "hue": 200,
       "duration": 22,
       "assets": [
-        "assets/wall-crops/IMG_099.jpg"
+        "assets/wall-fit/IMG_099.jpg",
+        "assets/wall-originals/IMG_099.jpg"
       ],
       "options": {
         "photoPrototype": 1
@@ -56,7 +58,8 @@
       "hue": 25,
       "duration": 22,
       "assets": [
-        "assets/wall-crops/IMG_062.jpg"
+        "assets/wall-fit/IMG_062.jpg",
+        "assets/wall-originals/IMG_062.jpg"
       ],
       "options": {
         "photoPrototype": 1
@@ -76,7 +79,8 @@
       "hue": 195,
       "duration": 22,
       "assets": [
-        "assets/wall-crops/IMG_010.jpg"
+        "assets/wall-fit/IMG_010.jpg",
+        "assets/wall-originals/IMG_010.jpg"
       ],
       "options": {
         "photoPrototype": 1
@@ -96,7 +100,8 @@
       "hue": 210,
       "duration": 22,
       "assets": [
-        "assets/wall-crops/IMG_084.jpg"
+        "assets/wall-fit/IMG_084.jpg",
+        "assets/wall-originals/IMG_084.jpg"
       ],
       "options": {
         "photoPrototype": 1

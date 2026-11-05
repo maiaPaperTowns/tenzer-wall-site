@@ -4,13 +4,17 @@
   const TAU = Math.PI * 2;
   const noise = n => { const v=Math.sin(n*127.1+311.7)*43758.5453; return v-Math.floor(v); };
   function drawPhoto(ctx,scene,fade,w,h,reduced) {
-    const image=scene.entry.images[0];
+    const backdrop=scene.entry.images[0];
+    const image=scene.entry.images[1] || backdrop;
     if(!image?.naturalWidth) return;
     const t=reduced?0:scene.life;
-    // Cover every viewport without stretching; crop overflow on narrower displays.
-    const scale=Math.max(w/image.naturalWidth,h/image.naturalHeight);
+    // Fill the screen with a soft backdrop, then fit the complete subject above it.
+    const scale=Math.min(w/image.naturalWidth,h/image.naturalHeight);
     const pw=image.naturalWidth*scale,ph=image.naturalHeight*scale,x=(w-pw)/2,y=(h-ph)/2;
-    ctx.save();ctx.globalAlpha=fade;ctx.translate(x,y);
+    ctx.save();ctx.globalAlpha=fade;
+    const bs=Math.max(w/backdrop.naturalWidth,h/backdrop.naturalHeight);
+    ctx.drawImage(backdrop,(w-backdrop.naturalWidth*bs)/2,(h-backdrop.naturalHeight*bs)/2,backdrop.naturalWidth*bs,backdrop.naturalHeight*bs);
+    ctx.translate(x,y);
     ctx.beginPath();ctx.rect(0,0,pw,ph);ctx.clip();
     ctx.drawImage(image,0,0,pw,ph);
     if(!reduced) {
@@ -24,7 +28,7 @@
           ctx.arc(px,py,Math.max(.8,ph*.004*depth),0,TAU);ctx.fill();
         }
       } else if(motion==='cloud') {
-        const z=1.035,dx=Math.sin(t*.18)*pw*.025,dy=Math.sin(t*.06)*ph*.012;
+        const z=.97,dx=Math.sin(t*.18)*pw*.012,dy=Math.sin(t*.06)*ph*.012;
         ctx.drawImage(image,-pw*(z-1)/2+dx,-ph*(z-1)/2+dy,pw*z,ph*z);
         const haze=ctx.createLinearGradient(0,0,pw,ph);
         haze.addColorStop(0,'rgba(255,255,255,0)');haze.addColorStop(.5,`rgba(255,255,255,${.025+.02*Math.sin(t*.3)})`);haze.addColorStop(1,'rgba(255,255,255,0)');
