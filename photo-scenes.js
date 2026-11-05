@@ -9,8 +9,8 @@
     const image=scene.entry.images[1] || backdrop;
     if(!image?.naturalWidth) return;
     const t=reduced?0:scene.life;
-    // Web: preserve the complete photo. Wall: crop to fill the projection.
-    const scale=(wallDisplay ? Math.max : Math.min)(w/image.naturalWidth,h/image.naturalHeight);
+    // Fill the viewport proportionally in both browser and projection modes.
+    const scale=Math.max(w/image.naturalWidth,h/image.naturalHeight);
     const pw=image.naturalWidth*scale,ph=image.naturalHeight*scale,x=(w-pw)/2,y=(h-ph)/2;
     ctx.save();ctx.globalAlpha=fade;
     ctx.fillStyle='#eee8da';ctx.fillRect(0,0,w,h);
@@ -28,12 +28,10 @@
           ctx.arc(px,py,Math.max(.8,ph*.004*depth),0,TAU);ctx.fill();
         }
       } else if(motion==='cloud') {
-        // A soft illumination change keeps the photograph stable and intact.
-        const haze=ctx.createLinearGradient(0,0,pw,ph);
-        haze.addColorStop(0,'rgba(255,255,255,0)');
-        haze.addColorStop(.5,`rgba(255,255,255,${.012+.008*Math.sin(t*.12)})`);
-        haze.addColorStop(1,'rgba(255,255,255,0)');
-        ctx.fillStyle=haze;ctx.fillRect(0,0,pw,ph);
+        // A slow camera drift gives the cloudscape visible continuous motion.
+        // Overscan prevents empty edges while keeping the photo proportional.
+        const zoom=1.045, dx=Math.sin(t*.11)*pw*.012,dy=Math.sin(t*.07)*ph*.009;
+        ctx.drawImage(image,-pw*(zoom-1)/2+dx,-ph*(zoom-1)/2+dy,pw*zoom,ph*zoom);
       } else if(motion==='fire') {
         for(let row=0;row<ph;row+=4) {
           const shift=Math.sin(row*.06-t*4.2)*ph*.0015+Math.sin(row*.13+t*2.9)*ph*.0007;
