@@ -34,11 +34,17 @@
             d+=vec2(sin(q.y*65.+time*1.3),cos(q.x*54.-time))* .0008;
             q+=d*(1.-credit);
           }else if(mode<2.5){
-            float light=smoothstep(.32,.72,dot(base,vec3(.299,.587,.114)));
-            float region=smoothstep(.04,.18,q.y)*(1.-smoothstep(.74,.89,q.y));
-            float flow=(sin(q.y*85.-time*13.+sin(q.x*27.))* .006+sin(q.y*173.-time*23.)*.002);
-            q.y+=flow*light*region*(1.-credit);
-            q.x+=sin(q.y*47.-time*8.)*.0018*light*region*(1.-credit);
+            // Advect the water texture downward, with two staggered passes.
+            // Crossfades conceal the loop reset; no oscillation of the rock face.
+            float light=smoothstep(.48,.82,dot(base,vec3(.299,.587,.114)));
+            float region=smoothstep(.03,.12,q.y)*(1.-smoothstep(.73,.86,q.y));
+            float a=fract(time*.32),b=fract(time*.32+.5);
+            float weight=abs(a-.5)*2.;
+            vec3 first=texture2D(photo,vec2(q.x,clamp(q.y-a*.075,.001,.999))).rgb;
+            vec3 second=texture2D(photo,vec2(q.x,clamp(q.y-b*.075,.001,.999))).rgb;
+            vec3 moving=mix(first,second,weight);
+            gl_FragColor=vec4(mix(base,moving,light*region*(1.-credit)*.88),1.);
+            return;
           }else if(mode>3.5){
             float flame=smoothstep(.12,.38,base.r-base.b)*smoothstep(.25,.65,base.r);
             q.x+=sin(q.y*31.-time*5.)*.006*flame*(1.-credit);
@@ -122,19 +128,7 @@
           }
         }
       } else if(motion==='waterfall') {
-        // Water follows the visible cascade channels; rock positions stay fixed.
-        const streams=[[.09,.18,.08,.76],[.27,.11,.12,.72],[.44,.17,.12,.78],[.65,.15,.23,.74],[.79,.12,.36,.72]];
-        for(let i=0;i<100;i++) {
-          const [left,width,top,bottom]=streams[i%streams.length];
-          const age=(noise(i+54)+t*(.48+noise(i+3)*.45))%1;
-          const px=pw*(left+noise(i+70)*width),py=ph*(top+(bottom-top)*age);
-          const len=ph*(.015+noise(i+19)*.07);
-          ctx.globalAlpha=fade*.28*Math.sin(age*Math.PI);
-          const streak=ctx.createLinearGradient(px,py-len,px,py);
-          streak.addColorStop(0,'rgba(235,251,255,0)');streak.addColorStop(1,'rgba(235,251,255,.85)');
-          ctx.strokeStyle=streak;ctx.lineWidth=Math.max(1,pw*.0012);
-          ctx.beginPath();ctx.moveTo(px,py-len);ctx.quadraticCurveTo(px+Math.sin(t*3+i)*pw*.002,py-len*.4,px,py);ctx.stroke();
-        }
+        // The shader advects only the bright water; the rock image remains fixed.
         for(let i=0;i<32;i++) {
           const a=(noise(i)+t*.24)%1,cx=pw*(.18+noise(i+5)*.7)+Math.sin(t+i)*ph*.015,cy=ph*(.79-a*.12),r=ph*(.015+a*.05);
           const mist=ctx.createRadialGradient(cx,cy,0,cx,cy,r);
