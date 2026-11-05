@@ -4,6 +4,56 @@
 
   const TAU = Math.PI * 2;
   const noise = n => { const v=Math.sin(n*127.1+311.7)*43758.5453; return v-Math.floor(v); };
+  const fluidCache=new WeakMap();
+  function fluidFrame(image,t,kind) {
+    let state=fluidCache.get(image);
+    if(!state) {
+      const canvas=document.createElement('canvas');
+      canvas.width=Math.min(1280,image.naturalWidth);canvas.height=Math.round(canvas.width*image.naturalHeight/image.naturalWidth);
+      const gl=canvas.getContext('webgl',{alpha:false,preserveDrawingBuffer:true});
+      if(!gl)return null;
+      const shader=(type,source)=>{const sh=gl.createShader(type);gl.shaderSource(sh,source);gl.compileShader(sh);if(!gl.getShaderParameter(sh,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(sh));return sh;};
+      const program=gl.createProgram();
+      gl.attachShader(program,shader(gl.VERTEX_SHADER,'attribute vec2 p; varying vec2 uv; void main(){uv=vec2((p.x+1.)*.5,(1.-p.y)*.5);gl_Position=vec4(p,0.,1.);}'));
+      gl.attachShader(program,shader(gl.FRAGMENT_SHADER,`precision mediump float;
+        varying vec2 uv;uniform sampler2D photo;uniform float time;uniform float mode;
+        void main(){
+          vec2 q=uv;vec3 base=texture2D(photo,q).rgb;
+          // Keep the stock credit region intact while preview assets are in use.
+          float credit=step(.59,q.x)*step(.55,q.y)*step(q.y,.78);
+          if(mode<1.5){
+            vec2 d=vec2(0.);
+            for(int i=0;i<5;i++){
+              float n=float(i);float age=mod(time+n*.83,3.8)-.65;
+              vec2 center=vec2(.31+mod(n*.137,.38),.46+mod(n*.173,.28));
+              vec2 v=(q-center)*vec2(1.,2.7);float r=length(v);
+              float ring=r-age*.16;
+              float envelope=exp(-ring*ring*500.)*exp(-max(age,0.)*.8)*step(0.,age);
+              d+=normalize(v+vec2(.0001))*sin(r*110.-age*18.)*envelope*.008;
+            }
+            d+=vec2(sin(q.y*65.+time*1.3),cos(q.x*54.-time))* .0008;
+            q+=d*(1.-credit);
+          }else if(mode<2.5){
+            float light=smoothstep(.32,.72,dot(base,vec3(.299,.587,.114)));
+            float region=smoothstep(.04,.18,q.y)*(1.-smoothstep(.74,.89,q.y));
+            float flow=(sin(q.y*85.-time*13.+sin(q.x*27.))* .006+sin(q.y*173.-time*23.)*.002);
+            q.y+=flow*light*region*(1.-credit);
+            q.x+=sin(q.y*47.-time*8.)*.0018*light*region*(1.-credit);
+          }else{
+            // Horizontal wind advection, with subtle different speeds by height.
+            float wind=sin(time*.12)*.026+sin(time*.21+q.y*5.)*.005;
+            q.x+=wind*(1.-credit);q.y+=sin(q.x*8.+time*.2)*.0015*(1.-credit);
+          }
+          gl_FragColor=vec4(texture2D(photo,clamp(q,.001,.999)).rgb,1.);
+        }`));
+      gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error('Photo animation shader failed to link');gl.useProgram(program);
+      const buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
+      const pos=gl.getAttribLocation(program,'p');gl.enableVertexAttribArray(pos);gl.vertexAttribPointer(pos,2,gl.FLOAT,false,0,0);
+      gl.bindTexture(gl.TEXTURE_2D,gl.createTexture());gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,image);
+      state={canvas,gl,program,time:gl.getUniformLocation(program,'time'),mode:gl.getUniformLocation(program,'mode')};fluidCache.set(image,state);
+    }
+    const {gl,canvas}=state;gl.viewport(0,0,canvas.width,canvas.height);gl.uniform1f(state.time,t);gl.uniform1f(state.mode,kind==='water'?1:kind==='waterfall'?2:3);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);return canvas;
+  }
   function drawPhoto(ctx,scene,fade,w,h,reduced) {
     const backdrop=scene.entry.images[0];
     const image=scene.entry.images[1] || backdrop;
@@ -16,7 +66,11 @@
     ctx.fillStyle='#eee8da';ctx.fillRect(0,0,w,h);
     ctx.translate(x,y);
     ctx.beginPath();ctx.rect(0,0,pw,ph);ctx.clip();
-    ctx.drawImage(image,0,0,pw,ph);
+    let surface=image;
+    if(!reduced && ['water','waterfall','cloud'].includes(scene.entry.id)) {
+      try {surface=fluidFrame(image,t,scene.entry.id)||image;} catch(error) {if(!scene.fluidWarning){console.warn(error);scene.fluidWarning=true;}}
+    }
+    ctx.drawImage(surface,0,0,pw,ph);
     if(!reduced) {
       const motion=scene.entry.id;
       if(motion==='snow') {
