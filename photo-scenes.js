@@ -16,7 +16,7 @@
       const program=gl.createProgram();
       gl.attachShader(program,shader(gl.VERTEX_SHADER,'attribute vec2 p; varying vec2 uv; void main(){uv=vec2((p.x+1.)*.5,(1.-p.y)*.5);gl_Position=vec4(p,0.,1.);}'));
       gl.attachShader(program,shader(gl.FRAGMENT_SHADER,`precision mediump float;
-        varying vec2 uv;uniform sampler2D photo;uniform float time;uniform float mode;
+        varying vec2 uv;uniform sampler2D photo;uniform sampler2D waterMask;uniform float time;uniform float mode;
         float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
         float field(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hash(i),hash(i+vec2(1.,0.)),f.x),mix(hash(i+vec2(0.,1.)),hash(i+vec2(1.,1.)),f.x),f.y);}
         float turbulence(vec2 p){return field(p)*.57+field(p*2.03)*.28+field(p*4.07)*.15;}
@@ -40,16 +40,16 @@
             d+=vec2(sin(q.y*29.+time*.65),cos(q.x*31.-time*.72))*.0012;
             q+=d*(1.-credit);
           }else if(mode<2.5){
-            // Advect the water texture downward, with two staggered passes.
-            // Crossfades conceal the loop reset; no oscillation of the rock face.
-            float light=smoothstep(.48,.82,dot(base,vec3(.299,.587,.114)));
-            float region=smoothstep(.03,.12,q.y)*(1.-smoothstep(.73,.86,q.y));
+            // Hand-traced water interiors. Every pixel outside the mask is original.
+            float region=texture2D(waterMask,q).r*(1.-credit);
+            if(region<.001){gl_FragColor=vec4(base,1.);return;}
             float a=fract(time*.32),b=fract(time*.32+.5);
             float weight=abs(a-.5)*2.;
-            vec3 first=texture2D(photo,vec2(q.x,clamp(q.y-a*.075,.001,.999))).rgb;
-            vec3 second=texture2D(photo,vec2(q.x,clamp(q.y-b*.075,.001,.999))).rgb;
-            vec3 moving=mix(first,second,weight);
-            gl_FragColor=vec4(mix(base,moving,light*region*(1.-credit)*.88),1.);
+            vec2 qa=vec2(q.x,clamp(q.y-a*.045,.001,.999));
+            vec2 qb=vec2(q.x,clamp(q.y-b*.045,.001,.999));
+            vec3 first=mix(base,texture2D(photo,qa).rgb,texture2D(waterMask,qa).r);
+            vec3 second=mix(base,texture2D(photo,qb).rgb,texture2D(waterMask,qb).r);
+            gl_FragColor=vec4(mix(base,mix(first,second,weight),region*.8),1.);
             return;
           }else if(mode>3.5){
             // Warm bright pixels define the flame layer, separate from dark backdrop.
@@ -82,6 +82,18 @@
       const buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
       const pos=gl.getAttribLocation(program,'p');gl.enableVertexAttribArray(pos);gl.vertexAttribPointer(pos,2,gl.FLOAT,false,0,0);
       gl.bindTexture(gl.TEXTURE_2D,gl.createTexture());gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,image);
+      // Conservative polygons lie inside water, away from rock edges and credits.
+      const mask=document.createElement('canvas');mask.width=canvas.width;mask.height=canvas.height;
+      const mc=mask.getContext('2d');mc.fillStyle='#000';mc.fillRect(0,0,mask.width,mask.height);mc.fillStyle='#fff';
+      const channels=[
+        [[.105,.205],[.245,.205],[.28,.29],[.30,.43],[.29,.63],[.19,.68],[.135,.61],[.115,.43]],
+        [[.405,.25],[.465,.25],[.51,.38],[.55,.51],[.565,.62],[.49,.63],[.455,.49],[.425,.35]],
+        [[.70,.30],[.735,.33],[.78,.42],[.835,.50],[.85,.54],[.81,.52],[.765,.43],[.72,.37]]
+      ];
+      for(const polygon of channels){mc.beginPath();polygon.forEach(([x,y],i)=>i?mc.lineTo(x*mask.width,y*mask.height):mc.moveTo(x*mask.width,y*mask.height));mc.closePath();mc.fill();}
+      gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,gl.createTexture());
+      gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+      gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,mask);gl.uniform1i(gl.getUniformLocation(program,'waterMask'),1);gl.activeTexture(gl.TEXTURE0);
       state={canvas,gl,program,time:gl.getUniformLocation(program,'time'),mode:gl.getUniformLocation(program,'mode')};fluidCache.set(image,state);
     }
     const {gl,canvas}=state;gl.viewport(0,0,canvas.width,canvas.height);gl.uniform1f(state.time,t);gl.uniform1f(state.mode,kind==='water'?1:kind==='waterfall'?2:kind==='fire'?4:3);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);return canvas;
@@ -173,13 +185,7 @@
           ctx.beginPath();ctx.ellipse(cx,cy-ph*.2*(1-u*u),Math.max(1,ph*.0018),ph*(.003+.005*u),0,0,TAU);ctx.fill();
         }
       } else if(motion==='waterfall') {
-        // The shader advects only the bright water; the rock image remains fixed.
-        for(let i=0;i<32;i++) {
-          const a=(noise(i)+t*.24)%1,cx=pw*(.18+noise(i+5)*.7)+Math.sin(t+i)*ph*.015,cy=ph*(.79-a*.12),r=ph*(.015+a*.05);
-          const mist=ctx.createRadialGradient(cx,cy,0,cx,cy,r);
-          mist.addColorStop(0,`rgba(239,251,255,${(1-a)*.12})`);mist.addColorStop(1,'rgba(239,251,255,0)');
-          ctx.globalAlpha=fade;ctx.fillStyle=mist;ctx.fillRect(cx-r,cy-r,r*2,r*2);
-        }
+        // Only the hand-traced water interiors move. No mist overlays on rocks.
       }
     }
     ctx.restore();
