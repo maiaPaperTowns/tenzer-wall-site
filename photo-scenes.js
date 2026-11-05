@@ -22,16 +22,19 @@
           // Keep the stock credit region intact while preview assets are in use.
           float credit=step(.59,q.x)*step(.55,q.y)*step(q.y,.78);
           if(mode<1.5){
-            vec2 d=vec2(0.);
-            for(int i=0;i<5;i++){
-              float n=float(i);float age=mod(time+n*.83,3.8)-.65;
-              vec2 center=vec2(.31+mod(n*.137,.38),.46+mod(n*.173,.28));
-              vec2 v=(q-center)*vec2(1.,2.7);float r=length(v);
-              float ring=r-age*.16;
-              float envelope=exp(-ring*ring*500.)*exp(-max(age,0.)*.8)*step(0.,age);
-              d+=normalize(v+vec2(.0001))*sin(r*110.-age*18.)*envelope*.008;
+            // Animate the three ripple systems already present in the photograph.
+            // No extra ellipse graphics are composited over the surface.
+            vec2 d=vec2(0.);float total=0.;
+            for(int i=0;i<3;i++){
+              vec2 center=i==0?vec2(.55,.23):(i==1?vec2(.25,.65):vec2(.79,.73));
+              vec2 v=q-center;vec2 elliptical=v*vec2(1.,1.3);float r=length(elliptical);
+              float influence=exp(-r*r*15.);
+              float wave=sin(r*62.-time*2.1+float(i)*1.8);
+              d+=normalize(v+vec2(.0001))*wave*.013*influence;
+              total+=influence;
             }
-            d+=vec2(sin(q.y*65.+time*1.3),cos(q.x*54.-time))* .0008;
+            d/=max(1.,total);
+            d+=vec2(sin(q.y*29.+time*.65),cos(q.x*31.-time*.72))*.0012;
             q+=d*(1.-credit);
           }else if(mode<2.5){
             // Advect the water texture downward, with two staggered passes.
@@ -112,32 +115,14 @@
           ctx.beginPath();ctx.arc(px,py,Math.max(.65,ph*.0022),0,TAU);ctx.fill();
         }
       } else if(motion==='water') {
-        // A drop accelerates toward the surface, then generates expanding rings.
-        for(let i=0;i<5;i++) {
-          const cycle=3.8,age=(t+i*.83)%cycle;
-          const cx=pw*(.31+(i*.137)%.38),cy=ph*(.46+(i*.173)%.28);
-          if(age<.65) {
-            const u=age/.65,dy=cy-ph*.38*(1-u*u);
-            ctx.globalAlpha=fade*.8;ctx.fillStyle='#e9ffff';
-            ctx.beginPath();ctx.ellipse(cx,dy,ph*.0025,ph*(.005+.009*u),0,0,TAU);ctx.fill();
-          } else {
-            const u=(age-.65)/(cycle-.65);
-            for(let ring=0;ring<3;ring++) {
-              const phase=u-ring*.075;if(phase<=0)continue;
-              const r=ph*(.006+phase*.29);
-              ctx.globalAlpha=fade*Math.pow(1-u,2)*(.55-ring*.1);
-              ctx.strokeStyle=ring%2?'#397c91':'#edffff';ctx.lineWidth=Math.max(1,ph*.002*(1-u));
-              ctx.beginPath();ctx.ellipse(cx,cy,r*1.8,r*.6,0,0,TAU);ctx.stroke();
-            }
-            if(u<.12) {
-              ctx.globalAlpha=fade*(1-u/.12)*.65;ctx.strokeStyle='#efffff';
-              for(let j=0;j<7;j++) {
-                const angle=j/7*TAU,dist=ph*u*.25;
-                const sx=cx+Math.cos(angle)*dist,sy=cy-Math.sin(j+1)*ph*u*.25;
-                ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(sx,sy-ph*.009);ctx.stroke();
-              }
-            }
-          }
+        // Drops land at the original ripple centers; the shader moves the surface.
+        const centers=[[.55,.23],[.25,.65],[.79,.73]];
+        for(let i=0;i<centers.length;i++) {
+          const age=(t+i*1.3)%4.6;
+          if(age>=.7)continue;
+          const u=age/.7,cx=pw*centers[i][0],cy=ph*centers[i][1];
+          ctx.globalAlpha=fade*.6;ctx.fillStyle='#ecffff';
+          ctx.beginPath();ctx.ellipse(cx,cy-ph*.2*(1-u*u),Math.max(1,ph*.0018),ph*(.003+.005*u),0,0,TAU);ctx.fill();
         }
       } else if(motion==='waterfall') {
         // The shader advects only the bright water; the rock image remains fixed.
