@@ -17,6 +17,9 @@
       gl.attachShader(program,shader(gl.VERTEX_SHADER,'attribute vec2 p; varying vec2 uv; void main(){uv=vec2((p.x+1.)*.5,(1.-p.y)*.5);gl_Position=vec4(p,0.,1.);}'));
       gl.attachShader(program,shader(gl.FRAGMENT_SHADER,`precision mediump float;
         varying vec2 uv;uniform sampler2D photo;uniform float time;uniform float mode;
+        float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+        float field(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hash(i),hash(i+vec2(1.,0.)),f.x),mix(hash(i+vec2(0.,1.)),hash(i+vec2(1.,1.)),f.x),f.y);}
+        float turbulence(vec2 p){return field(p)*.57+field(p*2.03)*.28+field(p*4.07)*.15;}
         void main(){
           vec2 q=uv;vec3 base=texture2D(photo,q).rgb;
           // Keep the stock credit region intact while preview assets are in use.
@@ -53,14 +56,18 @@
             float flame=smoothstep(.10,.35,base.r-base.b)*smoothstep(.20,.62,base.r);
             float liftA=fract(time*.48),liftB=fract(time*.48+.5);
             float blend=abs(liftA-.5)*2.;
-            float wind=sin(q.y*15.-time*2.7+sin(q.x*19.))* .009;
-            float curl=sin(q.y*38.-time*5.4+q.x*23.)*.004;
-            vec2 qa=vec2(q.x+wind+curl,q.y+liftA*.065);
-            vec2 qb=vec2(q.x+wind+curl,q.y+liftB*.065);
+            float gust=turbulence(vec2(q.x*7.,q.y*9.+time*1.8));
+            float detail=turbulence(vec2(q.x*19.+time*.2,q.y*22.+time*3.3));
+            float rise=1.-q.y;
+            float wind=(gust-.5)*(.018+.025*rise);
+            float curl=(detail-.5)*.016;
+            float surge=.65+turbulence(vec2(time*.8,q.x*5.))* .9;
+            vec2 qa=vec2(q.x+wind+curl,q.y+liftA*.11*surge);
+            vec2 qb=vec2(q.x+wind+curl,q.y+liftB*.11*surge);
             vec3 first=texture2D(photo,clamp(qa,.001,.999)).rgb;
             vec3 second=texture2D(photo,clamp(qb,.001,.999)).rgb;
             vec3 burning=mix(first,second,blend);
-            float flicker=1.+.035*sin(time*7.3+q.x*29.)+.025*sin(time*11.7-q.y*21.);
+            float flicker=.91+detail*.22+gust*.12;
             burning*=flicker;
             gl_FragColor=vec4(mix(base,burning,flame*(1.-credit)),1.);
             return;
@@ -110,8 +117,8 @@
         // Cloud movement is rendered directly from the original photograph above.
       } else if(motion==='fire') {
         for(let i=0;i<36;i++) {
-          const age=(noise(i+40)+t*.12) % 1,px=(noise(i+74)+Math.sin(t+i)*.008)*pw,py=ph*(1-age);
-          ctx.globalAlpha=fade*(1-age)*.28;ctx.fillStyle=i%2?'#ffb84c':'#ffe4aa';
+          const age=(noise(i+40)+t*(.18+noise(i+12)*.16)) % 1,px=(noise(i+74)+Math.sin(t+i)*.008)*pw,py=ph*(1-age);
+          ctx.globalAlpha=fade*(1-age)*.45;ctx.fillStyle=i%2?'#ffb84c':'#ffe4aa';
           ctx.beginPath();ctx.arc(px,py,Math.max(.65,ph*.0022),0,TAU);ctx.fill();
         }
       } else if(motion==='water') {
