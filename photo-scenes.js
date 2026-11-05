@@ -109,7 +109,9 @@
       const pc=patch.getContext('2d'),pixels=pc.createImageData(sw,sh);
       for(let y=top;y<=bottom;y++)for(let x=left;x<=right;x++){
         const src=(y*w+x)*4,dst=((y-top)*sw+x-left)*4,edgeL=(y*w+left-1)*4,edgeR=(y*w+right+1)*4,u=(x-left+1)/(sw+1);
-        const edge=Math.min(x-left+1,right-x+1,y-top+1,bottom-y+1),alpha=Math.min(1,edge/3);
+        const edge=Math.min(x-left+1,right-x+1,y-top+1,bottom-y+1);
+        const backgroundLight=((original.data[edgeL]+original.data[edgeL+1]+original.data[edgeL+2])*(1-u)+(original.data[edgeR]+original.data[edgeR+1]+original.data[edgeR+2])*u)/765;
+        const alpha=Math.min(1,edge/3)*Math.max(0,Math.min(1,(lum[y*w+x]-backgroundLight)/.12));
         for(let ch=0;ch<3;ch++){pixels.data[dst+ch]=original.data[src+ch];const bg=original.data[edgeL+ch]*(1-u)+original.data[edgeR+ch]*u;out.data[src+ch]=original.data[src+ch]*(1-alpha)+bg*alpha;}
         pixels.data[dst+3]=Math.round(alpha*255);
       }
