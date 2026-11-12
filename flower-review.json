@@ -1,0 +1,107 @@
+{
+  "version": 1,
+  "title": "Tenzer Wall - Flower Image Review",
+  "background": "#eee8da",
+  "entries": [
+    {
+      "id": "flower-1",
+      "glyph": "\u82b1",
+      "meaning": "Flower 1",
+      "behavior": "bloom",
+      "duration": 300,
+      "hue": 335,
+      "assets": [
+        "assets/flower-review/IMG_081.jpg"
+      ],
+      "options": {
+        "photoPrototype": 1
+      },
+      "reviewImageId": "IMG_081",
+      "transitions": {
+        "enter": 0.6,
+        "exit": 1,
+        "switch": 0.45
+      }
+    },
+    {
+      "id": "flower-2",
+      "glyph": "\u82b1",
+      "meaning": "Flower 2",
+      "behavior": "bloom",
+      "duration": 300,
+      "hue": 335,
+      "assets": [
+        "assets/flower-review/IMG_039.jpg"
+      ],
+      "options": {
+        "photoPrototype": 1
+      },
+      "reviewImageId": "IMG_039",
+      "transitions": {
+        "enter": 0.6,
+        "exit": 1,
+        "switch": 0.45
+      }
+    },
+    {
+      "id": "flower-3",
+      "glyph": "\u82b1",
+      "meaning": "Flower 3",
+      "behavior": "bloom",
+      "duration": 300,
+      "hue": 335,
+      "assets": [
+        "assets/flower-review/IMG_038.jpg"
+      ],
+      "options": {
+        "photoPrototype": 1
+      },
+      "reviewImageId": "IMG_038",
+      "transitions": {
+        "enter": 0.6,
+        "exit": 1,
+        "switch": 0.45
+      }
+    },
+    {
+      "id": "flower-4",
+      "glyph": "\u82b1",
+      "meaning": "Flower 4",
+      "behavior": "bloom",
+      "duration": 300,
+      "hue": 335,
+      "assets": [
+        "assets/flower-review/IMG_089.jpg"
+      ],
+      "options": {
+        "photoPrototype": 1
+      },
+      "reviewImageId": "IMG_089",
+      "transitions": {
+        "enter": 0.6,
+        "exit": 1,
+        "switch": 0.45
+      }
+    },
+    {
+      "id": "flower-5",
+      "glyph": "\u82b1",
+      "meaning": "Flower 5",
+      "behavior": "bloom",
+      "duration": 300,
+      "hue": 335,
+      "assets": [
+        "assets/flower-review/IMG_037.jpg"
+      ],
+      "options": {
+        "photoPrototype": 1
+      },
+      "reviewImageId": "IMG_037",
+      "transitions": {
+        "enter": 0.6,
+        "exit": 1,
+        "switch": 0.45
+      }
+    }
+  ]
+}

@@ -246,11 +246,35 @@
       spawnCounts=entries.map(()=>0);
       await loadKanjiFonts().catch(()=>{});
       status.textContent=missing.length?'Unavailable artwork: '+missing.join(', ')+'. Other characters are ready.':'';
+      if(new URLSearchParams(location.search).get('dataset')==='flower-review.json') setupFlowerReview();
       ready=true;begin.disabled=false;begin.innerHTML='Explore <span aria-hidden="true">→</span>';start(true);
     } catch(error) {
       status.textContent='Unable to start: '+error.message;
       begin.textContent='Artwork unavailable';
     }
+  }
+
+  function setupFlowerReview() {
+    document.body.classList.add('flower-review-mode');
+    document.querySelector('.review-link')?.remove();
+    const heading=document.querySelector('#intro h1');if(heading)heading.textContent='Flower Image Review';
+    const copy=document.querySelector('#intro .welcome-copy');
+    const panel=document.createElement('nav');panel.className='flower-review-panel';panel.setAttribute('aria-label','Choose a Flower candidate');
+    const title=document.createElement('strong');title.textContent='花 · Flower candidates';panel.append(title);
+    const buttons=document.createElement('div');buttons.className='flower-review-buttons';panel.append(buttons);
+    const status=document.createElement('p');status.id='flower-review-status';status.setAttribute('aria-live','polite');status.textContent='Choose an image to preview it on the wall.';
+    panel.append(status);
+    entries.forEach((entry,index)=>{
+      const button=document.createElement('button');button.type='button';button.textContent=`${index+1} · ${entry.reviewImageId}`;button.setAttribute('aria-pressed','false');
+      button.addEventListener('click',async()=>{
+        await start();
+        burst({...entry,state:'falling',x:w/2,y:h/2,size:Math.min(w,h)*.13});
+        buttons.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));
+        status.textContent=`Flower ${index+1} · ${entry.reviewImageId}`;
+      });buttons.append(button);
+    });
+    const back=document.createElement('a');back.href='index.html';back.textContent='Back to prototype';panel.append(back);
+    document.querySelector('#experience').append(panel);
   }
 
   function bindWallInput() {
