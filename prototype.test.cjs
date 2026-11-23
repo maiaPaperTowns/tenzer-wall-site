@@ -15,21 +15,21 @@ test('three supplied photos and original interface retained',()=>{
   assert.ok(!html.includes('data-scene='));
   assert.ok(!html.includes('Review 5 Flower images'));assert.ok(!html.includes('hammer.min.js'));
 });
-test('generated layers render finite geometry at wall and phone ratios',()=>{
+test('original-photo motion renders finite geometry at wall and phone ratios',()=>{
   const values={},gl=new Proxy({}, {get:(_,name)=>{
     if(name==='getShaderParameter'||name==='getProgramParameter')return()=>true;
     if(name==='getUniformLocation')return(_,key)=>key;
     if(name==='uniform1f')return(k,v)=>{values[k]=v;assert.ok(Number.isFinite(v));};
     return()=>({});
   }});
-  const canvas={width:0,height:0,getContext:()=>gl};
-  const document={createElement:()=>canvas};const window={drawStockScene(){}};
-  vm.runInNewContext(fs.readFileSync(path.join(root,'generated-motion.js'),'utf8'),{window,document,console});
+  const maskContext=new Proxy({},{get:()=>()=>{}});
+  const document={createElement:()=>({width:0,height:0,getContext:kind=>kind==='webgl'?gl:maskContext}),querySelector:()=>({})};const window={drawStockScene(){}};
+  vm.runInNewContext(fs.readFileSync(path.join(root,'photo-motion.js'),'utf8'),{window,document,console});
   const ctx=new Proxy({globalAlpha:1},{get:(o,k)=>k in o?o[k]:k==='createRadialGradient'?()=>({addColorStop(){}}):(...args)=>{for(const v of args)if(typeof v==='number')assert.ok(Number.isFinite(v));}});
-  assert.equal(window.TenzerGeneratedMotion.moonProgress(0),0);assert.equal(window.TenzerGeneratedMotion.moonProgress(28),1);
+  assert.equal(window.TenzerPhotoMotion.moonRiseSeconds,6);
   for(const[w,h]of [[1920,540],[7680,2160],[390,844]])for(const[mode,id]of ['moon','river','fish'].entries())for(const time of [0,12,35]){
     const scene={entry:{id,images:[{naturalWidth:2172,naturalHeight:724},{naturalWidth:1254,naturalHeight:1254}]},life:time};
-    window.drawStockScene(ctx,scene,.7,w,h,false);assert.equal(values.mode,mode);assert.equal(values.time,time);
-    window.drawStockScene(ctx,scene,.7,w,h,true);assert.equal(values.time,0);assert.equal(values.moving,0);
+    window.drawStockScene(ctx,scene,.7,w,h,false);assert.equal(values.mode,mode);assert.equal(values.t,time);
+    window.drawStockScene(ctx,scene,.7,w,h,true);assert.equal(values.t,0);assert.equal(values.moving,0);
   }
 });

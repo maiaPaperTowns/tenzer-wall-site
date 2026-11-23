@@ -1,14 +1,8 @@
-# Current prototype — November 22, 2026
+# Current prototype — original photographs
 
-The active Moon 月, River 川 and Fish 魚 study preserves the original wall UI and single-tap falling-character interaction. New ink-wash scenes include a layered moonrise, directional stream flow, and independently swimming fish with moving underwater light. The Flower review shortcut is removed.
+Moon 月, River 川 and Fish 魚 now use the exact three supplied photographs with a very light paper texture, bounded photo motion and a faster **6-second moonrise**. The generated ink-wash landscapes are inactive history. Original UI and single-tap falling characters remain.
 
-Live build: https://maiapapertowns.github.io/tenzer-wall-site/
-
-[Current implementation and source-resolution limits](GENERATED-PROTOTYPE-20261122.md).
-
-Generated scenery is approximately 2K, not native 7680px detail. Personal-use font binaries are not redistributed; installed UD Digi Kyokasho and the original fallback are used on the hosted build. Physical-wall validation remains necessary.
-
----
+[Implementation, animation and source-resolution limits](ORIGINAL-PHOTO-UPDATE.md).
 
 ## Earlier project documentation (historical)
 
