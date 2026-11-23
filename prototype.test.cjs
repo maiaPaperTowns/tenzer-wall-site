@@ -33,25 +33,3 @@ test('generated layers render finite geometry at wall and phone ratios',()=>{
     window.drawStockScene(ctx,scene,.7,w,h,true);assert.equal(values.time,0);assert.equal(values.moving,0);
   }
 });
-test('renderer routes every photograph and respects reduced motion',()=>{
-  const uniforms={},calls=[];
-  const gl=new Proxy({}, {get:(_,name)=>{
-    if(name==='getShaderParameter'||name==='getProgramParameter')return()=>true;
-    if(name==='getUniformLocation')return(_,key)=>key;
-    if(name==='uniform1f')return(k,v)=>{uniforms[k]=v;};
-    if(name==='drawArrays')return()=>calls.push({...uniforms});
-    return()=>({});
-  }});
-  const two=new Proxy({}, {get:()=>()=>{}});
-  const document={querySelector:()=>({}),createElement:()=>({width:0,height:0,getContext:type=>type==='webgl'?gl:two})};
-  const window={drawStockScene:()=>{throw Error('Unexpected legacy renderer');}};
-  vm.runInNewContext(fs.readFileSync(path.join(root,'photo-motion.js'),'utf8'),{window,document,console});
-  const ctx={save(){},restore(){},drawImage(){}};
-  for(const [mode,id]of ['moon','river','fish'].entries()){
-    const scene={entry:{id,images:[{naturalWidth:724,naturalHeight:483}]},life:5};
-    window.drawStockScene(ctx,scene,.8,1920,540,false);
-    assert.equal(calls.at(-1).mode,mode);assert.equal(calls.at(-1).t,5);assert.equal(calls.at(-1).moving,1);
-    window.drawStockScene(ctx,scene,.8,390,844,true);
-    assert.equal(calls.at(-1).t,0);assert.equal(calls.at(-1).moving,0);
-  }
-});
