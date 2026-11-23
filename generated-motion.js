@@ -13,7 +13,16 @@
   float noise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hash(i),hash(i+vec2(1.,0.)),f.x),mix(hash(i+vec2(0.,1.)),hash(i+vec2(1.)),f.x),f.y);}
   float fbm(vec2 p){return noise(p)*.57+noise(p*2.03)*.28+noise(p*4.07)*.15;}
   vec3 sampleAt(vec2 q){return texture2D(photo,clamp(q,.001,.999)).rgb;}
-  float water(vec2 q){float d=smoothstep(.405,.98,q.y);float left=mix(.47,.105,d),right=mix(.56,.90,d);return smoothstep(.415,.48,q.y)*smoothstep(left,left+.035,q.x)*(1.-smoothstep(right-.035,right,q.x));}
+  float island(vec2 q,vec2 center,vec2 radius){return smoothstep(.95,1.3,length((q-center)/radius));}
+  float water(vec2 q){
+    float d=smoothstep(.47,1.,q.y),left=mix(.465,.26,d),right=mix(.52,1.04,d);
+    float region=smoothstep(.48,.54,q.y)*smoothstep(left,left+.025,q.x)*(1.-smoothstep(right-.025,right,q.x));
+    region*=island(q,vec2(.54,.79),vec2(.052,.065));
+    region*=island(q,vec2(.36,.815),vec2(.035,.035));
+    region*=island(q,vec2(.805,.9),vec2(.046,.05));
+    region*=island(q,vec2(.51,.61),vec2(.026,.024));
+    return region;
+  }
   void main(){float ar=viewport.x/viewport.y,ia=photoSize.x/photoSize.y;vec2 scale=ar>ia?vec2(1.,ia/ar):vec2(ar/ia,1.);vec2 q=(uv-.5)*scale+.5;
     vec3 base=sampleAt(q),col=base;float t=time;
     if(mode<.5){
@@ -25,7 +34,7 @@
       col=mix(col,vec3(.43,.50,.53),wisps);
     }else if(mode<1.5){
       float region=water(q),d=smoothstep(.42,.98,q.y);
-      vec2 flow=vec2((q.x-.52)*.048,.060)*(.15+d*d);
+      vec2 flow=vec2((q.x-.50)*.025,.038)*(.15+d*d);
       float a=fract(t*.20),b=fract(t*.20+.5),blend=abs(a-.5)*2.;
       vec2 curl=vec2(sin(q.y*104.-t*3.4),cos(q.x*118.+t*2.5))*.0012*d;
       vec2 qa=q-flow*a+curl,qb=q-flow*b+curl;
@@ -77,10 +86,14 @@
     const order=Array.from({length:count},(_,i)=>i).sort((a,b)=>seed(a+40)-seed(b+40));
     for(const i of order){
       const depth=.25+seed(i+40)*.75,speed=.018+depth*.022,phase=seed(i+51)*Math.PI*2;
-      const path=(seed(i+9)+t*speed) % 1.35;
-      const x=(path-.16)*w,y=h*(.27+seed(i+13)*.47)+Math.sin(t*.32+phase)*h*.025;
+      // Long oval circuits: fish turn and swim back, rather than a one-way conveyor.
+      const orbit=phase+t*speed*1.8;
+      const x=w*(.5+Math.sin(orbit)*(.43+seed(i+8)*.12));
+      const y=h*(.28+seed(i+13)*.43)+Math.cos(orbit)*h*.075+Math.sin(t*.32+phase)*h*.015;
       const fw=h*(.065+depth*.12),fh=fw*(sprite.naturalHeight/sprite.naturalWidth);
-      ctx.save();ctx.globalAlpha=opacity*(.36+depth*.58);ctx.translate(x,y);ctx.rotate(Math.sin(t*.28+phase)*.028);ctx.scale(.96+Math.sin(t*3.1+phase)*.025,1);
+      const direction=Math.cos(orbit)>=0?1:-1;
+      const turning=.24+.76*Math.pow(Math.abs(Math.cos(orbit)),.25);
+      ctx.save();ctx.globalAlpha=opacity*(.36+depth*.58);ctx.translate(x,y);ctx.rotate(Math.sin(t*.28+phase)*.028);ctx.scale(direction*turning*(.96+Math.sin(t*3.1+phase)*.025),1);
       // A continuous body wave grows toward the tail (left), while the head stays steady.
       const strips=38,sw=sprite.naturalWidth/strips,step=fw/strips;
       for(let j=0;j<strips;j++){const z=(j+.5)/strips,tail=Math.pow(1-z,2.6),wave=reduced?0:Math.sin(t*(3.6+depth)+phase-z*5.5)*fh*.14*tail;ctx.drawImage(sprite,j*sw,0,sw+.6,sprite.naturalHeight,-fw/2+j*step,-fh/2+wave,step+.45,fh);}
@@ -90,7 +103,7 @@
     ctx.save();ctx.fillStyle='#e9eee0';for(let i=0;i<70;i++){const d=.3+seed(i+201)*.7,x=((seed(i+91)+t*.003*d)%1)*w,y=((seed(i+121)-t*.004*d)%1+1)%1*h;ctx.globalAlpha=opacity*(.08+d*.13);ctx.beginPath();ctx.arc(x,y,Math.max(.5,h*.001*d),0,Math.PI*2);ctx.fill();}ctx.restore();
   }
   window.drawStockScene=(ctx,s,fade,w,h,reduced)=>{
-    const mode=['moon','river','fish'].indexOf(s.entry.id);if(mode<0)return previous(ctx,s,fade,w,h,reduced);
+    const mode=['moon','river','fish'].indexOf(s.entry.id);if(mode<=0)return previous(ctx,s,fade,w,h,reduced);
     const image=s.entry.images[0];if(!image?.naturalWidth)return;
     if(surface.width!==w||surface.height!==h){surface.width=w;surface.height=h;}gl.viewport(0,0,w,h);gl.useProgram(program);
     gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,texture(image));gl.uniform1i(u.photo,0);gl.uniform2f(u.viewport,w,h);gl.uniform2f(u.photoSize,image.naturalWidth,image.naturalHeight);gl.uniform1f(u.time,reduced?0:s.life);gl.uniform1f(u.mode,mode);gl.uniform1f(u.moving,reduced?0:1);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);

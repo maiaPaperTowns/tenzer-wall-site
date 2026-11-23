@@ -33,3 +33,24 @@ test('original-photo motion renders finite geometry at wall and phone ratios',()
     window.drawStockScene(ctx,scene,.7,w,h,true);assert.equal(values.t,0);assert.equal(values.moving,0);
   }
 });
+test('panoramic painted scenes fill wall and fish circulate with reduced-motion support',()=>{
+  const values={},gl=new Proxy({}, {get:(_,name)=>{
+    if(name==='getShaderParameter'||name==='getProgramParameter')return()=>true;
+    if(name==='getUniformLocation')return(_,key)=>key;
+    if(name==='uniform1f')return(k,v)=>{values[k]=v;assert.ok(Number.isFinite(v));};
+    return()=>({});
+  }});
+  const document={createElement:()=>({getContext:()=>gl})};let delegated=0;
+  const window={drawStockScene(){delegated++;}};
+  vm.runInNewContext(fs.readFileSync(path.join(root,'generated-motion.js'),'utf8'),{window,document,console});
+  const ctx=new Proxy({globalAlpha:1},{get:(o,k)=>k in o?o[k]:(...args)=>{for(const v of args)if(typeof v==='number')assert.ok(Number.isFinite(v));}});
+  for(const [w,h]of [[1920,540],[7680,2160],[390,844]])for(const id of ['river','fish'])for(const time of [0,6,20,31]){
+    const s={entry:{id,images:[{naturalWidth:2172,naturalHeight:724},{naturalWidth:2172,naturalHeight:724}]},life:time};
+    window.drawStockScene(ctx,s,.8,w,h,false);assert.equal(values.time,time);assert.equal(values.moving,1);
+    window.drawStockScene(ctx,s,.8,w,h,true);assert.equal(values.time,0);assert.equal(values.moving,0);
+  }
+  window.drawStockScene(ctx,{entry:{id:'moon'}},1,1920,540,false);assert.equal(delegated,1);
+  const cfg=JSON.parse(fs.readFileSync(path.join(root,'config.json')));
+  assert.equal(cfg.entries[0].assets[0],'assets/moon.jpg');
+  for(const entry of cfg.entries.slice(1))for(const asset of entry.assets)assert.ok(fs.statSync(path.join(root,asset)).size>1000);
+});

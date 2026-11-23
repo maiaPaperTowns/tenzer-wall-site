@@ -5,7 +5,7 @@
   "transitions":{"enter":1.4,"exit":2.2,"switch":0.75},
   "entries":[
     {"id":"moon","glyph":"月","meaning":"Moon","behavior":"moon","hue":210,"duration":32,"assets":["assets/moon.jpg"],"options":{"photoPrototype":1}},
-    {"id":"river","glyph":"川","meaning":"River","behavior":"river","hue":195,"duration":32,"assets":["assets/river.jpg"],"options":{"photoPrototype":1}},
-    {"id":"fish","glyph":"魚","meaning":"Fish","behavior":"fish","hue":200,"duration":32,"assets":["assets/fish.jpg"],"options":{"photoPrototype":1}}
+    {"id":"river","glyph":"川","meaning":"River","behavior":"river","hue":195,"duration":32,"assets":["assets/generated/river-panorama-v3.webp"],"options":{"photoPrototype":1}},
+    {"id":"fish","glyph":"魚","meaning":"Fish","behavior":"fish","hue":200,"duration":32,"assets":["assets/generated/underwater-panorama-v3.webp","assets/generated/silver-fish-v3.webp"],"options":{"photoPrototype":1}}
   ]
 }

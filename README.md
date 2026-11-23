@@ -1,8 +1,8 @@
-# Current prototype — original photographs
+# Current prototype — full-wall painted v3
 
-Moon 月, River 川 and Fish 魚 now use the exact three supplied photographs with a very light paper texture, bounded photo motion and a faster **6-second moonrise**. The generated ink-wash landscapes are inactive history. Original UI and single-tap falling characters remain.
+River 川 and Fish 魚 now use panoramic watercolor/ink artwork generated from the main subjects of the original photos and the supplied painting-style reference. Full-bleed framing replaces blurred sidebars. Independent silver fish swim oval circuits, turn and move their tails; stream water flows around stationary major rocks. Moon 月 retains its six-second rise. Original interface and single-tap falling characters remain.
 
-[Implementation, animation and source-resolution limits](ORIGINAL-PHOTO-UPDATE.md).
+[Assets, built-in generation prompts, implementation and resolution limits](FULL-WALL-PAINTED-V3.md).
 
 ## Earlier project documentation (historical)
 
