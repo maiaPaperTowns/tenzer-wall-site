@@ -1,3 +1,17 @@
+# Current prototype — November 22, 2026
+
+The active Moon 月, River 川 and Fish 魚 study preserves the original wall UI and single-tap falling-character interaction. New ink-wash scenes include a layered moonrise, directional stream flow, and independently swimming fish with moving underwater light. The Flower review shortcut is removed.
+
+Live build: https://maiapapertowns.github.io/tenzer-wall-site/
+
+[Current implementation and source-resolution limits](GENERATED-PROTOTYPE-20261122.md).
+
+Generated scenery is approximately 2K, not native 7680px detail. Personal-use font binaries are not redistributed; installed UD Digi Kyokasho and the original fallback are used on the hosted build. Physical-wall validation remains necessary.
+
+---
+
+## Earlier project documentation (historical)
+
 # Living Ink — Tenzer Kanji Wall
 
 An immersive, touch-responsive artwork that connects Kanji characters with their meanings. Falling characters become animated landscapes, plants, animals and weather when selected.

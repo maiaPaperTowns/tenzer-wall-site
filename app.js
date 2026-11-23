@@ -61,11 +61,16 @@
       if(distance>clearance){x=candidate;clearance=distance;}
       if(distance>size*1.65)break;
     }
-    characters.push({
+    const character={
       ...type, x, y, size,
       vy: reduced ? 8 : rand(15, 29), drift: rand(-3, 3), phase: rand(0, Math.PI * 2),
       alpha: 0, life: 0, state: 'falling', scale: 1, rotation: 0
-    });
+    };
+    // Semantic hit target follows the original canvas glyph; visuals stay unchanged.
+    const target=document.createElement('button');target.className='kanji-hit-target';
+    target.setAttribute('aria-label',type.meaning+' '+type.glyph);target.textContent=type.glyph;
+    target.onclick=()=>burst(character);document.querySelector('#experience').append(target);
+    character.hitTarget=target;characters.push(character);
   }
 
   function resolveCharacterSpacing() {
@@ -169,7 +174,12 @@
       c.alpha = Math.max(0, 1 - c.life / 3.8); c.scale = 1;
       if (c.alpha <= 0) c.state = 'gone';
     }
-    if (c.state === 'gone') return;
+    if(c.hitTarget){
+      c.hitTarget.hidden=c.state!=='falling'||c.alpha<.1;
+      c.hitTarget.style.left=(c.x-c.size*.65)+'px';c.hitTarget.style.top=(c.y-c.size*.65)+'px';
+      c.hitTarget.style.width=c.hitTarget.style.height=(c.size*1.3)+'px';
+    }
+    if (c.state === 'gone') {c.hitTarget?.remove();return;}
     ctx.save(); ctx.translate(c.x, c.y); ctx.rotate(c.rotation); ctx.scale(c.scale, c.scale);
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.font = `700 ${c.size}px "UD Digi Kyokasho NK-B", "uddigikyokasho-pro", sans-serif`;
@@ -218,8 +228,9 @@
   async function loadKanjiFonts() {
     if (!document.fonts) return;
     await window.tenzerFontsReady;
+    await window.tenzerLocalFontsReady;
     await Promise.race([
-      document.fonts.load('700 120px "uddigikyokasho-pro"', entries.map(e=>e.glyph||'').join('')),
+      document.fonts.load('700 120px "UD Digi Kyokasho NK-B"', entries.map(e=>e.glyph||'').join('')),
       new Promise(resolve=>setTimeout(resolve,3000))
     ]);
   }

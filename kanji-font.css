@@ -1,0 +1,6 @@
+/* Local evaluation only. The supplied font repository states personal use only. */
+@font-face{font-family:'UD Digi Kyokasho NK-B';src:local('UD Digi Kyokasho NK-B'),local('UD Digi Kyokasho NK Bold');font-weight:700;font-display:swap}
+@font-face{font-family:'UD Digi Kyokasho NK-R';src:local('UD Digi Kyokasho NK-R');font-weight:400;font-display:swap}
+.kanji-hit-target{position:absolute;z-index:1;margin:0;padding:0;border:0;background:transparent!important;box-shadow:none!important;color:transparent!important;opacity:0;cursor:pointer;touch-action:manipulation}
+.kanji-hit-target:focus-visible{opacity:1;border:2px solid #b77c87;border-radius:16px;outline:none}
+.kanji-hit-target[hidden]{display:none}
