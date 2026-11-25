@@ -1,8 +1,8 @@
-# Current prototype — full-wall painted v3
+# Current prototype — source-photo motion, November 25, 2026
 
-River 川 and Fish 魚 now use panoramic watercolor/ink artwork generated from the main subjects of the original photos and the supplied painting-style reference. Full-bleed framing replaces blurred sidebars. Independent silver fish swim oval circuits, turn and move their tails; stream water flows around stationary major rocks. Moon 月 retains its six-second rise. Original interface and single-tap falling characters remain.
+Moon 月, River 川 and Fish 魚 use the exact supplied JPEGs. No generated artwork, paper grain or painted overlay is active. Fish motion is bounded source-region deformation, not separately segmented fish sprites. River flow is water-masked; Moon rises in six seconds. Proportional full-screen framing crops edges without stretching objects. Original UI and single-tap falling characters remain.
 
-[Assets, built-in generation prompts, implementation and resolution limits](FULL-WALL-PAINTED-V3.md).
+[Implementation and limitations](SOURCE-PHOTO-MOTION-20261125.md).
 
 ## Earlier project documentation (historical)
 

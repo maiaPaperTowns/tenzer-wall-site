@@ -13,6 +13,15 @@
   float noise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hash(i),hash(i+vec2(1.,0.)),f.x),mix(hash(i+vec2(0.,1.)),hash(i+vec2(1.)),f.x),f.y);}
   float fbm(vec2 p){return .57*noise(p)+.28*noise(p*2.03)+.15*noise(p*4.07);}
   vec3 samplePhoto(vec2 q){return texture2D(photo,clamp(q,vec2(.001),vec2(.999))).rgb;}
+  vec2 fishRegion(vec2 q,vec2 center,vec2 radius,float angle,float phase){
+    float c=cos(angle),s=sin(angle);vec2 local=mat2(c,-s,s,c)*(q-center);
+    float weight=1.-smoothstep(.4,1.,length(local/radius));
+    // Each source region has its own phase. Zero displacement at region edges
+    // preserves silhouettes without replacing fish with generic generated sprites.
+    float tail=1.-smoothstep(-radius.x,radius.x,local.x);
+    vec2 shift=vec2(sin(t*.65+phase)*.0035,sin(t*3.1+phase+local.x*65.)*.002*(.3+tail));
+    return shift*weight;
+  }
   void main(){
     vec2 screen=vec2(uv.x,1.-uv.y);vec2 q=screen;
     float ar=resolution.x/resolution.y,ia=imageSize.x/imageSize.y;
@@ -22,6 +31,11 @@
     vec2 contained=(screen-.5)/fit+.5;
     float inside=step(0.,contained.x)*step(contained.x,1.)*step(0.,contained.y)*step(contained.y,1.);
     q=clamp(contained,.001,.999);
+    if(mode>.5){
+      // Fill the viewport without stretching the original objects; crop only.
+      vec2 scale=ar>ia?vec2(1.,ia/ar):vec2(ar/ia,1.);
+      q=(screen-.5)*scale+vec2(.5,ar>ia?.58:.5);
+    }
     vec3 col=samplePhoto(q);
     if(mode<.5){
       // Original lunar pixels, size and final placement; no invented sky or scenery.
@@ -43,31 +57,25 @@
       float sparkle=pow(max(0.,sin(q.x*470.+q.y*300.-t*5.)),18.)*.05;
       col+=sparkle*region*moving;
     }else{
-      // Movement is strongest through the actual school, not a camera pan.
-      float school=smoothstep(.40,.53,q.y)*(1.-smoothstep(.91,.99,q.y));
-      school*=smoothstep(.17,.30,q.x)*(1.-smoothstep(.91,1.,q.x));
-      float sweep=sin(t*.24)*.016;
-      vec2 swim=vec2(sweep+sin(q.y*48.-t*3.1)*.0025,sin(q.x*32.+t*2.4)*.002);
+      // Independently masked source-photo regions; no generated fish, paint,
+      // replacement scene, copied fish or global school translation.
+      vec2 swim=vec2(0.);
+      swim+=fishRegion(q,vec2(.40,.70),vec2(.055,.050),-.7,.2);
+      swim+=fishRegion(q,vec2(.45,.78),vec2(.046,.055),-.8,1.4);
+      swim+=fishRegion(q,vec2(.54,.82),vec2(.050,.065),-.9,2.5);
+      swim+=fishRegion(q,vec2(.67,.85),vec2(.055,.058),-.7,3.4);
+      swim+=fishRegion(q,vec2(.74,.69),vec2(.050,.035),-.3,4.3);
+      swim+=fishRegion(q,vec2(.84,.61),vec2(.060,.027),.1,5.2);
+      swim+=fishRegion(q,vec2(.58,.56),vec2(.045,.025),.1,2.0);
+      swim+=fishRegion(q,vec2(.39,.54),vec2(.040,.026),0.,3.8);
       vec2 water=vec2(sin(q.y*33.+t*.7),cos(q.x*26.-t*.55))*.0014;
-      col=samplePhoto(q+(swim*school+water)*moving);
+      col=samplePhoto(q+(swim+water*.3)*moving);
       float rays=pow(max(0.,sin((q.x-.47)/(q.y+.13)*11.+t*.10)),8.)*.045;
       col+=vec3(.45,.8,1.)*rays*(1.-q.y)*moving;
       vec2 drift=vec2(q.x*95.+sin(t*.15)*.4,q.y*80.+t*.65);
       float mote=step(.993,hash(floor(drift)))*(1.-smoothstep(.02,.12,length(fract(drift)-.5)))*.18;
       col+=mote*(1.-smoothstep(.1,.8,q.y))*moving;
     }
-    if(mode>.5){
-      // A soft dark edge extension avoids cropping the river or school on 32:9 walls.
-      vec2 cover=screen;if(ar>ia)cover.y=(screen.y-.5)*ia/ar+.5;else cover.x=(screen.x-.5)*ar/ia+.5;
-      vec3 surround=vec3(0.);
-      for(int i=-2;i<=2;i++)for(int j=-2;j<=2;j++)surround+=samplePhoto(cover+vec2(float(i),float(j))*.028);
-      surround*=.012;
-      float feather=smoothstep(0.,.028,min(min(contained.x,1.-contained.x),min(contained.y,1.-contained.y)));
-      col=mix(surround,col,inside*feather);
-    }
-    // Quiet, fixed paper tooth only; do not repaint or change the photo palette.
-    float paper=(hash(floor(q*imageSize*1.5))-.5)*.012;
-    col*=1.+paper;
     col*=mix(.0,1.,entrance);gl_FragColor=vec4(col,1.);
   }`;
   function shader(type,source){const s=gl.createShader(type);gl.shaderSource(s,source);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(s));return s;}

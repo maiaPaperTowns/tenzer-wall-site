@@ -33,7 +33,7 @@ test('original-photo motion renders finite geometry at wall and phone ratios',()
     window.drawStockScene(ctx,scene,.7,w,h,true);assert.equal(values.t,0);assert.equal(values.moving,0);
   }
 });
-test('panoramic painted scenes fill wall and fish circulate with reduced-motion support',()=>{
+test('archived painted renderer remains compatible but is not active',()=>{
   const values={},gl=new Proxy({}, {get:(_,name)=>{
     if(name==='getShaderParameter'||name==='getProgramParameter')return()=>true;
     if(name==='getUniformLocation')return(_,key)=>key;
@@ -53,4 +53,18 @@ test('panoramic painted scenes fill wall and fish circulate with reduced-motion 
   const cfg=JSON.parse(fs.readFileSync(path.join(root,'config.json')));
   assert.equal(cfg.entries[0].assets[0],'assets/moon.jpg');
   for(const entry of cfg.entries.slice(1))for(const asset of entry.assets)assert.ok(fs.statSync(path.join(root,asset)).size>1000);
+});
+test('active build uses only exact source photos with no painting or generated renderer',()=>{
+  const crypto=require('node:crypto');
+  const expected={moon:'358c54f9153833b6072a03f0377deb2313c8ccd0',river:'65ef6ed1d04149ad7f368f975236d678b8c8c5a2',fish:'967fc5f914da7e2c6a75b603d30c026770ae1555'};
+  const cfg=JSON.parse(fs.readFileSync(path.join(root,'config.json')));
+  for(const entry of cfg.entries){
+    assert.deepEqual(entry.assets,['assets/'+entry.id+'.jpg']);
+    assert.equal(crypto.createHash('sha1').update(fs.readFileSync(path.join(root,entry.assets[0]))).digest('hex'),expected[entry.id]);
+  }
+  const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
+  assert.ok(!html.includes('src="generated-motion.js'));
+  const motion=fs.readFileSync(path.join(root,'photo-motion.js'),'utf8');
+  assert.ok(!motion.includes('col*=1.+paper'));
+  assert.ok(motion.includes('fishRegion(q,'));
 });
