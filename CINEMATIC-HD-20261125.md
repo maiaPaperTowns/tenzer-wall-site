@@ -4,6 +4,8 @@ November 25, 2026. Original UI, falling characters, single tap, sound, About and
 
 ## What changed
 
+Water/light v2: stronger two-axis refraction moves the photographed surface, with a 32:9-aware falloff. Drifting sunbeams, moving irregular caustics and slow exposure variation extend through the water column; fish highlights share the light phase. Reduced motion disables all these effects. No new image assets or changes to Moon/River.
+
 - Fish now uses a clean photographic plate plus independently translating transparent fish sprites, rather than deformation of a still school. Depth-sorted fish move in both directions, with tail-led body waves and moving highlights. The surface ripples, sunbeams sway and suspended particles drift. Reduced motion freezes all motion.
 - River uses a detail-restored photographic reference, existing water mask and downstream two-phase flow; major rock exclusions keep the banks and rocks still.
 - Moon uses a detail-restored photographic reference with the same six-second rise and black background.

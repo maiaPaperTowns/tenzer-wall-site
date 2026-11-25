@@ -21,15 +21,25 @@
         float ar=viewport.x/viewport.y,ia=imageSize.x/imageSize.y;
         vec2 fit=ar>ia?vec2(1.,ia/ar):vec2(ar/ia,1.);
         vec2 q=(uv-.5)*fit+vec2(.5,ar>ia?.53:.5);
-        float surface=1.-smoothstep(.04,.48,q.y);
-        vec2 ripple=vec2(sin(q.y*57.-time*1.4)+sin(q.y*107.+time*.8)*.35,cos(q.x*48.+time*.9)*.5);
-        vec3 col=texture2D(photo,clamp(q+ripple*.0025*surface*moving,.001,.999)).rgb;
-        float source=.48+sin(time*.23)*.035;
+        // Distort the photographed water surface itself, not just a light overlay.
+        // The influence extends far enough down to remain visible on a 32:9 wall.
+        float surface=1.-smoothstep(.08,.72,q.y);
+        vec2 ripple=vec2(sin(q.y*43.-time*1.7+sin(q.x*17.+time*.4))+
+          sin(q.y*89.+time*1.1)*.38,cos(q.x*37.+time*1.3+sin(q.y*23.-time*.6))*.65);
+        vec2 refraction=ripple*(.0012+.0065*surface);
+        refraction.x+=sin(q.y*7.-time*.65)*.006*(1.-surface);
+        vec3 col=texture2D(photo,clamp(q+refraction*moving,.001,.999)).rgb;
+        float source=.48+sin(time*.37)*.060;
         float angle=(q.x-source)/(q.y+.16);
-        float rays=pow(max(0.,sin(angle*14.+sin(time*.47+q.y*4.)*.55)),12.);
-        float veil=(.55+.45*sin(time*.7+angle*3.))*rays*pow(1.-q.y,1.2);
-        col+=vec3(.40,.67,.80)*veil*.14*moving;
-        col*=1.+sin(time*.55+q.y*5.)*.025*moving;
+        float rayPhase=angle*13.+sin(time*.62+q.y*3.)*1.05;
+        float rays=pow(max(0.,sin(rayPhase)),7.);
+        float veil=(.60+.40*sin(time*.86+angle*3.))*rays*pow(1.-q.y,.8);
+        float caustic=.5+.5*sin(q.x*47.+sin(q.y*29.+time*.8)*2.)*
+          sin(q.y*39.-time*1.4+sin(q.x*23.+time*.7));
+        caustic=pow(caustic,9.);
+        col+=vec3(.40,.67,.80)*veil*.24*moving;
+        col+=vec3(.40,.70,.82)*caustic*.10*(.25+.75*surface)*moving;
+        col*=1.+(sin(time*.72+q.y*6.)*.045+sin(time*1.1+q.x*9.)*.025)*moving;
         gl_FragColor=vec4(col,1.);
       }`;
     const shader=(kind,source)=>{const s=gl.createShader(kind);gl.shaderSource(s,source);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(s));return s;};
@@ -55,8 +65,8 @@
     const order=Array.from({length:count},(_,i)=>i).sort((a,b)=>seed(a+40)-seed(b+40));
     for(const i of order){
       const f=position(i,t),fw=h*(.045+f.depth*.15),fh=fw*fish.naturalHeight/fish.naturalWidth;
-      const shimmer=reduced?0:Math.sin(t*1.1+i+f.x*7.)*.07;
-      ctx.save();ctx.globalAlpha=fade*(.30+f.depth*.66+shimmer);ctx.translate(f.x*w,f.y*h);ctx.rotate(Math.sin(t*.5+i)*.075);ctx.scale(f.direction,1);
+      const shimmer=reduced?0:Math.sin(t*.86+f.x*13.+f.y*3.)*.12;
+      ctx.save();ctx.globalAlpha=fade*Math.min(1,Math.max(.05,.30+f.depth*.66+shimmer));ctx.translate(f.x*w,f.y*h);ctx.rotate(Math.sin(t*.5+i)*.075);ctx.scale(f.direction,1);
       // Tail-led body wave, stable head, real translation through the scene.
       const strips=24,sw=fish.naturalWidth/strips,step=fw/strips;
       for(let j=0;j<strips;j++){const z=(j+.5)/strips;
