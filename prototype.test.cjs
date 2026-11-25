@@ -51,20 +51,39 @@ test('archived painted renderer remains compatible but is not active',()=>{
   }
   window.drawStockScene(ctx,{entry:{id:'moon'}},1,1920,540,false);assert.equal(delegated,1);
   const cfg=JSON.parse(fs.readFileSync(path.join(root,'config.json')));
-  assert.equal(cfg.entries[0].assets[0],'assets/moon.jpg');
+  assert.equal(cfg.entries[0].assets[0],'assets/moon-restored-hd.webp');
   for(const entry of cfg.entries.slice(1))for(const asset of entry.assets)assert.ok(fs.statSync(path.join(root,asset)).size>1000);
 });
-test('active build uses only exact source photos with no painting or generated renderer',()=>{
+test('source originals retained; no painterly renderer; fish uses separate photographic layers',()=>{
   const crypto=require('node:crypto');
   const expected={moon:'358c54f9153833b6072a03f0377deb2313c8ccd0',river:'65ef6ed1d04149ad7f368f975236d678b8c8c5a2',fish:'967fc5f914da7e2c6a75b603d30c026770ae1555'};
   const cfg=JSON.parse(fs.readFileSync(path.join(root,'config.json')));
   for(const entry of cfg.entries){
-    assert.deepEqual(entry.assets,['assets/'+entry.id+'.jpg']);
-    assert.equal(crypto.createHash('sha1').update(fs.readFileSync(path.join(root,entry.assets[0]))).digest('hex'),expected[entry.id]);
+    assert.equal(crypto.createHash('sha1').update(fs.readFileSync(path.join(root,'assets/'+entry.id+'.jpg'))).digest('hex'),expected[entry.id]);
   }
   const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
   assert.ok(!html.includes('src="generated-motion.js'));
+  assert.ok(html.includes('src="fish-cinematic.js'));
+  assert.equal(cfg.entries[2].assets.length,2);
   const motion=fs.readFileSync(path.join(root,'photo-motion.js'),'utf8');
   assert.ok(!motion.includes('col*=1.+paper'));
   assert.ok(motion.includes('fishRegion(q,'));
+});
+test('fish actually translate through the scene, tails change phase, light advances; reduced motion freezes',()=>{
+  const values={},gl=new Proxy({}, {get:(_,key)=>{
+    if(key==='getShaderParameter'||key==='getProgramParameter')return()=>true;
+    if(key==='getUniformLocation')return(_,k)=>k;
+    if(key==='uniform1f')return(k,v)=>{values[k]=v;assert.ok(Number.isFinite(v));};
+    return()=>({});
+  }});
+  const window={drawStockScene(){}},document={createElement:()=>({getContext:()=>gl})};
+  vm.runInNewContext(fs.readFileSync(path.join(root,'fish-cinematic.js'),'utf8'),{window,document,console});
+  const a=window.TenzerFishCinematic.position(1,0),b=window.TenzerFishCinematic.position(1,3);
+  assert.ok(Math.abs(a.x-b.x)>.05);assert.notEqual(a.tail,b.tail);
+  const ctx=new Proxy({globalAlpha:1},{get:(o,k)=>k in o?o[k]:(...args)=>{for(const v of args)if(typeof v==='number')assert.ok(Number.isFinite(v));}});
+  for(const[w,h]of [[1920,1080],[1920,540],[7680,2160],[390,844]]){
+    const s={life:8,entry:{id:'fish',images:[{naturalWidth:1536,naturalHeight:1024},{naturalWidth:2172,naturalHeight:724}]}};
+    window.drawStockScene(ctx,s,.8,w,h,false);assert.equal(values.time,8);assert.equal(values.moving,1);
+    window.drawStockScene(ctx,s,.8,w,h,true);assert.equal(values.time,0);assert.equal(values.moving,0);
+  }
 });

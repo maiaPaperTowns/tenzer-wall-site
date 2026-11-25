@@ -1,8 +1,8 @@
-# Current prototype — source-photo motion, November 25, 2026
+# Current prototype — photographic cinematic animation, November 25, 2026
 
-Moon 月, River 川 and Fish 魚 use the exact supplied JPEGs. No generated artwork, paper grain or painted overlay is active. Fish motion is bounded source-region deformation, not separately segmented fish sprites. River flow is water-masked; Moon rises in six seconds. Proportional full-screen framing crops edges without stretching objects. Original UI and single-tap falling characters remain.
+Fish now uses separate transparent photographic fish, real translation, tail waves and moving underwater sunbeams over a clean photographic plate. Moon and River use photographic reference restorations, with six-second moonrise and masked stream flow. No painting overlay. Original UI and single-tap falling characters remain. Rendering tested at 1920×1080 output; restored backgrounds are 1536×1024 class, not native Full HD/8K source photography. AI reconstruction is not pixel-identical to the source.
 
-[Implementation and limitations](SOURCE-PHOTO-MOTION-20261125.md).
+[Assets, prompts, animation and resolution limits](CINEMATIC-HD-20261125.md).
 
 ## Earlier project documentation (historical)
 
