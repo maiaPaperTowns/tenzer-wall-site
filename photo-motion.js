@@ -54,8 +54,6 @@
       vec3 flow=mix(samplePhoto(qa),samplePhoto(qb),blend);
       float safeA=texture2D(mask,clamp(qa,.001,.999)).r,safeB=texture2D(mask,clamp(qb,.001,.999)).r;
       col=mix(col,flow,region*min(safeA,safeB)*.9*moving);
-      float sparkle=pow(max(0.,sin(q.x*470.+q.y*300.-t*5.)),18.)*.05;
-      col+=sparkle*region*moving;
     }else{
       // Independently masked source-photo regions; no generated fish, paint,
       // replacement scene, copied fish or global school translation.
